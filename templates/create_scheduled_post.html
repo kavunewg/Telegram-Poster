@@ -1,0 +1,330 @@
+<!-- templates/create_scheduled_post.html -->
+{% extends "base.html" %}
+
+{% block title %}Отложенный пост | Telegram Постер{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="header-actions">
+            <a href="/dashboard" class="btn btn-secondary btn-sm">🔙 Назад</a>
+        </div>
+
+        <h2>⏰ Отложенный пост</h2>
+        <p class="subtitle">Создайте пост, который отправится автоматически в указанное время</p>
+
+        <form action="/schedule_post" method="post" id="scheduleForm" enctype="multipart/form-data">
+            <!-- Блок выбора каналов -->
+            <div class="section-block">
+                <div class="section-header">
+                    <div class="section-icon">📢</div>
+                    <div class="section-title">Каналы публикации</div>
+                    <div class="section-badge">обязательно</div>
+                </div>
+                
+                <div class="channels-grid" id="channelsGrid">
+                    {% for channel in channels %}
+                    <div class="channel-select-card" data-channel-id="{{ channel[0] }}" onclick="toggleChannel(this, event)">
+                        <input type="checkbox" class="channel-checkbox" value="{{ channel[0] }}" 
+                               data-name="{{ channel[2] }}" data-channel-id="{{ channel[3] }}" 
+                               data-platform="{{ channel[5] }}">
+                        <div class="channel-info">
+                            <div class="channel-name">
+                                {{ channel[2] }}
+                                {% if channel[5] == 'telegram' %}
+                                <span class="badge">🤖 Telegram</span>
+                                {% else %}
+                                <span class="badge">📱 Max</span>
+                                {% endif %}
+                            </div>
+                            <div class="channel-id">ID: {{ channel[3] }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="selection-info">
+                    <span>📊 Выбрано каналов: <strong id="selectedCount">0</strong></span>
+                </div>
+            </div>
+
+            <!-- Блок текста поста -->
+            <div class="section-block">
+                <div class="section-header">
+                    <div class="section-icon">📝</div>
+                    <div class="section-title">Текст поста</div>
+                    <div class="section-badge">обязательно</div>
+                </div>
+                <textarea name="post_text" rows="8" placeholder="Введите текст поста..." required></textarea>
+            </div>
+
+            <!-- Блок медиафайла -->
+            <div class="section-block">
+                <div class="section-header">
+                    <div class="section-icon">📎</div>
+                    <div class="section-title">Медиафайл</div>
+                    <div class="section-badge">опционально</div>
+                </div>
+                
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <input type="file" name="media_file" id="mediaFile" accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.mov,.avi,.mkv" style="display: none;">
+                    <label for="mediaFile" class="btn btn-primary btn-sm" id="uploadLabel">Выберите файл</label>
+                    <div class="upload-hint">
+                        📸 Фото: JPG, PNG, GIF, WebP (до 10 МБ)<br>
+                        🎬 Видео: MP4, MOV, AVI, MKV (до 50 МБ)
+                    </div>
+                </div>
+                <div id="mediaPreview" style="display: none;" class="file-preview">
+                    <span id="mediaFileName"></span>
+                    <button type="button" onclick="removeMedia()" class="btn btn-danger btn-sm">🗑️ Удалить</button>
+                </div>
+                <input type="hidden" name="media_path" id="media_path">
+                <input type="hidden" name="media_name" id="media_name">
+                <input type="hidden" name="media_size" id="media_size">
+                <input type="hidden" name="media_type" id="media_type">
+            </div>
+
+            <!-- Блок кнопки -->
+            <div class="section-block">
+                <div class="section-header">
+                    <div class="section-icon">🔘</div>
+                    <div class="section-title">Кнопка</div>
+                    <div class="section-badge">опционально</div>
+                </div>
+                
+                <div class="template-buttons">
+                    <span class="template-btn" data-text="Подписаться">📝 Подписаться</span>
+                    <span class="template-btn" data-text="Присоединиться">🤝 Присоединиться</span>
+                    <span class="template-btn" data-text="Участвовать">🎯 Участвовать</span>
+                    <span class="template-btn" data-text="За выигрышем">🏆 За выигрышем</span>
+                </div>
+                <input type="text" name="button_text" id="button_text" placeholder="Текст кнопки">
+                
+                <div class="url-suggestions" id="urlSuggestions">
+                    {% if channel_urls %}
+                    {% for url in channel_urls %}
+                    <span class="url-suggestion" data-url="{{ url }}">{{ url[:35] }}{% if url|length > 35 %}...{% endif %}</span>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+                <input type="text" name="button_url" id="button_url" placeholder="URL ссылки">
+                
+                <div class="color-options">
+                    <label class="color-option">
+                        <input type="radio" name="button_style" value="success" checked>
+                        <span class="color-success">🟢 Зеленая</span>
+                    </label>
+                    <label class="color-option">
+                        <input type="radio" name="button_style" value="danger">
+                        <span class="color-danger">🔴 Красная</span>
+                    </label>
+                    <label class="color-option">
+                        <input type="radio" name="button_style" value="primary">
+                        <span class="color-primary">🔵 Синяя</span>
+                    </label>
+                    <label class="color-option">
+                        <input type="radio" name="button_style" value="">
+                        <span class="color-default">⚪ Серая</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Блок даты и времени -->
+            <div class="section-block">
+                <div class="section-header">
+                    <div class="section-icon">⏰</div>
+                    <div class="section-title">Дата и время отправки</div>
+                    <div class="section-badge">обязательно</div>
+                </div>
+                
+                <div class="datetime-row">
+                    <input type="date" name="scheduled_date" id="scheduled_date" required>
+                    <input type="time" name="scheduled_time" id="scheduled_time" required>
+                </div>
+                <small class="hint-text">Минимальное время — через 5 минут от текущего момента</small>
+            </div>
+
+            <input type="hidden" name="channels_data" id="channels_data">
+            <input type="hidden" name="button_data" id="button_data">
+
+            <div class="button-group">
+                <a href="/dashboard" class="btn btn-secondary">❌ Отмена</a>
+                <button type="submit" class="btn btn-primary" id="submitBtn">⏰ Запланировать</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let selectedChannels = [];
+    let selectedMedia = null;
+    let buttonData = null;
+
+    // Переключение каналов
+    function toggleChannel(card, event) {
+        if (event) event.stopPropagation();
+        
+        const checkbox = card.querySelector('.channel-checkbox');
+        const channelId = checkbox.value;
+        const channelName = checkbox.dataset.name;
+        const channelIdStr = checkbox.dataset.channelId;
+        const platform = checkbox.dataset.platform;
+        
+        if (checkbox.checked) {
+            checkbox.checked = false;
+            card.classList.remove('selected');
+            selectedChannels = selectedChannels.filter(c => c.id !== channelId);
+        } else {
+            checkbox.checked = true;
+            card.classList.add('selected');
+            selectedChannels.push({
+                id: channelId,
+                name: channelName,
+                channel_id: channelIdStr,
+                platform: platform
+            });
+        }
+        
+        document.getElementById('selectedCount').textContent = selectedChannels.length;
+        document.getElementById('channels_data').value = JSON.stringify(selectedChannels);
+    }
+
+    // Загрузка медиа
+    const mediaInput = document.getElementById('mediaFile');
+    const uploadArea = document.getElementById('uploadArea');
+    const mediaPreview = document.getElementById('mediaPreview');
+    const mediaFileName = document.getElementById('mediaFileName');
+    const uploadLabel = document.getElementById('uploadLabel');
+
+    uploadArea.addEventListener('click', function(e) {
+        if (e.target !== uploadLabel && e.target !== mediaInput) {
+            mediaInput.click();
+        }
+    });
+
+    mediaInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const file = this.files[0];
+            const fileSize = file.size / (1024 * 1024);
+            const fileExt = file.name.split('.').pop().toLowerCase();
+            const validPhoto = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            const validVideo = ['mp4', 'mov', 'avi', 'mkv'];
+            
+            if (validPhoto.includes(fileExt) && fileSize > 10) {
+                alert('Фото слишком большое! Максимум 10 МБ');
+                return;
+            }
+            if (validVideo.includes(fileExt) && fileSize > 50) {
+                alert('Видео слишком большое! Максимум 50 МБ');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedMedia = e.target.result;
+                document.getElementById('media_path').value = selectedMedia;
+                document.getElementById('media_name').value = file.name;
+                document.getElementById('media_size').value = fileSize;
+                document.getElementById('media_type').value = validPhoto.includes(fileExt) ? 'photo' : 'video';
+                
+                mediaFileName.textContent = file.name;
+                mediaPreview.style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    function removeMedia() {
+        selectedMedia = null;
+        mediaInput.value = '';
+        document.getElementById('media_path').value = '';
+        document.getElementById('media_name').value = '';
+        document.getElementById('media_size').value = '';
+        document.getElementById('media_type').value = '';
+        mediaPreview.style.display = 'none';
+    }
+
+    // Шаблонные названия кнопок
+    document.querySelectorAll('.template-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById('button_text').value = this.dataset.text;
+        });
+    });
+
+    // Предложенные URL
+    document.querySelectorAll('.url-suggestion').forEach(suggestion => {
+        suggestion.addEventListener('click', function() {
+            document.getElementById('button_url').value = this.dataset.url;
+        });
+    });
+
+    // Устанавливаем минимальную дату и время
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    document.getElementById('scheduled_date').min = `${year}-${month}-${day}`;
+    document.getElementById('scheduled_date').value = `${year}-${month}-${day}`;
+
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 5);
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById('scheduled_time').value = `${hours}:${minutes}`;
+
+    // Проверка времени перед отправкой
+    document.getElementById('scheduleForm').addEventListener('submit', function(e) {
+        if (selectedChannels.length === 0) {
+            e.preventDefault();
+            alert('❌ Пожалуйста, выберите хотя бы один канал');
+            return;
+        }
+        
+        const dateInput = document.getElementById('scheduled_date').value;
+        const timeInput = document.getElementById('scheduled_time').value;
+        
+        if (!dateInput || !timeInput) {
+            e.preventDefault();
+            alert('❌ Пожалуйста, укажите дату и время отправки');
+            return;
+        }
+        
+        const [year, month, day] = dateInput.split('-');
+        const [hours, minutes] = timeInput.split(':');
+        const scheduledDateTime = new Date(year, month - 1, day, hours, minutes);
+        const currentDateTime = new Date();
+        
+        const diffMs = scheduledDateTime - currentDateTime;
+        const diffMinutes = diffMs / (1000 * 60);
+        
+        if (diffMinutes < 5) {
+            e.preventDefault();
+            if (diffMinutes < 0) {
+                alert('❌ Нельзя запланировать пост в прошлом! Укажите будущую дату и время.');
+            } else {
+                alert(`❌ Время отправки должно быть не ранее чем через 5 минут от текущего момента.\n\nСейчас: ${currentDateTime.toLocaleTimeString()}\nДо выбранного времени: ${Math.floor(diffMinutes)} минут`);
+            }
+            return;
+        }
+        
+        const buttonText = document.getElementById('button_text').value;
+        const buttonUrl = document.getElementById('button_url').value;
+        const buttonStyle = document.querySelector('input[name="button_style"]:checked').value;
+        
+        if (buttonText && buttonUrl) {
+            buttonData = {
+                text: buttonText,
+                url: buttonUrl.startsWith('http') ? buttonUrl : 'https://' + buttonUrl,
+                style: buttonStyle || 'success'
+            };
+            document.getElementById('button_data').value = JSON.stringify(buttonData);
+        } else {
+            document.getElementById('button_data').value = '';
+        }
+    });
+
+    window.removeMedia = removeMedia;
+    window.toggleChannel = toggleChannel;
+</script>
+{% endblock %}

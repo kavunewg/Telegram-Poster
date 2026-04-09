@@ -1,0 +1,560 @@
+<!-- templates/dashboard.html -->
+{% extends "base.html" %}
+
+{% block title %}Админ-панель | Telegram Постер{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="header-actions">
+        <button onclick="toggleTheme()" class="btn btn-secondary btn-sm">🌓 Сменить тему</button>
+        <a href="/logout" class="btn btn-secondary btn-sm">🚪 Выйти</a>
+    </div>
+
+    <h2>👑 Админ-панель</h2>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('users')">👥 Пользователи</button>
+        <button class="tab-btn" onclick="switchTab('error-posts')">❌ Ошибочные посты</button>
+        <button class="tab-btn" onclick="switchTab('all-posts')">📊 Все посты</button>
+        <button class="tab-btn" onclick="switchTab('debug')">🐛 Debug</button>
+    </div>
+
+    <!-- Вкладка: Пользователи -->
+    <div id="tab-users" class="tab-content active">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_users|default(0) }}</div>
+                <div class="stat-label">Всего пользователей</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ total_posts|default(0) }}</div>
+                <div class="stat-label">Всего постов</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number success">{{ total_success|default(0) }}</div>
+                <div class="stat-label">Успешных отправок</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number error">{{ total_errors|default(0) }}</div>
+                <div class="stat-label">Ошибок</div>
+            </div>
+        </div>
+
+        <h3>📈 Статистика регистраций</h3>
+        <div class="registration-stats">
+            <div class="reg-card">
+                <div class="reg-number">{{ registrations_today|default(0) }}</div>
+                <div class="reg-label">За сегодня</div>
+            </div>
+            <div class="reg-card">
+                <div class="reg-number">{{ registrations_week|default(0) }}</div>
+                <div class="reg-label">За неделю</div>
+            </div>
+            <div class="reg-card">
+                <div class="reg-number">{{ registrations_month|default(0) }}</div>
+                <div class="reg-label">За месяц</div>
+            </div>
+            <div class="reg-card">
+                <div class="reg-number">{{ registrations_year|default(0) }}</div>
+                <div class="reg-label">За год</div>
+            </div>
+        </div>
+
+        <div class="add-user-form">
+            <h3>➕ Добавить пользователя</h3>
+            <form action="/admin/add_user" method="post">
+                <div class="form-row">
+                    <input type="text" name="username" placeholder="Логин" required>
+                    <input type="text" name="full_name" placeholder="ФИО" required>
+                </div>
+                <div class="form-row">
+                    <input type="password" name="password" placeholder="Пароль" required>
+                    <input type="text" name="project_name" placeholder="Название проекта" required>
+                </div>
+                <button type="submit" class="btn btn-primary">➕ Добавить пользователя</button>
+            </form>
+        </div>
+
+        <h3>📋 Список пользователей</h3>
+        <div class="user-list">
+            {% for user in users %}
+            <div class="user-item">
+                <div class="user-info">
+                    <h4>
+                        {{ user.project_name }} ({{ user.username }})
+                        {% if user.is_admin == 1 %}
+                        <span class="badge-admin">Администратор</span>
+                        {% endif %}
+                    </h4>
+                    <p>👤 {{ user.full_name|default('Не указано') }} | 📅 {{ user.created_at[:10] if user.created_at else 'Не указана' }}</p>
+                </div>
+                <div class="user-actions">
+                    <a href="/admin/user/{{ user.id }}" class="btn btn-primary btn-sm">👁️ Просмотр</a>
+                    {% if user.username != current_user.username %}
+                    <button onclick="openResetModal({{ user.id }}, '{{ user.username }}')" class="btn btn-warning btn-sm">🔑 Сменить пароль</button>
+                    <form action="/admin/delete_user/{{ user.id }}" method="post" style="display: inline;" onsubmit="return confirm('Удалить пользователя {{ user.project_name }}? Все данные будут потеряны.')">
+                        <button type="submit" class="btn btn-danger btn-sm">🗑️ Удалить</button>
+                    </form>
+                    {% else %}
+                    <span class="btn btn-secondary btn-sm" style="opacity: 0.6; cursor: default;">👑 Вы</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Вкладка: Ошибочные посты -->
+    <div id="tab-error-posts" class="tab-content">
+        <h3>❌ Ошибочные посты</h3>
+        {% if error_posts %}
+        <div class="error-posts-list">
+            {% for post in error_posts %}
+            <div class="error-post-item">
+                <div class="error-post-header">
+                    <span class="error-user">👤 {{ post.user_name }} ({{ post.user_username }})</span>
+                    <span class="error-date">📅 {{ post.sent_at[:19] if post.sent_at else 'Нет даты' }}</span>
+                </div>
+                <div>
+                    <span class="error-channel">📢 {{ post.channel_name }}</span>
+                    <span class="error-channel">🔧 {{ post.platform }}</span>
+                </div>
+                <div class="error-text">{{ post.post_text[:150] if post.post_text else 'Нет текста' }}{% if post.post_text and post.post_text|length > 150 %}...{% endif %}</div>
+                <div class="error-message"><strong>❌ Ошибка:</strong> {{ post.error[:300] if post.error else 'Неизвестная ошибка' }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state"><div class="empty-icon">✅</div><div>Нет ошибочных постов</div></div>
+        {% endif %}
+    </div>
+
+    <!-- Вкладка: Все посты -->
+    <div id="tab-all-posts" class="tab-content">
+        <h3>📊 История всех постов</h3>
+        {% if all_posts %}
+        <div class="error-posts-list">
+            {% for post in all_posts %}
+            <div class="error-post-item" style="border-left-color: {% if post.status == 'success' %}var(--success){% else %}var(--danger){% endif %};">
+                <div class="error-post-header">
+                    <span class="error-user">👤 {{ post.user_name }} ({{ post.user_username }})</span>
+                    <span class="error-date">📅 {{ post.sent_at[:19] if post.sent_at else 'Нет даты' }}</span>
+                    <span>{% if post.status == 'success' %}✅ Успешно{% else %}❌ Ошибка{% endif %}</span>
+                </div>
+                <div>
+                    <span class="error-channel">📢 {{ post.channel_name }}</span>
+                    <span class="error-channel">🔧 {{ post.platform }}</span>
+                </div>
+                <div class="error-text">{{ post.post_text[:200] if post.post_text else 'Нет текста' }}{% if post.post_text and post.post_text|length > 200 %}...{% endif %}</div>
+                {% if post.error %}
+                <div class="error-message"><strong>⚠️ Ошибка:</strong> {{ post.error[:200] }}{% if post.error|length > 200 %}...{% endif %}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state"><div class="empty-icon">📭</div><div>Нет постов</div></div>
+        {% endif %}
+    </div>
+
+    <!-- Вкладка: Debug -->
+    <div id="tab-debug" class="tab-content">
+        <h3>🐛 Debug инструменты</h3>
+        
+        <!-- Проверка каналов и ботов -->
+        <div class="debug-section">
+            <div class="debug-header">
+                <span class="debug-icon">📡</span>
+                <span class="debug-title">Проверка каналов и ботов</span>
+            </div>
+            <div class="debug-actions">
+                <button onclick="debugCheckChannels()" class="btn btn-primary btn-sm">📢 Проверить каналы</button>
+                <button onclick="debugCheckBots()" class="btn btn-secondary btn-sm">🤖 Проверить ботов</button>
+            </div>
+            <div id="debugChannelsResult" class="debug-result"></div>
+        </div>
+
+        <!-- Тестовая отправка -->
+        <div class="debug-section">
+            <div class="debug-header">
+                <span class="debug-icon">📨</span>
+                <span class="debug-title">Тестовая отправка</span>
+            </div>
+            <div class="form-group">
+                <label>Channel ID</label>
+                <input type="text" id="debugChannelId" placeholder="-1001234567890" class="debug-input">
+            </div>
+            <div class="form-group">
+                <label>Bot Token</label>
+                <input type="text" id="debugBotToken" placeholder="1234567890:ABCdefGHIjklMNOpqrsTUVwxyz" class="debug-input">
+            </div>
+            <div class="form-group">
+                <label>Сообщение</label>
+                <input type="text" id="debugMessage" value="Test from Admin Panel" class="debug-input">
+            </div>
+            <button onclick="debugTestSend()" class="btn btn-primary btn-sm">📤 Отправить тест</button>
+            <div id="debugTestResult" class="debug-result"></div>
+        </div>
+
+        <!-- YouTube мониторинг -->
+        <div class="debug-section">
+            <div class="debug-header">
+                <span class="debug-icon">🎬</span>
+                <span class="debug-title">YouTube Мониторинг</span>
+            </div>
+            <div class="debug-actions">
+                <button onclick="debugYoutubeChannels()" class="btn btn-primary btn-sm">📋 Список YouTube каналов</button>
+                <button onclick="debugTestYoutube()" class="btn btn-secondary btn-sm">🔍 Получить последнее видео</button>
+            </div>
+            <div id="debugYoutubeResult" class="debug-result"></div>
+            
+            <hr class="debug-hr">
+            
+            <div class="form-group">
+                <label>Принудительная отправка</label>
+                <select id="debugYoutubeSelect" class="debug-input">
+                    <option value="">-- Выберите YouTube канал --</option>
+                </select>
+            </div>
+            <button onclick="debugForceYoutube()" class="btn btn-danger btn-sm">🚀 Отправить уведомление</button>
+            <div id="debugForceResult" class="debug-result"></div>
+        </div>
+
+        <!-- Проверка сессии -->
+        <div class="debug-section">
+            <div class="debug-header">
+                <span class="debug-icon">📊</span>
+                <span class="debug-title">Проверка сессии поста</span>
+            </div>
+            <div class="form-group">
+                <label>Session ID</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="debugSessionId" placeholder="Session ID" class="debug-input" style="flex: 1;">
+                    <button onclick="debugCheckSession()" class="btn btn-primary btn-sm">🔍 Проверить</button>
+                </div>
+            </div>
+            <div id="debugSessionResult" class="debug-result"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно смены пароля -->
+<div id="resetModal" class="modal">
+    <div class="modal-content">
+        <h3>🔑 Смена пароля</h3>
+        <form action="/admin/reset_password" method="post">
+            <input type="hidden" name="user_id" id="reset_user_id">
+            <input type="text" id="reset_username" disabled style="background: var(--input-bg); opacity: 0.7;">
+            <input type="password" name="new_password" placeholder="Новый пароль" required>
+            <input type="password" name="confirm_password" placeholder="Подтвердите пароль" required>
+            <div class="modal-buttons">
+                <button type="button" onclick="closeModal()" class="btn btn-secondary">Отмена</button>
+                <button type="submit" class="btn btn-warning">Сменить пароль</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="header-actions">
+    <a href="/queue" class="btn btn-secondary btn-sm">📋 Очередь отправки</a>
+    <a href="/logout" class="btn btn-secondary btn-sm">🚪 Выйти</a>
+</div>
+
+<style>
+    /* Debug секции */
+    .debug-section {
+        background: var(--stat-bg);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 24px;
+        border: 1px solid var(--card-border);
+    }
+    .debug-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--card-border);
+    }
+    .debug-icon {
+        font-size: 24px;
+    }
+    .debug-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    .debug-actions {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+    .debug-input {
+        width: 100%;
+        padding: 10px 12px;
+        background: var(--input-bg);
+        border: 1px solid var(--input-border);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-size: 13px;
+    }
+    .debug-input:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+    .debug-result {
+        margin-top: 16px;
+    }
+    .debug-result pre {
+        background: var(--bg-darker);
+        padding: 12px;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-size: 11px;
+        font-family: monospace;
+        margin-top: 10px;
+    }
+    .debug-hr {
+        margin: 20px 0;
+        border-color: var(--card-border);
+    }
+    .debug-success { color: var(--success); }
+    .debug-error { color: var(--danger); }
+    .youtube-card {
+        background: var(--bg-card);
+        border-radius: 10px;
+        padding: 12px;
+        margin-bottom: 10px;
+        border-left: 3px solid #ff0000;
+    }
+    .youtube-card .name {
+        font-weight: bold;
+        color: #ff0000;
+        margin-bottom: 6px;
+    }
+    .youtube-card .info {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+</style>
+
+<script>
+    // ========== DEBUG FUNCTIONS ==========
+    
+    async function debugCheckChannels() {
+        const resultDiv = document.getElementById('debugChannelsResult');
+        resultDiv.innerHTML = '<div>⏳ Загрузка...</div>';
+        try {
+            const response = await fetch('/debug/channels');
+            const data = await response.json();
+            resultDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        } catch (error) {
+            resultDiv.innerHTML = '<div class="debug-error">❌ Ошибка: ' + error.message + '</div>';
+        }
+    }
+    
+    async function debugCheckBots() {
+        const resultDiv = document.getElementById('debugChannelsResult');
+        resultDiv.innerHTML = '<div>⏳ Загрузка...</div>';
+        try {
+            const response = await fetch('/debug/bots');
+            const data = await response.json();
+            resultDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        } catch (error) {
+            resultDiv.innerHTML = '<div class="debug-error">❌ Ошибка: ' + error.message + '</div>';
+        }
+    }
+    
+    async function debugTestSend() {
+        const channelId = document.getElementById('debugChannelId').value;
+        const botToken = document.getElementById('debugBotToken').value;
+        const message = document.getElementById('debugMessage').value;
+        
+        if (!channelId || !botToken) {
+            alert('❌ Заполните Channel ID и Bot Token');
+            return;
+        }
+        
+        const resultDiv = document.getElementById('debugTestResult');
+        resultDiv.innerHTML = '<div>⏳ Отправка...</div>';
+        
+        try {
+            const response = await fetch('/debug/test_send', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    channel_id: channelId,
+                    bot_token: botToken,
+                    message: message
+                })
+            });
+            const data = await response.json();
+            if (data.success) {
+                resultDiv.innerHTML = '<div class="debug-success">✅ ' + data.message + '</div><pre>' + JSON.stringify(data.result, null, 2) + '</pre>';
+            } else {
+                resultDiv.innerHTML = '<div class="debug-error">❌ Ошибка: ' + data.error + '</div><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            }
+        } catch (error) {
+            resultDiv.innerHTML = '<div class="debug-error">❌ Ошибка: ' + error.message + '</div>';
+        }
+    }
+    
+    async function debugYoutubeChannels() {
+        const resultDiv = document.getElementById('debugYoutubeResult');
+        resultDiv.innerHTML = '<div>⏳ Загрузка...</div>';
+        
+        try {
+            const response = await fetch('/debug/youtube_channels');
+            const data = await response.json();
+            
+            if (data.channels && data.channels.length > 0) {
+                let html = '<div class="debug-success">📊 Найдено каналов: ' + data.count + '</div>';
+                for (const ch of data.channels) {
+                    html += `
+                        <div class="youtube-card">
+                            <div class="name">📺 ${escapeHtml(ch.youtube_channel_name)}</div>
+                            <div class="info">🆔 ID: ${escapeHtml(ch.youtube_channel_id)}</div>
+                            <div class="info">📢 Целевые каналы: ${ch.target_channels.map(t => t.name).join(', ') || 'нет'}</div>
+                            <div class="info">✅ Активен: ${ch.is_active ? 'да' : 'нет'}</div>
+                            ${ch.last_video_id ? `<div class="info">📹 Последнее видео: ${escapeHtml(ch.last_video_id)}</div>` : ''}
+                        </div>
+                    `;
+                }
+                resultDiv.innerHTML = html;
+                
+                const select = document.getElementById('debugYoutubeSelect');
+                select.innerHTML = '<option value="">-- Выберите YouTube канал --</option>';
+                for (const ch of data.channels) {
+                    select.innerHTML += `<option value="${ch.id}">📺 ${escapeHtml(ch.youtube_channel_name)}</option>`;
+                }
+            } else {
+                resultDiv.innerHTML = '<div class="debug-error">⚠️ Нет добавленных YouTube каналов</div>';
+            }
+        } catch (error) {
+            resultDiv.innerHTML = '<div class="debug-error">❌ Ошибка: ' + error.message + '</div>';
+        }
+    }
+    
+    async function debugTestYoutube() {
+        const resultDiv = document.getElementById('debugYoutubeResult');
+        resultDiv.innerHTML = '<div>⏳ Получение информации...</div>';
+        
+        try {
+            const response = await fetch('/debug/test_youtube_post');
+            const data = await response.json();
+            if (data.error) {
+                resultDiv.innerHTML = '<div class="debug-error">❌ ' + escapeHtml(data.error) + '</div>';
+            } else {
+                resultDiv.innerHTML = '<div class="debug-success">✅ Информация получена!</div><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            }
+        } catch (error) {
+            resultDiv.innerHTML = '<div class="debug-error">❌ Ошибка: ' + error.message + '</div>';
+        }
+    }
+    
+    async function debugForceYoutube() {
+        const channelId = document.getElementById('debugYoutubeSelect').value;
+        
+        if (!channelId) {
+            alert('❌ Выберите YouTube канал');
+            return;
+        }
+        
+        const resultDiv = document.getElementById('debugForceResult');
+        resultDiv.innerHTML = '<div>⏳ Отправка...</div>';
+        
+        try {
+            const formData = new FormData();
+            formData.append('youtube_channel_id', channelId);
+            
+            const response = await fetch('/debug/force_youtube_notification', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                let html = `<div class="debug-success">✅ ${escapeHtml(data.message)}</div>`;
+                html += `<div style="margin-top: 10px;"><strong>📹 Видео:</strong> ${escapeHtml(data.video_info.title)}</div>`;
+                html += `<div><strong>📊 Результаты:</strong> Успешно: ${data.success_count}, Ошибок: ${data.failed_count}</div>`;
+                resultDiv.innerHTML = html;
+            } else {
+                resultDiv.innerHTML = '<div class="debug-error">❌ ' + escapeHtml(data.error) + '</div>';
+            }
+        } catch (error) {
+            resultDiv.innerHTML = '<div class="debug-error">❌ Ошибка: ' + error.message + '</div>';
+        }
+    }
+    
+    async function debugCheckSession() {
+        const sessionId = document.getElementById('debugSessionId').value;
+        if (!sessionId) {
+            alert('❌ Введите Session ID');
+            return;
+        }
+        
+        const resultDiv = document.getElementById('debugSessionResult');
+        resultDiv.innerHTML = '<div>⏳ Загрузка...</div>';
+        
+        try {
+            const response = await fetch(`/debug/post_session/${sessionId}`);
+            const data = await response.json();
+            resultDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        } catch (error) {
+            resultDiv.innerHTML = '<div class="debug-error">❌ Ошибка: ' + error.message + '</div>';
+        }
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // ========== TAB FUNCTIONS ==========
+    
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+        event.target.classList.add('active');
+        
+        // Если открыли debug вкладку - загружаем данные
+        if (tabName === 'debug') {
+            debugYoutubeChannels();
+        }
+    }
+    
+    function openResetModal(userId, username) {
+        document.getElementById('reset_user_id').value = userId;
+        document.getElementById('reset_username').value = `Пользователь: ${username}`;
+        document.getElementById('resetModal').classList.add('active');
+    }
+    
+    function closeModal() {
+        document.getElementById('resetModal').classList.remove('active');
+    }
+    
+    document.getElementById('resetModal')?.addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+    
+    window.switchTab = switchTab;
+    window.openResetModal = openResetModal;
+    window.closeModal = closeModal;
+    
+    window.debugCheckChannels = debugCheckChannels;
+    window.debugCheckBots = debugCheckBots;
+    window.debugTestSend = debugTestSend;
+    window.debugYoutubeChannels = debugYoutubeChannels;
+    window.debugTestYoutube = debugTestYoutube;
+    window.debugForceYoutube = debugForceYoutube;
+    window.debugCheckSession = debugCheckSession;
+</script>
+{% endblock %}

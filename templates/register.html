@@ -1,0 +1,493 @@
+<!-- templates/register.html -->
+{% extends "base.html" %}
+
+{% block title %}{% if get_lang(request) == 'en' %}Register | Telegram Poster{% else %}Регистрация | Telegram Постер{% endif %}{% endblock %}
+
+{% block content %}
+<div class="register-wrapper">
+    <div class="register-card">
+        <div class="register-header">
+            <div class="logo-area">
+                <span class="logo-pulse">🤖</span>
+            </div>
+            <h1 class="register-title">
+                {% if get_lang(request) == 'en' %}Create Account{% else %}Создать аккаунт{% endif %}
+            </h1>
+            <p class="register-subtitle">
+                {% if get_lang(request) == 'en' %}
+                Join Telegram Poster and start posting
+                {% else %}
+                Присоединяйтесь к Telegram Постер
+                {% endif %}
+            </p>
+        </div>
+
+        {% if error %}
+        <div class="alert alert-error">
+            <span>⚠️</span>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <form action="/register" method="post" id="registerForm" class="register-form">
+            <div class="form-group">
+                <label>
+                    {% if get_lang(request) == 'en' %}Username{% else %}Логин{% endif %}
+                </label>
+                <div class="input-wrapper">
+                    <span class="input-icon">👤</span>
+                    <input type="text" name="username" id="username" placeholder="{% if get_lang(request) == 'en' %}Choose a username{% else %}Придумайте логин{% endif %}" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    {% if get_lang(request) == 'en' %}Full Name{% else %}ФИО{% endif %}
+                </label>
+                <div class="input-wrapper">
+                    <span class="input-icon">📝</span>
+                    <input type="text" name="full_name" id="full_name" placeholder="{% if get_lang(request) == 'en' %}Enter your full name{% else %}Введите ваше полное имя{% endif %}" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    {% if get_lang(request) == 'en' %}Email{% else %}Электронная почта{% endif %}
+                </label>
+                <div class="input-wrapper">
+                    <span class="input-icon">📧</span>
+                    <input type="email" name="email" id="email" placeholder="{% if get_lang(request) == 'en' %}Enter your email{% else %}Введите ваш email{% endif %}" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    {% if get_lang(request) == 'en' %}Password{% else %}Пароль{% endif %}
+                </label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🔒</span>
+                    <input type="password" name="password" id="password" placeholder="{% if get_lang(request) == 'en' %}Create a password{% else %}Создайте пароль{% endif %}" required>
+                    <button type="button" class="password-toggle" onclick="togglePasswordField('password')">
+                        <span>👁️</span>
+                    </button>
+                </div>
+                
+                <div class="password-requirements" id="passwordRequirements">
+                    <div class="requirement" id="req-length">
+                        <span class="req-icon">○</span>
+                        <span>{% if get_lang(request) == 'en' %}At least 6 characters{% else %}Не менее 6 символов{% endif %}</span>
+                    </div>
+                    <div class="requirement" id="req-uppercase">
+                        <span class="req-icon">○</span>
+                        <span>{% if get_lang(request) == 'en' %}At least 1 uppercase letter (A-Z){% else %}Не менее 1 заглавной буквы (A-Z){% endif %}</span>
+                    </div>
+                    <div class="requirement" id="req-special">
+                        <span class="req-icon">○</span>
+                        <span>{% if get_lang(request) == 'en' %}At least 1 special character (!@#$%^&*){% else %}Не менее 1 спецсимвола (!@#$%^&*){% endif %}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    {% if get_lang(request) == 'en' %}Confirm Password{% else %}Подтвердите пароль{% endif %}
+                </label>
+                <div class="input-wrapper">
+                    <span class="input-icon">🔐</span>
+                    <input type="password" name="confirm_password" id="confirm_password" placeholder="{% if get_lang(request) == 'en' %}Confirm your password{% else %}Подтвердите пароль{% endif %}" required>
+                    <button type="button" class="password-toggle" onclick="togglePasswordField('confirm_password')">
+                        <span>👁️</span>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-register" id="submitBtn" disabled>
+                <span>{% if get_lang(request) == 'en' %}Sign Up{% else %}Зарегистрироваться{% endif %}</span>
+                <span class="btn-arrow">→</span>
+            </button>
+        </form>
+
+        <div class="register-footer">
+            <p>
+                {% if get_lang(request) == 'en' %}
+                Already have an account? <a href="/login">Sign In</a>
+                {% else %}
+                Уже есть аккаунт? <a href="/login">Войти</a>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .register-wrapper {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+
+    .register-card {
+        background: var(--card-bg);
+        border-radius: 32px;
+        padding: 48px 40px;
+        width: 100%;
+        max-width: 520px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.5s ease;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .register-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .logo-area {
+        font-size: 56px;
+        margin-bottom: 20px;
+    }
+
+    .logo-pulse {
+        display: inline-block;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.05);
+        }
+    }
+
+    .register-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: var(--text);
+    }
+
+    .register-subtitle {
+        color: var(--text-light);
+        font-size: 14px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text);
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 18px;
+        color: var(--text-light);
+    }
+
+    .input-wrapper input {
+        width: 100%;
+        padding: 12px 14px 12px 44px;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        font-size: 14px;
+        color: var(--text);
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+    .input-wrapper input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .input-wrapper input.valid {
+        border-color: var(--success);
+    }
+
+    .input-wrapper input.invalid {
+        border-color: var(--danger);
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 18px;
+        color: var(--text-light);
+        padding: 0;
+    }
+
+    .password-toggle:hover {
+        color: var(--primary);
+    }
+
+    .password-requirements {
+        margin-top: 10px;
+        padding: 12px;
+        background: var(--bg);
+        border-radius: 12px;
+    }
+
+    .requirement {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+        color: var(--text-light);
+        padding: 4px 0;
+        transition: all 0.2s;
+    }
+
+    .requirement.met {
+        color: var(--success);
+    }
+
+    .requirement .req-icon {
+        font-size: 12px;
+        display: inline-block;
+        width: 16px;
+        text-align: center;
+    }
+
+    .btn-register {
+        width: 100%;
+        padding: 14px;
+        background: var(--primary);
+        border: none;
+        border-radius: 40px;
+        font-size: 16px;
+        font-weight: 600;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s;
+        font-family: inherit;
+        margin-top: 8px;
+    }
+
+    .btn-register:hover:not(:disabled) {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-register:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .btn-arrow {
+        transition: transform 0.2s;
+    }
+
+    .btn-register:hover:not(:disabled) .btn-arrow {
+        transform: translateX(4px);
+    }
+
+    .register-footer {
+        text-align: center;
+        margin-top: 28px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+    }
+
+    .register-footer p {
+        color: var(--text-light);
+        font-size: 14px;
+    }
+
+    .register-footer a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .register-footer a:hover {
+        text-decoration: underline;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 16px;
+        margin-bottom: 24px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .alert-error {
+        background: rgba(239, 68, 68, 0.08);
+        border-left: 3px solid var(--danger);
+        color: var(--danger);
+    }
+
+    @media (max-width: 480px) {
+        .register-card {
+            padding: 32px 24px;
+        }
+        .register-title {
+            font-size: 24px;
+        }
+        .logo-area {
+            font-size: 48px;
+        }
+    }
+</style>
+
+<script>
+    // Переключение видимости пароля
+    function togglePasswordField(fieldId) {
+        const input = document.getElementById(fieldId);
+        const toggleBtn = input.parentElement.querySelector('.password-toggle');
+        const toggleIcon = toggleBtn.querySelector('span');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            toggleIcon.textContent = '🙈';
+        } else {
+            input.type = 'password';
+            toggleIcon.textContent = '👁️';
+        }
+    }
+
+    // Валидация пароля
+    function validatePasswordStrength(password) {
+        return {
+            length: password.length >= 6,
+            uppercase: /[A-Z]/.test(password),
+            special: /[!@#$%^&*]/.test(password)
+        };
+    }
+
+    function updatePasswordRequirements(password) {
+        const requirements = validatePasswordStrength(password);
+        
+        const lengthReq = document.getElementById('req-length');
+        const uppercaseReq = document.getElementById('req-uppercase');
+        const specialReq = document.getElementById('req-special');
+        
+        const updateRequirement = (req, isMet) => {
+            if (isMet) {
+                req.classList.add('met');
+                req.querySelector('.req-icon').textContent = '✓';
+            } else {
+                req.classList.remove('met');
+                req.querySelector('.req-icon').textContent = '○';
+            }
+        };
+        
+        updateRequirement(lengthReq, requirements.length);
+        updateRequirement(uppercaseReq, requirements.uppercase);
+        updateRequirement(specialReq, requirements.special);
+        
+        return requirements.length && requirements.uppercase && requirements.special;
+    }
+
+    function checkPasswordsMatch() {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+        const confirmField = document.getElementById('confirm_password');
+        
+        if (confirmPassword !== '') {
+            if (password === confirmPassword) {
+                confirmField.classList.add('valid');
+                confirmField.classList.remove('invalid');
+                return true;
+            } else {
+                confirmField.classList.add('invalid');
+                confirmField.classList.remove('valid');
+                return false;
+            }
+        }
+        confirmField.classList.remove('valid', 'invalid');
+        return false;
+    }
+
+    function updateSubmitButton() {
+        const password = document.getElementById('password').value;
+        const isPasswordValid = updatePasswordRequirements(password);
+        const isPasswordMatch = checkPasswordsMatch();
+        const submitBtn = document.getElementById('submitBtn');
+        
+        submitBtn.disabled = !(isPasswordValid && isPasswordMatch && password !== '');
+    }
+
+    // Event listeners
+    const passwordField = document.getElementById('password');
+    const confirmField = document.getElementById('confirm_password');
+    
+    passwordField.addEventListener('input', updateSubmitButton);
+    confirmField.addEventListener('input', updateSubmitButton);
+    
+    // Форма отправки
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        const password = passwordField.value;
+        const requirements = validatePasswordStrength(password);
+        
+        if (!requirements.length || !requirements.uppercase || !requirements.special) {
+            e.preventDefault();
+            const msg = document.documentElement.lang === 'en' 
+                ? 'Password does not meet requirements!' 
+                : 'Пароль не соответствует требованиям!';
+            alert(msg);
+            return false;
+        }
+        
+        if (!checkPasswordsMatch()) {
+            e.preventDefault();
+            const msg = document.documentElement.lang === 'en' 
+                ? 'Passwords do not match!' 
+                : 'Пароли не совпадают!';
+            alert(msg);
+            return false;
+        }
+    });
+    
+    // Инициализация
+    updateSubmitButton();
+    
+    // Делаем функции глобальными
+    window.togglePasswordField = togglePasswordField;
+
+console.log('✅ Страница регистрации загружена');
+
+</script>
+{% endblock %}

@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мои каналы | Telegram Poster</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+    font-family:'Inter',sans-serif;
+    background: radial-gradient(circle at 20% 30%, #1a1a2e, #0a0a0f);
+    color:#fff;
+    min-height:100vh;
+    display:flex;
+}
+
+/* 🌌 ФОН */
+body::before{
+    content:'';
+    position:fixed;
+    width:200%;
+    height:200%;
+    top:-50%;
+    left:-50%;
+    background:
+        radial-gradient(circle at 20% 30%, rgba(99,102,241,0.2), transparent),
+        radial-gradient(circle at 80% 70%, rgba(236,72,153,0.2), transparent);
+    animation:rotate 60s linear infinite;
+    pointer-events:none;
+}
+@keyframes rotate{to{transform:rotate(360deg);}}
+
+/* 🧭 SIDEBAR */
+.sidebar{
+    width:260px;
+    background:rgba(15,15,30,0.8);
+    backdrop-filter:blur(20px);
+    border-right:1px solid rgba(255,255,255,0.05);
+    padding:24px 16px;
+    z-index:2;
+    height:100vh;
+    position:sticky;
+    top:0;
+}
+
+.menu-item{
+    padding:12px 16px;
+    border-radius:14px;
+    margin-bottom:8px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    cursor:pointer;
+    transition:0.3s;
+    color:#cbd5e1;
+    font-weight:500;
+}
+
+.menu-item:hover{
+    background:rgba(99,102,241,0.15);
+    color:#fff;
+}
+
+.menu-item.active{
+    background:linear-gradient(135deg,#6366f1,#ec4899);
+    color:#fff;
+    box-shadow:0 0 20px rgba(99,102,241,0.3);
+}
+
+/* 📦 MAIN */
+.main{
+    flex:1;
+    padding:32px 40px;
+    position:relative;
+    z-index:2;
+    overflow-y:auto;
+    max-height:100vh;
+}
+
+/* 🏷️ TITLE */
+.title{
+    text-align:center;
+    font-size:32px;
+    font-weight:800;
+    margin-bottom:32px;
+    background:linear-gradient(135deg,#6366f1,#ec4899);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+}
+
+/* 🔮 КАРТОЧКА ПЛАТФОРМЫ (раскрывающаяся) */
+.platform-wrapper{
+    margin-bottom:20px;
+}
+
+.platform-card{
+    background:rgba(20,20,40,0.7);
+    backdrop-filter:blur(20px);
+    border-radius:24px;
+    border:1px solid rgba(255,255,255,0.08);
+    overflow:hidden;
+    transition:0.3s;
+    cursor:pointer;
+}
+
+.platform-card:hover{
+    border-color:rgba(99,102,241,0.4);
+    box-shadow:0 10px 30px rgba(99,102,241,0.2);
+}
+
+/* Заголовок платформы */
+.platform-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:20px;
+}
+
+.platform-left{
+    display:flex;
+    gap:14px;
+    align-items:center;
+}
+
+.icon{
+    width:48px;
+    height:48px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:24px;
+    background:linear-gradient(135deg,#6366f1,#ec4899);
+}
+
+.platform-info{
+    display:flex;
+    flex-direction:column;
+}
+
+.platform-name{
+    font-weight:700;
+    font-size:18px;
+}
+
+.platform-sub{
+    font-size:12px;
+    color:#9ca3af;
+}
+
+.arrow{
+    font-size:24px;
+    color:#9ca3af;
+    transition:0.3s;
+}
+
+.platform-card.open .arrow{
+    transform:rotate(90deg);
+    color:#6366f1;
+}
+
+/* Контент с каналами (внутри той же карточки) */
+.platform-content{
+    max-height:0;
+    overflow:hidden;
+    transition:max-height 0.4s ease-out;
+    border-top:1px solid transparent;
+}
+
+.platform-card.open .platform-content{
+    max-height:500px;
+    border-top-color:rgba(255,255,255,0.08);
+}
+
+.channel-list{
+    padding:0 20px 20px 20px;
+}
+
+.channel-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 0;
+    border-bottom:1px solid rgba(255,255,255,0.05);
+}
+
+.channel-item:last-child{
+    border-bottom:none;
+}
+
+.channel-info{
+    flex:1;
+}
+
+.channel-name{
+    font-weight:600;
+    font-size:15px;
+    margin-bottom:4px;
+}
+
+.channel-meta{
+    font-size:11px;
+    color:#9ca3af;
+}
+
+.channel-actions{
+    display:flex;
+    gap:12px;
+}
+
+.channel-actions button{
+    background:none;
+    border:none;
+    cursor:pointer;
+    font-size:18px;
+    padding:6px;
+    border-radius:8px;
+    transition:0.2s;
+    color:#9ca3af;
+}
+
+.channel-actions button:hover{
+    background:rgba(255,255,255,0.1);
+}
+
+.edit-btn:hover{color:#f59e0b;}
+.delete-btn:hover{color:#ef4444;}
+
+.empty-state{
+    text-align:center;
+    padding:24px;
+    color:#9ca3af;
+}
+
+/* 🟣 КНОПКИ */
+.btn{
+    background:linear-gradient(135deg,#6366f1,#ec4899);
+    border:none;
+    padding:10px 20px;
+    border-radius:12px;
+    color:#fff;
+    cursor:pointer;
+    font-weight:600;
+    transition:0.3s;
+    font-size:14px;
+}
+
+.btn-outline{
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.2);
+}
+
+.btn-outline:hover{
+    background:rgba(99,102,241,0.2);
+    border-color:#6366f1;
+}
+
+.btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 5px 20px rgba(99,102,241,0.4);
+}
+
+/* ➕ ADD БЛОК */
+.add-block{
+    margin-top:24px;
+    background:rgba(20,20,40,0.7);
+    backdrop-filter:blur(20px);
+    border-radius:24px;
+    padding:20px;
+    border:1px solid rgba(255,255,255,0.08);
+}
+
+.add-title{
+    font-size:18px;
+    font-weight:600;
+    margin-bottom:16px;
+}
+
+.form{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+}
+
+.input{
+    padding:12px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,0.1);
+    background:rgba(15,15,30,0.7);
+    color:#fff;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+}
+
+.input:focus{
+    outline:none;
+    border-color:#6366f1;
+}
+
+select.input{
+    cursor:pointer;
+}
+
+/* 🎬 МОДАЛКИ */
+.modal{
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.7);
+    backdrop-filter:blur(8px);
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+}
+
+.modal.active{
+    display:flex;
+}
+
+.modal-content{
+    background:rgba(20,20,40,0.95);
+    backdrop-filter:blur(20px);
+    border-radius:28px;
+    padding:28px;
+    width:90%;
+    max-width:480px;
+    border:1px solid rgba(255,255,255,0.1);
+}
+
+.modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.modal-title{
+    font-size:20px;
+    font-weight:700;
+}
+
+.modal-close{
+    background:none;
+    border:none;
+    font-size:28px;
+    cursor:pointer;
+    color:#9ca3af;
+}
+
+.modal-close:hover{
+    color:#ef4444;
+}
+
+.modal-actions{
+    display:flex;
+    gap:12px;
+    margin-top:24px;
+    justify-content:flex-end;
+}
+
+textarea.input{
+    resize:vertical;
+    min-height:100px;
+}
+
+.alert{
+    padding:12px 16px;
+    border-radius:12px;
+    margin-bottom:20px;
+}
+
+.alert-success{
+    background:rgba(16,185,129,0.15);
+    border-left:3px solid #10b981;
+}
+
+.alert-error{
+    background:rgba(239,68,68,0.15);
+    border-left:3px solid #ef4444;
+}
+
+/* 📱 АДАПТИВ */
+@media(max-width:900px){
+    .sidebar{display:none;}
+    .main{padding:20px;}
+    .form{grid-template-columns:1fr;}
+    .title{font-size:24px;}
+}
+
+/* Навигационные кнопки в сайдбаре */
+.nav-btn {
+    display: block;
+    padding: 12px;
+    border-radius: 14px;
+    text-align: center;
+    font-weight: 700;
+    color: #fff;
+    text-decoration: none;
+    transition: 0.3s;
+    margin-bottom: 12px;
+}
+
+.nav-btn-primary {
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+}
+
+.nav-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(99,102,241,0.4);
+}
+
+.nav-btn-secondary {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.nav-btn-secondary:hover {
+    background: rgba(255,255,255,0.2);
+    transform: translateY(-2px);
+}
+
+.nav-btn.active {
+    opacity: 0.8;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2);
+}
+
+.divider {
+    height: 1px;
+    background: rgba(255,255,255,0.1);
+    margin: 16px 0;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <a href="/dashboard" class="nav-btn nav-btn-primary">🏠 На главную</a>
+    <a href="/my_bots" class="nav-btn nav-btn-primary">🤖 Мои боты</a>
+    <div class="divider"></div>
+    
+    <div class="menu-item" data-platform="all">🌐 Все</div>
+    <div class="menu-item" data-platform="telegram">🤖 Telegram</div>
+    <div class="menu-item" data-platform="max">🏢 MAX</div>
+    <div class="menu-item" data-platform="vk">📘 VK</div>
+    <div class="menu-item" data-platform="youtube">🎬 YouTube</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+    <div class="title">📺 Мои каналы</div>
+    
+    <div id="alertContainer"></div>
+
+    <!-- Telegram -->
+    <div class="platform-wrapper" data-platform="telegram">
+        <div class="platform-card">
+            <div class="platform-header">
+                <div class="platform-left">
+                    <div class="icon">🤖</div>
+                    <div class="platform-info">
+                        <div class="platform-name">Telegram</div>
+                        <div class="platform-sub">{{ telegram_count }} каналов</div>
+                    </div>
+                </div>
+                <div class="arrow">›</div>
+            </div>
+            <div class="platform-content">
+                <div class="channel-list">
+                    {% for ch in telegram_channels %}
+                    <div class="channel-item" data-id="{{ ch.id }}">
+                        <div class="channel-info">
+                            <div class="channel-name">{{ ch.channel_name }}</div>
+                            <div class="channel-meta">{{ ch.channel_id }} • 🤖 {{ ch.bot_name or 'нет бота' }}</div>
+                        </div>
+                        <div class="channel-actions">
+                            <button class="edit-btn" onclick="openEditModal({{ ch.id }}, 'telegram')">✏️</button>
+                            <form action="/delete_channel/{{ ch.id }}" method="post" style="display:inline" onsubmit="return confirm('Удалить канал?')">
+                                <button class="delete-btn">🗑️</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">📭 Нет каналов</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAX -->
+    <div class="platform-wrapper" data-platform="max">
+        <div class="platform-card">
+            <div class="platform-header">
+                <div class="platform-left">
+                    <div class="icon">🏢</div>
+                    <div class="platform-info">
+                        <div class="platform-name">MAX</div>
+                        <div class="platform-sub">{{ max_count }} каналов</div>
+                    </div>
+                </div>
+                <div class="arrow">›</div>
+            </div>
+            <div class="platform-content">
+                <div class="channel-list">
+                    {% for ch in max_channels %}
+                    <div class="channel-item" data-id="{{ ch.id }}">
+                        <div class="channel-info">
+                            <div class="channel-name">{{ ch.channel_name }}</div>
+                            <div class="channel-meta">{{ ch.channel_id }} • 🤖 {{ ch.bot_name or 'нет бота' }}</div>
+                        </div>
+                        <div class="channel-actions">
+                            <button class="edit-btn" onclick="openEditModal({{ ch.id }}, 'max')">✏️</button>
+                            <form action="/delete_channel/{{ ch.id }}" method="post" style="display:inline" onsubmit="return confirm('Удалить канал?')">
+                                <button class="delete-btn">🗑️</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">📭 Нет каналов</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VK -->
+    <div class="platform-wrapper" data-platform="vk">
+        <div class="platform-card">
+            <div class="platform-header">
+                <div class="platform-left">
+                    <div class="icon">📘</div>
+                    <div class="platform-info">
+                        <div class="platform-name">VK</div>
+                        <div class="platform-sub">{{ vk_count }} каналов</div>
+                    </div>
+                </div>
+                <div class="arrow">›</div>
+            </div>
+            <div class="platform-content">
+                <div class="channel-list">
+                    {% for ch in vk_channels %}
+                    <div class="channel-item" data-id="{{ ch.id }}">
+                        <div class="channel-info">
+                            <div class="channel-name">{{ ch.channel_name }}</div>
+                            <div class="channel-meta">ID: {{ ch.channel_id }} • 🤖 {{ ch.bot_name or 'нет бота' }}</div>
+                        </div>
+                        <div class="channel-actions">
+                            <button class="edit-btn" onclick="openEditModal({{ ch.id }}, 'vk')">✏️</button>
+                            <form action="/delete_channel/{{ ch.id }}" method="post" style="display:inline" onsubmit="return confirm('Удалить канал?')">
+                                <button class="delete-btn">🗑️</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">📭 Нет каналов</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- YouTube -->
+    <div class="platform-wrapper" data-platform="youtube">
+        <div class="platform-card">
+            <div class="platform-header">
+                <div class="platform-left">
+                    <div class="icon">🎬</div>
+                    <div class="platform-info">
+                        <div class="platform-name">YouTube</div>
+                        <div class="platform-sub">{{ youtube_count }} каналов</div>
+                    </div>
+                </div>
+                <div class="arrow">›</div>
+            </div>
+            <div class="platform-content">
+                <div class="channel-list">
+                    {% for ch in youtube_channels %}
+                    <div class="channel-item" data-id="{{ ch.id }}">
+                        <div class="channel-info">
+                            <div class="channel-name">{{ ch.youtube_channel_name }}</div>
+                            <div class="channel-meta">{{ ch.youtube_channel_id[:20] }}... • 🎬 мониторинг</div>
+                        </div>
+                        <div class="channel-actions">
+                            <button class="edit-btn" onclick="openEditYoutubeModal({{ ch.id }})">✏️</button>
+                            <form action="/delete_youtube_channel/{{ ch.id }}" method="post" style="display:inline" onsubmit="return confirm('Удалить канал?')">
+                                <button class="delete-btn">🗑️</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">📭 Нет каналов</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Добавить канал -->
+    <div class="add-block">
+        <div class="add-title">➕ Добавить новый канал</div>
+        <form action="/add_channel" method="post" class="form">
+            <input type="hidden" name="platform" id="addPlatform" value="telegram">
+            <input type="text" name="channel_name" class="input" placeholder="Название канала" required>
+            <select name="platform_select" id="platformSelect" class="input">
+                <option value="telegram">🤖 Telegram</option>
+                <option value="max">🏢 MAX</option>
+                <option value="vk">📘 VK</option>
+            </select>
+            <input type="text" name="channel_id" id="channelIdInput" class="input" placeholder="@username или ID" required>
+            <select name="bot_id" class="input">
+                <option value="">— Без бота —</option>
+                {% for bot in bots %}
+                <option value="{{ bot.id }}">{{ bot.name }} ({{ bot.platform }})</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn">+ Добавить</button>
+        </form>
+        <button class="btn btn-outline" style="margin-top:12px; width:100%;" onclick="openAddYoutubeModal()">🎬 + Добавить YouTube канал</button>
+    </div>
+
+</div>
+
+<!-- Модалка добавления YouTube -->
+<div id="addYoutubeModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">🎬 Добавить YouTube канал</div>
+            <button class="modal-close" onclick="closeAddYoutubeModal()">&times;</button>
+        </div>
+        <form action="/add_youtube_channel" method="post">
+            <div style="margin-bottom:16px;">
+                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">URL или ID канала</label>
+                <input type="text" name="youtube_url" class="input" style="width:100%;" placeholder="https://youtube.com/@channel" required>
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">Шаблон поста</label>
+                <textarea name="post_template" class="input" rows="4" placeholder="🎬 НОВОЕ ВИДЕО{channel_name}&#10;{video_title}&#10;{video_url}"></textarea>
+            </div>
+            <div class="modal-actions" style="display:flex; gap:12px; margin-top:24px; justify-content:flex-end;">
+                <button type="button" class="btn-secondary" onclick="closeAddYoutubeModal()" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:10px 20px; border-radius:12px; cursor:pointer; font-weight:600;">Отмена</button>
+                <button type="submit" class="btn-primary" style="background:linear-gradient(135deg,#6366f1,#ec4899); border:none; color:#fff; padding:10px 20px; border-radius:12px; cursor:pointer; font-weight:600;">Добавить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Модалка редактирования канала -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">✏️ Редактировать канал</div>
+            <button class="modal-close" onclick="closeEditModal()">&times;</button>
+        </div>
+        <form action="/update_channel" method="post">
+            <input type="hidden" name="channel_id" id="editChannelId">
+            <input type="hidden" name="platform" id="editPlatform">
+            <div style="margin-bottom:16px;">
+                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">Название</label>
+                <input type="text" name="channel_name" id="editChannelName" class="input" style="width:100%;" required>
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">ID канала</label>
+                <input type="text" name="channel_id_value" id="editChannelIdValue" class="input" style="width:100%;" required>
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">Бот</label>
+                <select name="bot_id" id="editBotSelect" class="input" style="width:100%;">
+                    <option value="">— Нет —</option>
+                    {% for bot in bots %}
+                    <option value="{{ bot.id }}">{{ bot.name }} ({{ bot.platform }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="modal-actions" style="display:flex; gap:12px; margin-top:24px; justify-content:flex-end;">
+                <button type="button" class="btn-secondary" onclick="closeEditModal()" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:10px 20px; border-radius:12px; cursor:pointer; font-weight:600;">Отмена</button>
+                <button type="submit" class="btn-primary" style="background:linear-gradient(135deg,#6366f1,#ec4899); border:none; color:#fff; padding:10px 20px; border-radius:12px; cursor:pointer; font-weight:600;">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Модалка редактирования YouTube -->
+<div id="editYoutubeModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">🎬 Редактировать YouTube</div>
+            <button class="modal-close" onclick="closeEditYoutubeModal()">&times;</button>
+        </div>
+        <form action="/update_youtube_channel" method="post">
+            <input type="hidden" name="channel_id" id="editYoutubeChannelId">
+            <div style="margin-bottom:16px;">
+                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">Шаблон поста</label>
+                <textarea name="post_template" id="editYoutubePostTemplate" class="input" rows="5" style="width:100%;"></textarea>
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="checkbox" name="include_description" value="1" id="editYoutubeIncludeDescription">
+                    <span style="font-size:13px;">Включать описание видео</span>
+                </label>
+            </div>
+            <div class="modal-actions" style="display:flex; gap:12px; margin-top:24px; justify-content:flex-end;">
+                <button type="button" class="btn-secondary" onclick="closeEditYoutubeModal()" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:10px 20px; border-radius:12px; cursor:pointer; font-weight:600;">Отмена</button>
+                <button type="submit" class="btn-primary" style="background:linear-gradient(135deg,#6366f1,#ec4899); border:none; color:#fff; padding:10px 20px; border-radius:12px; cursor:pointer; font-weight:600;">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Раскрытие карточек (теперь внутри одной рамки)
+document.querySelectorAll('.platform-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+        // Не закрываем при клике на кнопки внутри
+        if(e.target.closest('.edit-btn') || e.target.closest('.delete-btn') || e.target.closest('form')){
+            return;
+        }
+        card.classList.toggle('open');
+    });
+});
+
+// Платформа в форме
+const ps = document.getElementById('platformSelect');
+const addPlatform = document.getElementById('addPlatform');
+const channelIdInput = document.getElementById('channelIdInput');
+
+if(ps){
+    ps.onchange = () => {
+        addPlatform.value = ps.value;
+        if(ps.value === 'telegram') channelIdInput.placeholder = '@username или -100...';
+        else if(ps.value === 'max') channelIdInput.placeholder = 'ID канала';
+        else if(ps.value === 'vk') channelIdInput.placeholder = 'ID группы (положительное число)';
+    };
+}
+
+// YouTube модалка
+function openAddYoutubeModal() {
+    document.getElementById('addYoutubeModal').classList.add('active');
+}
+function closeAddYoutubeModal() {
+    document.getElementById('addYoutubeModal').classList.remove('active');
+}
+
+// Редактирование канала
+function openEditModal(id, platform) {
+    fetch('/get_channel/' + id)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('editChannelId').value = data.id;
+            document.getElementById('editPlatform').value = platform;
+            document.getElementById('editChannelName').value = data.channel_name || '';
+            document.getElementById('editChannelIdValue').value = data.channel_id || '';
+            document.getElementById('editBotSelect').value = data.bot_id || '';
+            document.getElementById('editModal').classList.add('active');
+        })
+        .catch(err => console.error(err));
+}
+function closeEditModal() {
+    document.getElementById('editModal').classList.remove('active');
+}
+
+// Редактирование YouTube
+function openEditYoutubeModal(id) {
+    fetch('/get_youtube_channel/' + id)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('editYoutubeChannelId').value = data.id;
+            document.getElementById('editYoutubePostTemplate').value = data.post_template || '';
+            document.getElementById('editYoutubeIncludeDescription').checked = data.include_description || false;
+            document.getElementById('editYoutubeModal').classList.add('active');
+        })
+        .catch(err => console.error(err));
+}
+function closeEditYoutubeModal() {
+    document.getElementById('editYoutubeModal').classList.remove('active');
+}
+
+// Сайдбар фильтрация
+document.querySelectorAll('.menu-item').forEach(item => {
+    item.addEventListener('click', () => {
+        document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        
+        const platform = item.dataset.platform;
+        
+        document.querySelectorAll('.platform-wrapper').forEach(wrapper => {
+            if(platform === 'all' || wrapper.dataset.platform === platform){
+                wrapper.style.display = 'block';
+            } else {
+                wrapper.style.display = 'none';
+            }
+        });
+    });
+});
+
+// Закрытие по ESC
+document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape'){
+        closeEditModal();
+        closeEditYoutubeModal();
+        closeAddYoutubeModal();
+    }
+});
+
+// Сообщения из URL
+const urlParams = new URLSearchParams(window.location.search);
+const container = document.getElementById('alertContainer');
+if(urlParams.get('success') && container){
+    const div = document.createElement('div');
+    div.className = 'alert alert-success';
+    div.innerHTML = '✅ ' + decodeURIComponent(urlParams.get('success'));
+    container.appendChild(div);
+    setTimeout(() => div.remove(), 4000);
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+if(urlParams.get('error') && container){
+    const div = document.createElement('div');
+    div.className = 'alert alert-error';
+    div.innerHTML = '❌ ' + decodeURIComponent(urlParams.get('error'));
+    container.appendChild(div);
+    setTimeout(() => div.remove(), 4000);
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+
+console.log('✅ Страница загружена');
+</script>
+</body>
+</html>

@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Панель управления | Telegram Poster</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+    font-family:'Inter',sans-serif;
+    background: radial-gradient(circle at 20% 30%, #1a1a2e, #0a0a0f);
+    color:#fff;
+    min-height:100vh;
+    display:flex;
+}
+
+body::before{
+    content:'';
+    position:fixed;
+    width:200%;
+    height:200%;
+    top:-50%;
+    left:-50%;
+    background:
+        radial-gradient(circle at 20% 30%, rgba(99,102,241,0.2), transparent),
+        radial-gradient(circle at 80% 70%, rgba(236,72,153,0.2), transparent);
+    animation:rotate 60s linear infinite;
+    pointer-events:none;
+}
+@keyframes rotate{to{transform:rotate(360deg);}}
+
+.sidebar{
+    width:260px;
+    background:rgba(15,15,30,0.8);
+    backdrop-filter:blur(20px);
+    border-right:1px solid rgba(255,255,255,0.05);
+    padding:24px 16px;
+    z-index:2;
+    height:100vh;
+    position:sticky;
+    top:0;
+}
+
+.sidebar a{
+    text-decoration:none;
+}
+
+.nav-btn{
+    display:block;
+    padding:12px;
+    border-radius:14px;
+    text-align:center;
+    font-weight:700;
+    color:#fff;
+    text-decoration:none;
+    transition:0.3s;
+    margin-bottom:12px;
+}
+
+.nav-btn-primary{
+    background:linear-gradient(135deg,#6366f1,#ec4899);
+}
+
+.nav-btn-primary:hover{
+    transform:translateY(-2px);
+    box-shadow:0 5px 20px rgba(99,102,241,0.4);
+}
+
+.nav-btn-secondary{
+    background:rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.1);
+}
+
+.nav-btn-secondary:hover{
+    background:rgba(255,255,255,0.2);
+}
+
+.nav-btn.active{
+    opacity:0.8;
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,0.2);
+}
+
+.divider{
+    height:1px;
+    background:rgba(255,255,255,0.1);
+    margin:16px 0;
+}
+
+.main{
+    flex:1;
+    padding:32px 40px;
+    position:relative;
+    z-index:2;
+    overflow-y:auto;
+    max-height:100vh;
+}
+
+.title{
+    font-size:32px;
+    font-weight:800;
+    margin-bottom:32px;
+    background:linear-gradient(135deg,#6366f1,#ec4899);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+}
+
+/* Карточка приветствия */
+.welcome-card{
+    background:rgba(20,20,40,0.7);
+    backdrop-filter:blur(20px);
+    border-radius:24px;
+    padding:24px;
+    margin-bottom:32px;
+    border:1px solid rgba(255,255,255,0.08);
+    text-align:center;
+}
+
+.welcome-name{
+    font-size:24px;
+    font-weight:700;
+    margin-bottom:8px;
+}
+
+.welcome-sub{
+    font-size:14px;
+    color:#9ca3af;
+}
+
+/* Статистика */
+.stats-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:16px;
+    margin-bottom:32px;
+}
+
+.stat-card{
+    background:rgba(20,20,40,0.7);
+    backdrop-filter:blur(20px);
+    border-radius:20px;
+    padding:20px;
+    text-align:center;
+    border:1px solid rgba(255,255,255,0.08);
+    transition:0.3s;
+}
+
+.stat-card:hover{
+    transform:translateY(-2px);
+    border-color:rgba(99,102,241,0.4);
+}
+
+.stat-value{
+    font-size:36px;
+    font-weight:800;
+    margin-bottom:4px;
+}
+
+.stat-label{
+    font-size:13px;
+    color:#9ca3af;
+}
+
+.stat-total .stat-value{color:#6366f1;}
+.stat-success .stat-value{color:#10b981;}
+.stat-error .stat-value{color:#ef4444;}
+.stat-channels .stat-value{color:#f59e0b;}
+
+/* Действия */
+.actions-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:16px;
+    margin-bottom:32px;
+}
+
+.action-card{
+    background:rgba(20,20,40,0.7);
+    backdrop-filter:blur(20px);
+    border-radius:20px;
+    padding:24px;
+    text-align:center;
+    cursor:pointer;
+    transition:0.3s;
+    border:1px solid rgba(255,255,255,0.08);
+    text-decoration:none;
+    color:#fff;
+    display:block;
+}
+
+.action-card:hover{
+    transform:translateY(-4px);
+    border-color:rgba(99,102,241,0.4);
+    box-shadow:0 10px 30px rgba(99,102,241,0.2);
+}
+
+.action-icon{
+    font-size:48px;
+    margin-bottom:12px;
+}
+
+.action-title{
+    font-size:18px;
+    font-weight:600;
+    margin-bottom:4px;
+}
+
+.action-desc{
+    font-size:12px;
+    color:#9ca3af;
+}
+
+/* Модальные окна */
+.modal{
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.7);
+    backdrop-filter:blur(8px);
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+}
+
+.modal.active{
+    display:flex;
+}
+
+.modal-content{
+    background:rgba(20,20,40,0.95);
+    backdrop-filter:blur(20px);
+    border-radius:28px;
+    padding:28px;
+    width:90%;
+    max-width:500px;
+    border:1px solid rgba(255,255,255,0.1);
+}
+
+.modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.modal-title{
+    font-size:20px;
+    font-weight:700;
+}
+
+.modal-close{
+    background:none;
+    border:none;
+    font-size:28px;
+    cursor:pointer;
+    color:#9ca3af;
+}
+
+.modal-close:hover{
+    color:#ef4444;
+}
+
+.modal-actions{
+    display:flex;
+    gap:12px;
+    margin-top:24px;
+    justify-content:flex-end;
+}
+
+.modal-actions .btn-secondary{
+    background:rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.2);
+    color:#fff;
+    padding:10px 20px;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.modal-actions .btn-primary{
+    background:linear-gradient(135deg,#6366f1,#ec4899);
+    border:none;
+    color:#fff;
+    padding:10px 20px;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.alert{
+    padding:12px 16px;
+    border-radius:12px;
+    margin-bottom:20px;
+}
+
+.alert-success{
+    background:rgba(16,185,129,0.15);
+    border-left:3px solid #10b981;
+    color:#10b981;
+}
+
+.alert-error{
+    background:rgba(239,68,68,0.15);
+    border-left:3px solid #ef4444;
+    color:#ef4444;
+}
+
+@media(max-width:900px){
+    .sidebar{display:none;}
+    .main{padding:20px;}
+    .stats-grid{grid-template-columns:repeat(2,1fr);}
+    .actions-grid{grid-template-columns:1fr;}
+    .title{font-size:24px;}
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <a href="/dashboard" class="nav-btn nav-btn-primary active">🏠 Главная</a>
+    <a href="/my_bots" class="nav-btn nav-btn-primary">🤖 Мои боты</a>
+    <a href="/my_channels" class="nav-btn nav-btn-primary">📺 Мои каналы</a>
+    
+    
+    <div class="divider"></div>
+    
+    <a href="/stats" class="nav-btn nav-btn-secondary">📊 Статистика</a>
+    <a href="/queue" class="nav-btn nav-btn-secondary">📋 Очередь</a>
+    
+    <div class="divider"></div>
+    
+    <div class="nav-btn nav-btn-secondary" id="profileBtn" style="cursor:pointer;">👤 Профиль</div>
+    <a href="/logout" class="nav-btn nav-btn-secondary" style="background:rgba(239,68,68,0.2); border-color:rgba(239,68,68,0.3);">🚪 Выйти</a>
+</div>
+
+<div class="main">
+
+    <div class="title">📊 Панель управления</div>
+    
+    <div id="alertContainer"></div>
+
+    <!-- Приветствие -->
+    <div class="welcome-card">
+        <div class="welcome-name">С возвращением, {{ user.full_name }}!</div>
+        <div class="welcome-sub">Управляйте постами и каналами</div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="stats-grid">
+        <div class="stat-card stat-total">
+            <div class="stat-value">{{ stats[0] if stats[0] else 0 }}</div>
+            <div class="stat-label">Всего постов</div>
+        </div>
+        <div class="stat-card stat-success">
+            <div class="stat-value">{{ stats[1] if stats[1] else 0 }}</div>
+            <div class="stat-label">Успешно</div>
+        </div>
+        <div class="stat-card stat-error">
+            <div class="stat-value">{{ stats[2] if stats[2] else 0 }}</div>
+            <div class="stat-label">Ошибок</div>
+        </div>
+        <div class="stat-card stat-channels">
+            <div class="stat-value">{{ telegram_count + max_count }}</div>
+            <div class="stat-label">Каналов</div>
+        </div>
+    </div>
+
+    <!-- Действия -->
+    <div class="actions-grid">
+        <a href="/create_post" class="action-card">
+            <div class="action-icon">✍️</div>
+            <div class="action-title">Создать пост</div>
+            <div class="action-desc">Создать новый пост</div>
+        </a>
+        <div class="action-card" id="statsModalBtn">
+            <div class="action-icon">📈</div>
+            <div class="action-title">Статистика</div>
+            <div class="action-desc">Детальная статистика</div>
+        </div>
+        <a href="/scheduled_posts" class="action-card">
+            <div class="action-icon">⏰</div>
+            <div class="action-title">Отложенные</div>
+            <div class="action-desc">Запланированные посты</div>
+        </a>
+    </div>
+
+</div>
+
+<!-- Модалка статистики -->
+<div id="statsModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">📊 Статистика постов</div>
+            <button class="modal-close" id="closeStatsModalBtn">&times;</button>
+        </div>
+        <div style="margin-bottom:20px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:16px; padding:16px; background:rgba(255,255,255,0.05); border-radius:16px;">
+                <div>
+                    <div style="font-size:12px; color:#9ca3af;">Всего постов</div>
+                    <div style="font-size:28px; font-weight:700;">{{ stats[0] if stats[0] else 0 }}</div>
+                </div>
+                <div>
+                    <div style="font-size:12px; color:#9ca3af;">Успешность</div>
+                    <div style="font-size:28px; font-weight:700; color:#10b981;">
+                        {% if stats[0] > 0 %}{{ (stats[1] / stats[0] * 100)|round(1) }}%{% else %}0%{% endif %}
+                    </div>
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div style="padding:16px; background:rgba(16,185,129,0.1); border-radius:16px;">
+                    <div style="font-size:12px; color:#9ca3af;">✅ Успешно</div>
+                    <div style="font-size:24px; font-weight:700; color:#10b981;">{{ stats[1] if stats[1] else 0 }}</div>
+                </div>
+                <div style="padding:16px; background:rgba(239,68,68,0.1); border-radius:16px;">
+                    <div style="font-size:12px; color:#9ca3af;">❌ Ошибок</div>
+                    <div style="font-size:24px; font-weight:700; color:#ef4444;">{{ stats[2] if stats[2] else 0 }}</div>
+                </div>
+                <div style="padding:16px; background:rgba(59,130,246,0.1); border-radius:16px;">
+                    <div style="font-size:12px; color:#9ca3af;">📺 Каналов</div>
+                    <div style="font-size:24px; font-weight:700; color:#3b82f6;">{{ telegram_count + max_count }}</div>
+                </div>
+                <div style="padding:16px; background:rgba(139,92,246,0.1); border-radius:16px;">
+                    <div style="font-size:12px; color:#9ca3af;">🤖 Ботов</div>
+                    <div style="font-size:24px; font-weight:700; color:#8b5cf6;">{{ bots|length }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-actions" style="gap:12px;">
+            <a href="/stats" class="btn-primary" style="flex:1; text-align:center; text-decoration:none; padding:12px; border-radius:12px; background:linear-gradient(135deg,#6366f1,#ec4899); color:#fff;">📋 Все записи</a>
+            <button class="btn-secondary" id="closeStatsBtn" style="flex:1;">Закрыть</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модалка профиля -->
+<div id="profileModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">👤 Мой профиль</div>
+            <button class="modal-close" id="closeProfileModalBtn">&times;</button>
+        </div>
+        <form id="profileForm" action="/update_profile" method="post">
+            <div style="margin-bottom:16px;">
+                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">Логин</label>
+                <input type="text" name="username" id="profileUsername" value="{{ user.username }}" class="input" style="width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(15,15,30,0.7); color:#fff;">
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">Полное имя</label>
+                <input type="text" name="full_name" id="profileFullName" value="{{ user.full_name }}" class="input" style="width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(15,15,30,0.7); color:#fff;">
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">Email</label>
+                <input type="email" name="email" id="profileEmail" value="{{ user.email or '' }}" class="input" style="width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(15,15,30,0.7); color:#fff;">
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">Новый пароль</label>
+                <input type="password" name="new_password" id="profileNewPassword" class="input" style="width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(15,15,30,0.7); color:#fff;" placeholder="Оставьте пустым, чтобы не менять">
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">Подтверждение пароля</label>
+                <input type="password" name="confirm_password" id="profileConfirmPassword" class="input" style="width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(15,15,30,0.7); color:#fff;" placeholder="Подтвердите новый пароль">
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" id="cancelProfileBtn">Отмена</button>
+                <button type="submit" class="btn-primary">💾 Сохранить</button>
+            </div>
+        </form>
+        <div style="margin-top:16px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.1); text-align:center;">
+            <form action="/delete_account" method="post" onsubmit="return confirm('Вы уверены, что хотите удалить свой аккаунт? Это действие нельзя отменить!')">
+                <button type="submit" class="btn-primary" style="background:linear-gradient(135deg,#ef4444,#dc2626);">🗑️ Удалить аккаунт</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Модалка статистики
+const statsModal = document.getElementById('statsModal');
+const statsModalBtn = document.getElementById('statsModalBtn');
+const closeStatsModalBtn = document.getElementById('closeStatsModalBtn');
+const closeStatsBtn = document.getElementById('closeStatsBtn');
+
+statsModalBtn?.addEventListener('click', () => statsModal.classList.add('active'));
+closeStatsModalBtn?.addEventListener('click', () => statsModal.classList.remove('active'));
+closeStatsBtn?.addEventListener('click', () => statsModal.classList.remove('active'));
+
+// Модалка профиля
+const profileModal = document.getElementById('profileModal');
+const profileBtn = document.getElementById('profileBtn');
+const closeProfileModalBtn = document.getElementById('closeProfileModalBtn');
+const cancelProfileBtn = document.getElementById('cancelProfileBtn');
+
+profileBtn?.addEventListener('click', () => profileModal.classList.add('active'));
+closeProfileModalBtn?.addEventListener('click', () => profileModal.classList.remove('active'));
+cancelProfileBtn?.addEventListener('click', () => profileModal.classList.remove('active'));
+
+// Закрытие по ESC
+document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape'){
+        statsModal?.classList.remove('active');
+        profileModal?.classList.remove('active');
+    }
+});
+
+// Не закрываем при клике на контент
+statsModal?.addEventListener('click', (e) => {
+    if(e.target === statsModal) statsModal.classList.remove('active');
+});
+profileModal?.addEventListener('click', (e) => {
+    if(e.target === profileModal) profileModal.classList.remove('active');
+});
+
+// Сообщения из URL
+const urlParams = new URLSearchParams(window.location.search);
+const container = document.getElementById('alertContainer');
+if(urlParams.get('success') && container){
+    const div = document.createElement('div');
+    div.className = 'alert alert-success';
+    div.innerHTML = '✅ ' + decodeURIComponent(urlParams.get('success'));
+    container.appendChild(div);
+    setTimeout(() => div.remove(), 4000);
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+if(urlParams.get('error') && container){
+    const div = document.createElement('div');
+    div.className = 'alert alert-error';
+    div.innerHTML = '❌ ' + decodeURIComponent(urlParams.get('error'));
+    container.appendChild(div);
+    setTimeout(() => div.remove(), 4000);
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+
+console.log('✅ Дашборд загружен');
+</script>
+</body>
+</html>

@@ -1,0 +1,656 @@
+<!-- templates/processing.html -->
+{% extends "base.html" %}
+
+{% block title %}{% if get_lang(request) == 'en' %}Publishing Result | Telegram Poster{% else %}Результат публикации | Telegram Постер{% endif %}{% endblock %}
+
+{% block content %}
+<div class="processing-container">
+    <div class="processing-card">
+        <!-- Анимированный статус -->
+        <div class="status-area" id="statusArea">
+            <div class="status-animation" id="statusAnimation">
+                <div class="animation-ring"></div>
+                <div class="animation-icon" id="animationIcon">📤</div>
+            </div>
+            <h2 class="status-title" id="statusTitle">
+                {% if get_lang(request) == 'en' %}Publishing...{% else %}Публикация...{% endif %}
+            </h2>
+            <p class="status-message" id="statusMessage">
+                {% if get_lang(request) == 'en' %}Your post is being sent{% else %}Ваш пост отправляется{% endif %}
+            </p>
+        </div>
+
+        <!-- Прогресс -->
+        <div class="progress-area" id="progressArea">
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-stats">
+                <span id="progressPercent">0%</span>
+                <span id="progressCount">0 / 0</span>
+            </div>
+        </div>
+
+        <!-- Список каналов -->
+        <div class="channels-area">
+            <div class="channels-header">
+                <span>📡 {% if get_lang(request) == 'en' %}Channels{% else %}Каналы{% endif %}</span>
+                <span class="channels-count" id="channelsCount">0</span>
+            </div>
+            <div class="channels-list" id="channelsList">
+                <div class="loading-placeholder">
+                    <div class="loading-spinner"></div>
+                    <span>{% if get_lang(request) == 'en' %}Loading...{% else %}Загрузка...{% endif %}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Результат -->
+        <div class="result-area" id="resultArea" style="display: none;">
+            <div class="result-stats">
+                <div class="result-box result-success">
+                    <div class="result-emoji">✅</div>
+                    <div class="result-number" id="successNumber">0</div>
+                    <div class="result-label">{% if get_lang(request) == 'en' %}Success{% else %}Успешно{% endif %}</div>
+                </div>
+                <div class="result-box result-failed">
+                    <div class="result-emoji">❌</div>
+                    <div class="result-number" id="failedNumber">0</div>
+                    <div class="result-label">{% if get_lang(request) == 'en' %}Failed{% else %}Ошибок{% endif %}</div>
+                </div>
+            </div>
+            <div class="error-list" id="errorList" style="display: none;">
+                <div class="error-header">⚠️ {% if get_lang(request) == 'en' %}Errors{% else %}Ошибки{% endif %}</div>
+                <div class="error-items" id="errorItems"></div>
+            </div>
+        </div>
+
+        <!-- Кнопки действий -->
+        <div class="action-area" id="actionArea" style="display: none;">
+            <a href="/create_post" class="btn-action btn-primary">
+                <span>📝</span>
+                <span>{% if get_lang(request) == 'en' %}New Post{% else %}Новый пост{% endif %}</span>
+            </a>
+            <a href="/dashboard" class="btn-action btn-secondary">
+                <span>🏠</span>
+                <span>{% if get_lang(request) == 'en' %}Dashboard{% else %}На главную{% endif %}</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .processing-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+
+    .processing-card {
+        background: var(--card-bg);
+        border-radius: 32px;
+        padding: 48px 40px;
+        width: 100%;
+        max-width: 560px;
+        border: 1px solid var(--border);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Анимация статуса */
+    .status-area {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .status-animation {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .animation-ring {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: var(--primary);
+        opacity: 0.3;
+        animation: ringPulse 1.5s ease-out infinite;
+    }
+
+    @keyframes ringPulse {
+        0% { transform: scale(0.8); opacity: 0.5; }
+        100% { transform: scale(1.5); opacity: 0; }
+    }
+
+    .animation-icon {
+        font-size: 48px;
+        z-index: 1;
+        animation: iconBounce 2s ease-in-out infinite;
+    }
+
+    @keyframes iconBounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+
+    .status-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: var(--text);
+    }
+
+    .status-message {
+        font-size: 13px;
+        color: var(--text-light);
+    }
+
+    /* Прогресс */
+    .progress-area {
+        margin-bottom: 28px;
+    }
+
+    .progress-bar-bg {
+        background: var(--border);
+        border-radius: 40px;
+        height: 8px;
+        overflow: hidden;
+    }
+
+    .progress-bar-fill {
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        height: 100%;
+        width: 0%;
+        transition: width 0.3s ease;
+        border-radius: 40px;
+    }
+
+    .progress-stats {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--text-light);
+    }
+
+    /* Каналы */
+    .channels-area {
+        background: var(--bg);
+        border-radius: 20px;
+        padding: 16px;
+        margin-bottom: 24px;
+    }
+
+    .channels-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .channels-count {
+        background: var(--primary);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 11px;
+    }
+
+    .channels-list {
+        max-height: 240px;
+        overflow-y: auto;
+    }
+
+    .channel-line {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 8px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .channel-line:last-child {
+        border-bottom: none;
+    }
+
+    .channel-status {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+
+    .channel-status.wait {
+        background: rgba(99, 102, 241, 0.15);
+        border: 2px solid var(--primary);
+        color: var(--primary);
+    }
+
+    .channel-status.ok {
+        background: var(--success);
+        color: white;
+    }
+
+    .channel-status.bad {
+        background: var(--danger);
+        color: white;
+    }
+
+    .channel-name {
+        flex: 1;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .channel-platform {
+        font-size: 10px;
+        color: var(--text-light);
+        margin-left: 8px;
+    }
+
+    .loading-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 30px;
+        color: var(--text-light);
+    }
+
+    .loading-spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--border);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Результаты */
+    .result-area {
+        margin-bottom: 24px;
+    }
+
+    .result-stats {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .result-box {
+        flex: 1;
+        text-align: center;
+        padding: 20px;
+        background: var(--bg);
+        border-radius: 20px;
+    }
+
+    .result-success {
+        border-bottom: 3px solid var(--success);
+    }
+
+    .result-failed {
+        border-bottom: 3px solid var(--danger);
+    }
+
+    .result-emoji {
+        font-size: 32px;
+        margin-bottom: 8px;
+    }
+
+    .result-number {
+        font-size: 36px;
+        font-weight: 800;
+        margin-bottom: 4px;
+    }
+
+    .result-success .result-number {
+        color: var(--success);
+    }
+
+    .result-failed .result-number {
+        color: var(--danger);
+    }
+
+    .result-label {
+        font-size: 12px;
+        color: var(--text-light);
+    }
+
+    .error-list {
+        background: rgba(239, 68, 68, 0.08);
+        border-radius: 16px;
+        padding: 16px;
+        border-left: 3px solid var(--danger);
+    }
+
+    .error-header {
+        font-weight: 600;
+        font-size: 13px;
+        margin-bottom: 12px;
+        color: var(--danger);
+    }
+
+    .error-items {
+        font-size: 11px;
+        max-height: 120px;
+        overflow-y: auto;
+    }
+
+    .error-line {
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .error-line:last-child {
+        border-bottom: none;
+    }
+
+    .error-channel {
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .error-text {
+        color: var(--danger);
+        word-break: break-all;
+    }
+
+    /* Кнопки */
+    .action-area {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 12px 24px;
+        border-radius: 40px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: var(--bg);
+        color: var(--text);
+        border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        background: var(--border);
+        transform: translateY(-1px);
+    }
+
+    @media (max-width: 480px) {
+        .processing-card {
+            padding: 32px 24px;
+        }
+        .status-title {
+            font-size: 20px;
+        }
+        .animation-icon {
+            font-size: 36px;
+        }
+        .result-number {
+            font-size: 28px;
+        }
+        .action-area {
+            flex-direction: column;
+        }
+        .btn-action {
+            justify-content: center;
+        }
+    }
+</style>
+
+<script>
+    // ID сессии из URL
+    const sessionId = window.location.pathname.split('/').pop();
+    const STORAGE_KEY = `post_${sessionId}`;
+    const RESULTS_KEY = `results_${sessionId}`;
+    
+    let checkInterval = null;
+    let isFinished = false;
+    
+    // Проверяем, не загружали ли мы уже результаты
+    const savedResults = sessionStorage.getItem(RESULTS_KEY);
+    if (savedResults) {
+        try {
+            const results = JSON.parse(savedResults);
+            showFinalResults(results);
+            isFinished = true;
+        } catch(e) {}
+    }
+    
+    // Обновление прогресса
+    function updateProgress(percent, completed, total) {
+        const fill = document.getElementById('progressFill');
+        const percentSpan = document.getElementById('progressPercent');
+        const countSpan = document.getElementById('progressCount');
+        
+        if (fill) fill.style.width = percent + '%';
+        if (percentSpan) percentSpan.textContent = percent + '%';
+        if (countSpan && total) countSpan.textContent = `${completed || 0} / ${total}`;
+    }
+    
+    // Обновление списка каналов
+    function updateChannelsList(channels, completed) {
+        const container = document.getElementById('channelsList');
+        const countSpan = document.getElementById('channelsCount');
+        
+        if (!channels || channels.length === 0) {
+            if (container) container.innerHTML = '<div class="loading-placeholder">📡 Нет каналов</div>';
+            if (countSpan) countSpan.textContent = '0';
+            return;
+        }
+        
+        if (countSpan) countSpan.textContent = channels.length;
+        
+        let html = '';
+        channels.forEach((ch, idx) => {
+            let statusClass = 'wait';
+            let statusIcon = '○';
+            
+            if (idx < completed) {
+                statusClass = 'ok';
+                statusIcon = '✓';
+            }
+            
+            html += `
+                <div class="channel-line">
+                    <div class="channel-status ${statusClass}">${statusIcon}</div>
+                    <div class="channel-name">
+                        ${escapeHtml(ch.name)}
+                        <span class="channel-platform">${ch.platform || 'telegram'}</span>
+                    </div>
+                </div>
+            `;
+        });
+        
+        if (container) container.innerHTML = html;
+    }
+    
+    // Финальные результаты
+    function showFinalResults(results) {
+        const progressArea = document.getElementById('progressArea');
+        const resultArea = document.getElementById('resultArea');
+        const actionArea = document.getElementById('actionArea');
+        const statusTitle = document.getElementById('statusTitle');
+        const statusMessage = document.getElementById('statusMessage');
+        const animationIcon = document.getElementById('animationIcon');
+        const animationRing = document.querySelector('.animation-ring');
+        const successNumber = document.getElementById('successNumber');
+        const failedNumber = document.getElementById('failedNumber');
+        const errorList = document.getElementById('errorList');
+        const errorItems = document.getElementById('errorItems');
+        
+        // Скрываем прогресс
+        if (progressArea) progressArea.style.display = 'none';
+        
+        // Показываем результаты и кнопки
+        if (resultArea) resultArea.style.display = 'block';
+        if (actionArea) actionArea.style.display = 'flex';
+        
+        // Обновляем счётчики
+        const success = results.success || 0;
+        const failed = results.failed || 0;
+        if (successNumber) successNumber.textContent = success;
+        if (failedNumber) failedNumber.textContent = failed;
+        
+        // Меняем анимацию и текст в зависимости от результата
+        if (failed === 0 && success > 0) {
+            // Полный успех
+            if (animationIcon) animationIcon.textContent = '🎉';
+            if (animationRing) animationRing.style.background = 'var(--success)';
+            if (statusTitle) statusTitle.textContent = document.documentElement.lang === 'ru' ? 'Готово!' : 'Done!';
+            if (statusMessage) statusMessage.textContent = document.documentElement.lang === 'ru' 
+                ? `Пост отправлен в ${success} ${declineChannel(success)}` 
+                : `Post sent to ${success} ${success === 1 ? 'channel' : 'channels'}`;
+        } else if (success === 0 && failed > 0) {
+            // Полная ошибка
+            if (animationIcon) animationIcon.textContent = '❌';
+            if (animationRing) animationRing.style.background = 'var(--danger)';
+            if (statusTitle) statusTitle.textContent = document.documentElement.lang === 'ru' ? 'Ошибка' : 'Error';
+            if (statusMessage) statusMessage.textContent = document.documentElement.lang === 'ru' 
+                ? 'Не удалось отправить пост' 
+                : 'Failed to send post';
+        } else {
+            // Частичный успех
+            if (animationIcon) animationIcon.textContent = '⚠️';
+            if (animationRing) animationRing.style.background = 'var(--warning)';
+            if (statusTitle) statusTitle.textContent = document.documentElement.lang === 'ru' ? 'Частично' : 'Partial';
+            if (statusMessage) statusMessage.textContent = document.documentElement.lang === 'ru' 
+                ? `Отправлено в ${success} из ${success + failed} каналов` 
+                : `Sent to ${success} of ${success + failed} channels`;
+        }
+        
+        // Показываем ошибки, если есть
+        const errors = (results.details || []).filter(d => d.status === 'error');
+        if (errors.length > 0 && errorList && errorItems) {
+            errorList.style.display = 'block';
+            let html = '';
+            errors.forEach(err => {
+                html += `
+                    <div class="error-line">
+                        <div class="error-channel">📢 ${escapeHtml(err.channel)}</div>
+                        <div class="error-text">${escapeHtml(err.error || 'Unknown error')}</div>
+                    </div>
+                `;
+            });
+            errorItems.innerHTML = html;
+        }
+        
+        // Сохраняем в sessionStorage
+        sessionStorage.setItem(RESULTS_KEY, JSON.stringify(results));
+        sessionStorage.setItem(STORAGE_KEY, 'done');
+    }
+    
+    // Склонение для русских слов
+    function declineChannel(n) {
+        if (document.documentElement.lang !== 'ru') return n === 1 ? 'channel' : 'channels';
+        if (n % 10 === 1 && n % 100 !== 11) return 'канал';
+        if (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) return 'канала';
+        return 'каналов';
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // Проверка статуса
+    async function checkStatus() {
+        if (isFinished) return;
+        
+        try {
+            const response = await fetch(`/check_status/${sessionId}`);
+            const data = await response.json();
+            
+            if (data.status === 'processing') {
+                updateProgress(data.progress || 0, data.completed || 0, data.total || 0);
+                if (data.channels) {
+                    updateChannelsList(data.channels, data.completed || 0);
+                }
+            } else if (data.status === 'success' || data.status === 'error') {
+                if (checkInterval) {
+                    clearInterval(checkInterval);
+                    checkInterval = null;
+                }
+                isFinished = true;
+                updateProgress(100, data.results?.success || 0, data.results?.total || 0);
+                showFinalResults(data.results);
+            } else if (data.status === 'not_found') {
+                if (checkInterval) {
+                    clearInterval(checkInterval);
+                    checkInterval = null;
+                }
+                isFinished = true;
+                const statusTitle = document.getElementById('statusTitle');
+                const animationIcon = document.getElementById('animationIcon');
+                if (statusTitle) statusTitle.textContent = document.documentElement.lang === 'ru' ? 'Сессия устарела' : 'Session expired';
+                if (animationIcon) animationIcon.textContent = '⌛';
+            }
+        } catch (error) {
+            console.error('Check status error:', error);
+        }
+    }
+    
+    // Запускаем проверку, если ещё нет результатов
+    if (!savedResults) {
+        checkStatus();
+        checkInterval = setInterval(checkStatus, 1500);
+    }
+    
+    // Очистка при уходе
+    window.addEventListener('beforeunload', () => {
+        if (checkInterval) clearInterval(checkInterval);
+    });
+</script>
+{% endblock %}

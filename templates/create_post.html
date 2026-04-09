@@ -1,0 +1,969 @@
+<!-- templates/create_post.html -->
+{% extends "base.html" %}
+
+{% block title %}{% if get_lang(request) == 'en' %}Create Post | Telegram Poster{% else %}Создать пост | Telegram Постер{% endif %}{% endblock %}
+
+{% block content %}
+<div class="create-wrapper">
+    <div class="create-card">
+        <div class="create-header">
+            <div class="header-left">
+                <a href="/dashboard" class="btn btn-secondary btn-sm">
+                    <span>←</span>
+                    <span>{% if get_lang(request) == 'en' %}Dashboard{% else %}Панель управления{% endif %}</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="create-title-section">
+            <h1 class="create-title">📝 {% if get_lang(request) == 'en' %}Create Post{% else %}Создать пост{% endif %}</h1>
+            <p class="create-subtitle">
+                {% if get_lang(request) == 'en' %}
+                Create and publish a message to your channels
+                {% else %}
+                Создайте и опубликуйте сообщение в ваших каналах
+                {% endif %}
+            </p>
+        </div>
+
+        {% if bots_count == 0 %}
+        <div class="warning-banner">
+            <div class="warning-icon">⚠️</div>
+            <div class="warning-content">
+                <strong>{% if get_lang(request) == 'en' %}No bots added yet{% else %}Нет добавленных ботов{% endif %}</strong>
+                <p>
+                    {% if get_lang(request) == 'en' %}Please add a Telegram bot first on the{% else %}Сначала добавьте Telegram бота на странице{% endif %} 
+                    <a href="/my_bots">{% if get_lang(request) == 'en' %}My Bots{% else %}Мои боты{% endif %}</a>
+                </p>
+            </div>
+        </div>
+        {% endif %}
+
+        <div id="alertContainer"></div>
+
+        <form id="postForm" action="/publish_unified" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="channels_data" id="channelsDataInput" value="">
+            <input type="hidden" name="button_data" id="buttonDataInput" value="">
+            <input type="hidden" name="is_regular" id="isRegularInput" value="0">
+            <input type="hidden" name="scheduled_date" id="scheduledDateInput" value="">
+            <input type="hidden" name="scheduled_time" id="scheduledTimeInput" value="">
+            <input type="hidden" name="regular_interval" id="regularIntervalInput" value="">
+            <input type="hidden" name="regular_end_date" id="regularEndDateInput" value="">
+            <input type="hidden" name="regular_end_time" id="regularEndTimeInput" value="">
+
+            <!-- Выбор каналов -->
+            <div class="form-section">
+                <div class="section-header">
+                    <span class="section-icon">📢</span>
+                    <h3 class="section-title">{% if get_lang(request) == 'en' %}Channels{% else %}Каналы{% endif %}</h3>
+                    <span class="section-badge required">{% if get_lang(request) == 'en' %}Required{% else %}Обязательно{% endif %}</span>
+                </div>
+                
+                <div class="channels-grid" id="channelsContainer">
+                    {% if channels %}
+                        {% for channel in channels %}
+                        <div class="channel-item" data-channel-id="{{ channel.id }}" data-channel-name="{{ channel.channel_name }}" data-channel-telegram-id="{{ channel.channel_id }}" data-platform="{{ channel.platform }}">
+                            <div class="channel-icon {% if channel.platform == 'telegram' %}telegram-bg{% else %}max-bg{% endif %}">
+                                {% if channel.platform == 'telegram' %}🤖{% else %}📱{% endif %}
+                            </div>
+                            <div class="channel-info">
+                                <div class="channel-name">{{ channel.channel_name }}</div>
+                                <div class="channel-telegram-id">{{ channel.channel_id }}</div>
+                                {% if channel.bot_name %}
+                                <div class="channel-bot">🤖 {{ channel.bot_name }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="channel-checkbox">
+                                <div class="checkbox-inner"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <p>{% if get_lang(request) == 'en' %}No channels found{% else %}Нет добавленных каналов{% endif %}</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="selection-summary">
+                    <span>📊 {% if get_lang(request) == 'en' %}Selected{% else %}Выбрано{% endif %}:</span>
+                    <strong id="selectedCount">0</strong>
+                    <span>{% if get_lang(request) == 'en' %}channels{% else %}каналов{% endif %}</span>
+                </div>
+            </div>
+
+            <!-- Текст поста -->
+            <div class="form-section">
+                <div class="section-header">
+                    <span class="section-icon">📝</span>
+                    <h3 class="section-title">{% if get_lang(request) == 'en' %}Post Text{% else %}Текст поста{% endif %}</h3>
+                    <span class="section-badge required">{% if get_lang(request) == 'en' %}Required{% else %}Обязательно{% endif %}</span>
+                </div>
+                <textarea name="post_text" id="postText" class="post-textarea" placeholder="{% if get_lang(request) == 'en' %}Enter your message text...{% else %}Введите текст сообщения...{% endif %}" rows="6"></textarea>
+                <div class="textarea-hint">
+                    <span id="charCount">0</span> {% if get_lang(request) == 'en' %}characters{% else %}символов{% endif %}
+                </div>
+            </div>
+
+            <!-- Медиафайл -->
+            <div class="form-section">
+                <div class="section-header">
+                    <span class="section-icon">📎</span>
+                    <h3 class="section-title">{% if get_lang(request) == 'en' %}Media File{% else %}Медиафайл{% endif %}</h3>
+                    <span class="section-badge optional">{% if get_lang(request) == 'en' %}Optional{% else %}Опционально{% endif %}</span>
+                </div>
+                
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <p>{% if get_lang(request) == 'en' %}Click or drag to upload{% else %}Нажмите или перетащите файл{% endif %}</p>
+                    <p class="upload-hint">JPG, PNG, GIF, MP4 (max 50MB)</p>
+                    <input type="file" name="media" id="mediaFile" accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.mov" style="display: none;">
+                    <button type="button" class="btn btn-primary btn-sm" id="selectFileBtn">📂 {% if get_lang(request) == 'en' %}Select File{% else %}Выбрать файл{% endif %}</button>
+                </div>
+                <div id="mediaPreview" class="media-preview" style="display: none;">
+                    <span id="mediaFileName"></span>
+                    <button type="button" class="btn-remove" id="removeMediaBtn">🗑️ {% if get_lang(request) == 'en' %}Remove{% else %}Удалить{% endif %}</button>
+                </div>
+            </div>
+
+            <!-- Кнопка -->
+            <div class="form-section">
+                <div class="section-header">
+                    <span class="section-icon">🔘</span>
+                    <h3 class="section-title">{% if get_lang(request) == 'en' %}Inline Button{% else %}Кнопка{% endif %}</h3>
+                    <span class="section-badge optional">{% if get_lang(request) == 'en' %}Optional{% else %}Опционально{% endif %}</span>
+                </div>
+                
+                <div class="button-row">
+                    <div class="form-group">
+                        <label>{% if get_lang(request) == 'en' %}Button Text{% else %}Текст кнопки{% endif %}</label>
+                        <input type="text" id="buttonText" placeholder="{% if get_lang(request) == 'en' %}Click me{% else %}Нажми на меня{% endif %}">
+                    </div>
+                    <div class="form-group">
+                        <label>{% if get_lang(request) == 'en' %}Button URL{% else %}Ссылка{% endif %}</label>
+                        <input type="text" id="buttonUrl" placeholder="https://example.com">
+                    </div>
+                </div>
+                
+                <div class="color-options">
+                    <div class="color-option active" data-color="success">
+                        <div class="color-dot success"></div>
+                        <span>🟢 {% if get_lang(request) == 'en' %}Green{% else %}Зелёная{% endif %}</span>
+                    </div>
+                    <div class="color-option" data-color="danger">
+                        <div class="color-dot danger"></div>
+                        <span>🔴 {% if get_lang(request) == 'en' %}Red{% else %}Красная{% endif %}</span>
+                    </div>
+                    <div class="color-option" data-color="primary">
+                        <div class="color-dot primary"></div>
+                        <span>🔵 {% if get_lang(request) == 'en' %}Blue{% else %}Синяя{% endif %}</span>
+                    </div>
+                    <div class="color-option" data-color="gray">
+                        <div class="color-dot gray"></div>
+                        <span>⚪ {% if get_lang(request) == 'en' %}Gray{% else %}Серая{% endif %}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Кнопки действий -->
+            <div class="action-buttons">
+                <a href="/dashboard" class="btn btn-secondary">❌ {% if get_lang(request) == 'en' %}Cancel{% else %}Отмена{% endif %}</a>
+                <button type="button" class="btn btn-primary" id="scheduleBtn">📅 {% if get_lang(request) == 'en' %}Schedule{% else %}Запланировать{% endif %}</button>
+                <button type="button" class="btn btn-warning" id="regularBtn">🔄 {% if get_lang(request) == 'en' %}Make Regular{% else %}Сделать регулярным{% endif %}</button>
+                <button type="submit" class="btn btn-success" id="submitBtn">📤 {% if get_lang(request) == 'en' %}Publish Now{% else %}Опубликовать сейчас{% endif %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Модалка планирования -->
+<div id="scheduleModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>📅 {% if get_lang(request) == 'en' %}Schedule Post{% else %}Запланировать пост{% endif %}</h3>
+            <button class="modal-close" id="closeScheduleModal">&times;</button>
+        </div>
+        <div class="form-group">
+            <label>{% if get_lang(request) == 'en' %}Date{% else %}Дата{% endif %}</label>
+            <input type="date" id="scheduleDate" class="modal-input">
+        </div>
+        <div class="form-group">
+            <label>{% if get_lang(request) == 'en' %}Time{% else %}Время{% endif %}</label>
+            <input type="time" id="scheduleTime" class="modal-input">
+        </div>
+        <div class="modal-buttons">
+            <button class="btn btn-secondary" id="cancelScheduleBtn">{% if get_lang(request) == 'en' %}Cancel{% else %}Отмена{% endif %}</button>
+            <button class="btn btn-primary" id="confirmScheduleBtn">{% if get_lang(request) == 'en' %}Schedule{% else %}Запланировать{% endif %}</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модалка регулярного поста -->
+<div id="regularModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>🔄 {% if get_lang(request) == 'en' %}Regular Post{% else %}Регулярный пост{% endif %}</h3>
+            <button class="modal-close" id="closeRegularModal">&times;</button>
+        </div>
+        <div class="form-group">
+            <label>{% if get_lang(request) == 'en' %}Start Date{% else %}Дата начала{% endif %}</label>
+            <input type="date" id="regularStartDate" class="modal-input">
+        </div>
+        <div class="form-group">
+            <label>{% if get_lang(request) == 'en' %}Start Time{% else %}Время начала{% endif %}</label>
+            <input type="time" id="regularStartTime" class="modal-input">
+        </div>
+        <div class="form-group">
+            <label>{% if get_lang(request) == 'en' %}Interval (hours){% else %}Интервал (часы){% endif %}</label>
+            <input type="number" id="regularInterval" value="24" min="1" max="168" class="modal-input">
+        </div>
+        <div class="form-group">
+            <label>{% if get_lang(request) == 'en' %}End Date (optional){% else %}Дата окончания (опционально){% endif %}</label>
+            <input type="date" id="regularEndDate" class="modal-input">
+        </div>
+        <div class="form-group">
+            <label>{% if get_lang(request) == 'en' %}End Time (optional){% else %}Время окончания (опционально){% endif %}</label>
+            <input type="time" id="regularEndTime" class="modal-input">
+        </div>
+        <div class="modal-buttons">
+            <button class="btn btn-secondary" id="cancelRegularBtn">{% if get_lang(request) == 'en' %}Cancel{% else %}Отмена{% endif %}</button>
+            <button class="btn btn-warning" id="confirmRegularBtn">{% if get_lang(request) == 'en' %}Create Regular{% else %}Создать регулярный{% endif %}</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .create-wrapper {
+        min-height: 100vh;
+        padding: 40px 20px;
+    }
+    .create-card {
+        max-width: 900px;
+        margin: 0 auto;
+        background: var(--card-bg);
+        border-radius: 32px;
+        padding: 40px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-lg);
+        animation: fadeInUp 0.5s ease;
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .create-header { margin-bottom: 24px; }
+    .create-title-section { text-align: center; margin-bottom: 32px; }
+    .create-title { font-size: 32px; font-weight: 700; background: linear-gradient(135deg, var(--primary), var(--primary-light)); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 8px; }
+    .create-subtitle { color: var(--text-light); font-size: 14px; }
+    
+    .warning-banner {
+        background: rgba(245, 158, 11, 0.15);
+        border-left: 4px solid var(--warning);
+        border-radius: 16px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    .warning-icon { font-size: 32px; }
+    .warning-content strong { display: block; margin-bottom: 4px; color: var(--warning); }
+    .warning-content p { font-size: 13px; color: var(--text-light); }
+    .warning-content a { color: var(--primary); text-decoration: none; }
+    
+    .form-section {
+        background: var(--bg);
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 24px;
+        border: 1px solid var(--border);
+        transition: all 0.2s;
+    }
+    .form-section:hover { border-color: var(--primary); }
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+    }
+    .section-icon { font-size: 24px; }
+    .section-title { font-size: 18px; font-weight: 600; margin: 0; color: var(--text); }
+    .section-badge {
+        margin-left: auto;
+        font-size: 11px;
+        padding: 2px 10px;
+        border-radius: 20px;
+    }
+    .section-badge.required { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+    .section-badge.optional { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+    
+    .channels-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    .channel-item {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .channel-item:hover { border-color: var(--primary); transform: translateX(4px); }
+    .channel-item.selected { border-color: var(--success); background: rgba(16, 185, 129, 0.08); }
+    .channel-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+    .telegram-bg { background: linear-gradient(135deg, #0088cc, #2aabee); }
+    .max-bg { background: linear-gradient(135deg, var(--primary), var(--primary-light)); }
+    .channel-info { flex: 1; }
+    .channel-name { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+    .channel-telegram-id { font-size: 10px; color: var(--text-light); font-family: monospace; }
+    .channel-bot { font-size: 10px; color: var(--primary); margin-top: 2px; }
+    .channel-checkbox {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        border: 2px solid var(--border);
+        background: var(--input-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .channel-item.selected .channel-checkbox { background: var(--success); border-color: var(--success); }
+    .channel-item.selected .checkbox-inner::after { content: '✓'; color: white; font-size: 14px; font-weight: bold; }
+    
+    .selection-summary {
+        padding: 12px 16px;
+        background: var(--input-bg);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+    }
+    
+    .empty-state { text-align: center; padding: 40px 20px; }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.7; }
+    
+    .post-textarea {
+        width: 100%;
+        padding: 14px 16px;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        font-size: 14px;
+        color: var(--text);
+        resize: vertical;
+        font-family: inherit;
+    }
+    .post-textarea:focus { outline: none; border-color: var(--primary); }
+    .textarea-hint { margin-top: 8px; font-size: 11px; color: var(--text-light); text-align: right; }
+    
+    .upload-area {
+        border: 2px dashed var(--border);
+        border-radius: 20px;
+        padding: 32px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .upload-area:hover { border-color: var(--primary); background: rgba(99, 102, 241, 0.05); }
+    .upload-icon { font-size: 48px; margin-bottom: 12px; }
+    .upload-hint { font-size: 11px; color: var(--text-light); margin-top: 8px; }
+    
+    .media-preview {
+        background: rgba(16, 185, 129, 0.1);
+        border-radius: 14px;
+        padding: 12px 16px;
+        margin-top: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .btn-remove {
+        background: var(--danger);
+        color: white;
+        border: none;
+        padding: 6px 14px;
+        border-radius: 30px;
+        font-size: 12px;
+        cursor: pointer;
+    }
+    .btn-remove:hover { background: #dc2626; }
+    
+    .button-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-light);
+    }
+    .form-group input {
+        width: 100%;
+        padding: 10px 12px;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        font-size: 14px;
+        color: var(--text);
+    }
+    .form-group input:focus { outline: none; border-color: var(--primary); }
+    
+    .color-options {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .color-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 40px;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 13px;
+    }
+    .color-option.active { border-color: var(--primary); background: var(--badge-bg); }
+    .color-dot { width: 20px; height: 20px; border-radius: 50%; }
+    .color-dot.success { background: var(--success); }
+    .color-dot.danger { background: var(--danger); }
+    .color-dot.primary { background: var(--primary); }
+    .color-dot.gray { background: #6b7280; }
+    
+    .action-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        margin-top: 8px;
+        flex-wrap: wrap;
+    }
+    .action-buttons .btn { min-width: 160px; justify-content: center; }
+    .btn-success { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+    .btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+    
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+        background: var(--card-bg);
+        border-radius: 28px;
+        padding: 28px;
+        width: 90%;
+        max-width: 450px;
+        border: 1px solid var(--border);
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        color: var(--text-light);
+    }
+    .modal-close:hover { color: var(--danger); }
+    .modal-input {
+        width: 100%;
+        padding: 10px 12px;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        color: var(--text);
+    }
+    .modal-buttons {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 24px;
+    }
+    
+    .alert-toast {
+        padding: 12px 16px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        font-size: 13px;
+        animation: slideIn 0.3s ease;
+    }
+    .alert-toast.error { background: rgba(239, 68, 68, 0.12); border-left: 3px solid var(--danger); color: var(--danger); }
+    .spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #fff;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+        margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @media (max-width: 768px) {
+        .create-wrapper { padding: 20px 12px; }
+        .create-card { padding: 24px; }
+        .create-title { font-size: 24px; }
+        .channels-grid { grid-template-columns: 1fr; }
+        .button-row { grid-template-columns: 1fr; }
+        .action-buttons { flex-direction: column; }
+        .action-buttons .btn { width: 100%; }
+    }
+</style>
+
+<script>
+    // ========== СОСТОЯНИЕ ==========
+    let selectedChannelsData = [];
+    let selectedButtonColor = 'success';
+    let userBots = [];
+
+    // ========== DOM ЭЛЕМЕНТЫ ==========
+    const channelsContainer = document.getElementById('channelsContainer');
+    const selectedCountSpan = document.getElementById('selectedCount');
+    const channelsDataInput = document.getElementById('channelsDataInput');
+    const buttonDataInput = document.getElementById('buttonDataInput');
+    const postTextarea = document.getElementById('postText');
+    const charCountSpan = document.getElementById('charCount');
+    const mediaFile = document.getElementById('mediaFile');
+    const mediaPreview = document.getElementById('mediaPreview');
+    const mediaFileName = document.getElementById('mediaFileName');
+    const selectFileBtn = document.getElementById('selectFileBtn');
+    const removeMediaBtn = document.getElementById('removeMediaBtn');
+    const uploadArea = document.getElementById('uploadArea');
+    const buttonText = document.getElementById('buttonText');
+    const buttonUrl = document.getElementById('buttonUrl');
+    const colorOptions = document.querySelectorAll('.color-option');
+    const postForm = document.getElementById('postForm');
+    const alertContainer = document.getElementById('alertContainer');
+    const scheduleBtn = document.getElementById('scheduleBtn');
+    const regularBtn = document.getElementById('regularBtn');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Модалки
+    const scheduleModal = document.getElementById('scheduleModal');
+    const regularModal = document.getElementById('regularModal');
+    const scheduleDate = document.getElementById('scheduleDate');
+    const scheduleTime = document.getElementById('scheduleTime');
+    const regularStartDate = document.getElementById('regularStartDate');
+    const regularStartTime = document.getElementById('regularStartTime');
+    const regularInterval = document.getElementById('regularInterval');
+    const regularEndDate = document.getElementById('regularEndDate');
+    const regularEndTime = document.getElementById('regularEndTime');
+
+    // ========== УТИЛИТЫ ==========
+    function showAlert(message, type) {
+        if (!alertContainer) return;
+        const div = document.createElement('div');
+        div.className = `alert-toast ${type}`;
+        div.innerHTML = (type === 'success' ? '✅ ' : '❌ ') + message;
+        alertContainer.appendChild(div);
+        setTimeout(() => div.remove(), 5000);
+    }
+
+    function getDefaultDateTime() {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() + 5);
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        return { date: `${year}-${month}-${day}`, time: `${hours}:${minutes}` };
+    }
+
+    function updateButtonData() {
+        const text = buttonText?.value.trim() || '';
+        const url = buttonUrl?.value.trim() || '';
+        if (text && url && selectedButtonColor !== 'gray') {
+            const btnData = {
+                text: text,
+                url: url.startsWith('http') ? url : 'https://' + url,
+                style: selectedButtonColor
+            };
+            if (buttonDataInput) buttonDataInput.value = JSON.stringify(btnData);
+        } else {
+            if (buttonDataInput) buttonDataInput.value = '';
+        }
+    }
+
+    // ========== ЗАГРУЗКА БОТОВ ==========
+    async function loadBots() {
+        try {
+            const response = await fetch('/api/bots');
+            const data = await response.json();
+            if (data.success && data.bots) {
+                userBots = data.bots;
+                console.log('✅ Загружено ботов:', userBots.length);
+                updateBotsInChannels();
+            }
+        } catch (error) {
+            console.error('❌ Ошибка загрузки ботов:', error);
+        }
+    }
+
+    function updateBotsInChannels() {
+        document.querySelectorAll('.channel-item').forEach(item => {
+            const platform = item.dataset.platform;
+            const bot = userBots.find(b => b.platform === platform);
+            if (bot) {
+                item.dataset.botToken = bot.token;
+                item.dataset.botId = bot.id;
+                const botSpan = item.querySelector('.channel-bot');
+                if (botSpan) {
+                    botSpan.innerHTML = `🤖 ${bot.name}`;
+                }
+            }
+        });
+    }
+
+    // ========== ВЫБОР КАНАЛОВ ==========
+    function updateSelectionSummary() {
+        if (selectedCountSpan) selectedCountSpan.textContent = selectedChannelsData.length;
+        if (channelsDataInput) channelsDataInput.value = JSON.stringify(selectedChannelsData);
+    }
+
+    function toggleChannelItem(item) {
+        const channelId = item.dataset.channelId;
+        const channelName = item.dataset.channelName;
+        const channelTelegramId = item.dataset.channelTelegramId;
+        const platform = item.dataset.platform;
+        const botToken = item.dataset.botToken;
+        const botId = item.dataset.botId;
+
+        if (item.classList.contains('selected')) {
+            item.classList.remove('selected');
+            selectedChannelsData = selectedChannelsData.filter(ch => ch.id !== channelId);
+        } else {
+            if (!botToken && platform === 'telegram') {
+                showAlert('У этого канала нет бота. Сначала добавьте бота на странице "Мои боты"', 'error');
+                return;
+            }
+            item.classList.add('selected');
+            selectedChannelsData.push({
+                id: parseInt(channelId),
+                name: channelName,
+                channel_id: channelTelegramId,
+                platform: platform,
+                bot_token: botToken || '',
+                bot_id: botId ? parseInt(botId) : null
+            });
+        }
+        updateSelectionSummary();
+    }
+
+    function initChannelSelection() {
+        if (!channelsContainer) return;
+        const channelItems = document.querySelectorAll('.channel-item');
+        channelItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleChannelItem(item);
+            });
+        });
+        console.log('✅ Инициализация выбора каналов, найдено:', channelItems.length);
+    }
+
+    // ========== ТЕКСТ ПОСТА ==========
+    function initTextCounter() {
+        if (!postTextarea || !charCountSpan) return;
+        postTextarea.addEventListener('input', () => {
+            charCountSpan.textContent = postTextarea.value.length;
+        });
+    }
+
+    // ========== МЕДИА ==========
+    function initMediaUpload() {
+        if (selectFileBtn) {
+            selectFileBtn.addEventListener('click', () => mediaFile.click());
+        }
+        if (uploadArea) {
+            uploadArea.addEventListener('click', () => mediaFile.click());
+        }
+        if (mediaFile) {
+            mediaFile.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    const file = e.target.files[0];
+                    mediaFileName.textContent = file.name;
+                    mediaPreview.style.display = 'flex';
+                }
+            });
+        }
+        if (removeMediaBtn) {
+            removeMediaBtn.addEventListener('click', () => {
+                mediaFile.value = '';
+                mediaPreview.style.display = 'none';
+            });
+        }
+    }
+
+    // ========== ЦВЕТ КНОПКИ ==========
+    function initColorOptions() {
+        colorOptions.forEach(opt => {
+            opt.addEventListener('click', () => {
+                colorOptions.forEach(o => o.classList.remove('active'));
+                opt.classList.add('active');
+                selectedButtonColor = opt.dataset.color;
+                updateButtonData();
+            });
+        });
+    }
+
+    // ========== МОДАЛКИ ==========
+    function openModal(modal) {
+        if (modal) modal.classList.add('active');
+    }
+    function closeModal(modal) {
+        if (modal) modal.classList.remove('active');
+    }
+
+    function initModals() {
+        const defaultTime = getDefaultDateTime();
+        if (scheduleDate) scheduleDate.value = defaultTime.date;
+        if (scheduleTime) scheduleTime.value = defaultTime.time;
+        if (regularStartDate) regularStartDate.value = defaultTime.date;
+        if (regularStartTime) regularStartTime.value = defaultTime.time;
+
+        scheduleBtn?.addEventListener('click', () => openModal(scheduleModal));
+        regularBtn?.addEventListener('click', () => openModal(regularModal));
+        
+        document.getElementById('closeScheduleModal')?.addEventListener('click', () => closeModal(scheduleModal));
+        document.getElementById('closeRegularModal')?.addEventListener('click', () => closeModal(regularModal));
+        document.getElementById('cancelScheduleBtn')?.addEventListener('click', () => closeModal(scheduleModal));
+        document.getElementById('cancelRegularBtn')?.addEventListener('click', () => closeModal(regularModal));
+
+        document.getElementById('confirmScheduleBtn')?.addEventListener('click', () => {
+            const date = scheduleDate?.value;
+            const time = scheduleTime?.value;
+            if (!date || !time) {
+                showAlert('Выберите дату и время', 'error');
+                return;
+            }
+            document.getElementById('scheduledDateInput').value = date;
+            document.getElementById('scheduledTimeInput').value = time;
+            document.getElementById('isRegularInput').value = '0';
+            closeModal(scheduleModal);
+            postForm.dispatchEvent(new Event('submit'));
+        });
+
+        document.getElementById('confirmRegularBtn')?.addEventListener('click', () => {
+            const date = regularStartDate?.value;
+            const time = regularStartTime?.value;
+            if (!date || !time) {
+                showAlert('Выберите дату и время начала', 'error');
+                return;
+            }
+            document.getElementById('scheduledDateInput').value = date;
+            document.getElementById('scheduledTimeInput').value = time;
+            document.getElementById('isRegularInput').value = '1';
+            document.getElementById('regularIntervalInput').value = regularInterval?.value || 24;
+            if (regularEndDate?.value) document.getElementById('regularEndDateInput').value = regularEndDate.value;
+            if (regularEndTime?.value) document.getElementById('regularEndTimeInput').value = regularEndTime.value;
+            closeModal(regularModal);
+            postForm.dispatchEvent(new Event('submit'));
+        });
+
+        [scheduleModal, regularModal].forEach(modal => {
+            if (modal) {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) closeModal(modal);
+                });
+            }
+        });
+    }
+
+    // ========== ОТПРАВКА ФОРМЫ ==========
+    function initFormSubmit() {
+        if (!postForm) return;
+        postForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (selectedChannelsData.length === 0) {
+                showAlert('Выберите хотя бы один канал', 'error');
+                return;
+            }
+            
+            const postText = postTextarea?.value.trim();
+            if (!postText) {
+                showAlert('Введите текст поста', 'error');
+                return;
+            }
+            
+            const originalText = submitBtn?.innerHTML || 'Опубликовать';
+            if (submitBtn) {
+                submitBtn.innerHTML = '<span class="spinner"></span> Публикация...';
+                submitBtn.disabled = true;
+            }
+            
+            const formData = new FormData();
+            
+            // 1. Данные каналов (JSON строка)
+            formData.append('channels_data', JSON.stringify(selectedChannelsData));
+            
+            // 2. Текст поста
+            formData.append('post_text', postText);
+            
+            // 3. Медиафайл (если есть)
+            if (mediaFile.files && mediaFile.files[0]) {
+                formData.append('media_file', mediaFile.files[0]);
+            }
+            
+            // 4. Кнопка (если заполнена)
+            const btnText = buttonText?.value.trim();
+            const btnUrl = buttonUrl?.value.trim();
+            if (btnText && btnUrl && selectedButtonColor !== 'gray') {
+                const buttonData = {
+                    text: btnText,
+                    url: btnUrl.startsWith('http') ? btnUrl : 'https://' + btnUrl,
+                    style: selectedButtonColor
+                };
+                formData.append('button_data', JSON.stringify(buttonData));
+            }
+            
+            // 5. Планирование (если есть)
+            const isRegular = document.getElementById('isRegularInput')?.value || '0';
+            const scheduledDate = document.getElementById('scheduledDateInput')?.value;
+            const scheduledTime = document.getElementById('scheduledTimeInput')?.value;
+            
+            if (scheduledDate && scheduledTime) {
+                formData.append('scheduled_date', scheduledDate);
+                formData.append('scheduled_time', scheduledTime);
+                formData.append('is_regular', isRegular);
+                
+                if (isRegular === '1') {
+                    formData.append('regular_interval', document.getElementById('regularIntervalInput')?.value || '24');
+                    if (document.getElementById('regularEndDateInput')?.value) {
+                        formData.append('regular_end_date', document.getElementById('regularEndDateInput').value);
+                    }
+                    if (document.getElementById('regularEndTimeInput')?.value) {
+                        formData.append('regular_end_time', document.getElementById('regularEndTimeInput').value);
+                    }
+                }
+            } else {
+                formData.append('is_regular', '0');
+            }
+            
+            // Отладка: выводим что отправляем
+            console.log('📤 Отправка данных:');
+            for (let pair of formData.entries()) {
+                if (pair[0] === 'media_file') {
+                    console.log(`   ${pair[0]}: ${pair[1].name} (${pair[1].size} bytes)`);
+                } else {
+                    console.log(`   ${pair[0]}: ${pair[1]}`);
+                }
+            }
+            
+            try {
+                const response = await fetch('/publish_unified', { 
+                    method: 'POST', 
+                    body: formData 
+                });
+                
+                console.log('📥 Статус ответа:', response.status);
+                
+                if (response.redirected) {
+                    console.log('🔀 Редирект на:', response.url);
+                    window.location.href = response.url;
+                } else {
+                    const result = await response.json();
+                    console.log('📦 Результат:', result);
+                    
+                    if (result.success) {
+                        showAlert('Пост успешно опубликован!', 'success');
+                        if (result.session_id) {
+                            setTimeout(() => {
+                                window.location.href = `/publish_unified/${result.session_id}`;
+                            }, 1500);
+                        } else {
+                            setTimeout(() => {
+                                window.location.href = '/dashboard';
+                            }, 1500);
+                        }
+                    } else {
+                        showAlert(result.error || result.detail || 'Ошибка публикации', 'error');
+                        if (submitBtn) {
+                            submitBtn.innerHTML = originalText;
+                            submitBtn.disabled = false;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('❌ Ошибка:', error);
+                showAlert('Ошибка сети: ' + error.message, 'error');
+                if (submitBtn) {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            }
+            
+            // Сбрасываем скрытые поля планирования
+            document.getElementById('isRegularInput').value = '0';
+            document.getElementById('scheduledDateInput').value = '';
+            document.getElementById('scheduledTimeInput').value = '';
+            document.getElementById('regularIntervalInput').value = '';
+            document.getElementById('regularEndDateInput').value = '';
+            document.getElementById('regularEndTimeInput').value = '';
+        });
+    }
+
+    // ========== ИНИЦИАЛИЗАЦИЯ ==========
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadBots();
+        initChannelSelection();
+        initTextCounter();
+        initMediaUpload();
+        initColorOptions();
+        initModals();
+        initFormSubmit();
+        
+        buttonText?.addEventListener('input', updateButtonData);
+        buttonUrl?.addEventListener('input', updateButtonData);
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorMsg = urlParams.get('error');
+        if (errorMsg) showAlert(decodeURIComponent(errorMsg), 'error');
+        
+        console.log('✅ Страница создания поста загружена');
+    });
+</script>
+{% endblock %}

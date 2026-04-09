@@ -1,0 +1,385 @@
+<!-- templates/debug.html -->
+{% extends "base.html" %}
+
+{% block title %}Debug Panel | Telegram Постер{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="header-actions">
+        <button onclick="toggleTheme()" class="btn btn-secondary btn-sm">🌓 Сменить тему</button>
+        <a href="/dashboard" class="btn btn-secondary btn-sm">🔙 Назад в админ-панель</a>
+    </div>
+
+    <h2>🐛 Debug Panel</h2>
+    <p class="subtitle" style="text-align: center; color: var(--text-muted); margin-bottom: 32px;">Инструменты для отладки и диагностики системы</p>
+
+    <!-- Блок проверки каналов и ботов -->
+    <div class="section-block">
+        <div class="section-header">
+            <div class="section-icon">📡</div>
+            <div class="section-title">Проверка каналов и ботов</div>
+        </div>
+        <div class="button-group" style="justify-content: flex-start; margin-bottom: 20px;">
+            <button onclick="checkChannels()" class="btn btn-primary">📢 Проверить каналы</button>
+            <button onclick="checkBots()" class="btn btn-secondary">🤖 Проверить ботов</button>
+        </div>
+        <div id="channelsResult"></div>
+    </div>
+
+    <!-- Блок тестовой отправки -->
+    <div class="section-block">
+        <div class="section-header">
+            <div class="section-icon">📨</div>
+            <div class="section-title">Тестовая отправка</div>
+        </div>
+        <div class="form-group">
+            <label>Channel ID (например: -1001234567890)</label>
+            <input type="text" id="testChannelId" placeholder="-1001234567890">
+        </div>
+        <div class="form-group">
+            <label>Bot Token</label>
+            <input type="text" id="testBotToken" placeholder="1234567890:ABCdefGHIjklMNOpqrsTUVwxyz">
+        </div>
+        <div class="form-group">
+            <label>Тестовое сообщение</label>
+            <input type="text" id="testMessage" value="Test message from Debug Panel">
+        </div>
+        <button onclick="testSend()" class="btn btn-primary">📤 Отправить тест</button>
+        <div id="testResult" style="margin-top: 20px;"></div>
+    </div>
+
+    <!-- Блок проверки сессии -->
+    <div class="section-block">
+        <div class="section-header">
+            <div class="section-icon">📊</div>
+            <div class="section-title">Проверка сессии поста</div>
+        </div>
+        <div class="form-group">
+            <label>Session ID</label>
+            <div class="flex" style="display: flex; gap: 10px;">
+                <input type="text" id="sessionId" placeholder="Session ID" style="flex: 1;">
+                <button onclick="checkSession()" class="btn btn-primary">🔍 Проверить</button>
+            </div>
+        </div>
+        <div id="sessionResult"></div>
+    </div>
+
+    <!-- Блок YouTube мониторинга -->
+    <div class="section-block">
+        <div class="section-header">
+            <div class="section-icon">🎬</div>
+            <div class="section-title">YouTube Мониторинг - Отладка</div>
+        </div>
+        
+        <div class="button-group" style="justify-content: flex-start; margin-bottom: 20px;">
+            <button onclick="checkYoutubeChannels()" class="btn btn-primary">📋 Список YouTube каналов</button>
+            <button onclick="testYoutubePost()" class="btn btn-secondary">🔍 Получить последнее видео</button>
+        </div>
+        
+        <div id="youtubeChannelsResult"></div>
+        
+        <hr style="margin: 24px 0; border-color: var(--card-border);">
+        
+        <h4 style="margin-bottom: 16px;">📤 Принудительная отправка уведомления</h4>
+        <div class="flex" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <select id="youtubeChannelSelect" style="flex: 1; min-width: 250px;">
+                <option value="">-- Выберите YouTube канал --</option>
+            </select>
+            <button onclick="forceYoutubeNotification()" class="btn btn-danger" style="background: #ff0000;">🚀 Отправить уведомление</button>
+        </div>
+        
+        <div id="forceNotificationResult" style="margin-top: 20px;"></div>
+    </div>
+</div>
+
+<style>
+    .section-block {
+        background: var(--stat-bg);
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 28px;
+        border: 1px solid var(--card-border);
+        transition: all 0.3s ease;
+    }
+    .section-block:hover {
+        border-color: var(--primary);
+    }
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--card-border);
+    }
+    .section-icon {
+        font-size: 28px;
+    }
+    .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    .form-group {
+        margin-bottom: 16px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 500;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 10px 14px;
+        background: var(--input-bg);
+        border: 1px solid var(--input-border);
+        border-radius: 10px;
+        color: var(--text-primary);
+        font-size: 14px;
+    }
+    .form-group input:focus, .form-group select:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+    .youtube-channel-card {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        border-left: 3px solid #ff0000;
+    }
+    .channel-name {
+        font-size: 16px;
+        font-weight: bold;
+        color: #ff0000;
+        margin-bottom: 8px;
+    }
+    pre {
+        background: var(--bg-darker);
+        padding: 16px;
+        border-radius: 12px;
+        overflow-x: auto;
+        font-size: 12px;
+        font-family: monospace;
+        color: var(--text-secondary);
+        margin-top: 12px;
+    }
+    .success-text { color: var(--success); }
+    .error-text { color: var(--danger); }
+    .warning-text { color: var(--warning); }
+    hr { margin: 20px 0; border-color: var(--card-border); }
+</style>
+
+<script>
+    // Проверка каналов
+    async function checkChannels() {
+        const resultDiv = document.getElementById('channelsResult');
+        resultDiv.innerHTML = '<div>⏳ Загрузка...</div>';
+        try {
+            const response = await fetch('/debug/channels');
+            const data = await response.json();
+            resultDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        } catch (error) {
+            resultDiv.innerHTML = '<div class="error-text">❌ Ошибка: ' + error.message + '</div>';
+        }
+    }
+    
+    // Проверка ботов
+    async function checkBots() {
+        const resultDiv = document.getElementById('channelsResult');
+        resultDiv.innerHTML = '<div>⏳ Загрузка...</div>';
+        try {
+            const response = await fetch('/debug/bots');
+            const data = await response.json();
+            resultDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        } catch (error) {
+            resultDiv.innerHTML = '<div class="error-text">❌ Ошибка: ' + error.message + '</div>';
+        }
+    }
+    
+    // Тестовая отправка
+    async function testSend() {
+        const channelId = document.getElementById('testChannelId').value;
+        const botToken = document.getElementById('testBotToken').value;
+        const message = document.getElementById('testMessage').value;
+        
+        if (!channelId || !botToken) {
+            alert('❌ Заполните Channel ID и Bot Token');
+            return;
+        }
+        
+        const resultDiv = document.getElementById('testResult');
+        resultDiv.innerHTML = '<div>⏳ Отправка...</div>';
+        
+        try {
+            const response = await fetch('/debug/test_send', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    channel_id: channelId,
+                    bot_token: botToken,
+                    message: message
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                resultDiv.innerHTML = '<div class="success-text">✅ ' + data.message + '</div><pre>' + JSON.stringify(data.result, null, 2) + '</pre>';
+            } else {
+                resultDiv.innerHTML = '<div class="error-text">❌ Ошибка: ' + data.error + '</div><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            }
+        } catch (error) {
+            resultDiv.innerHTML = '<div class="error-text">❌ Ошибка запроса: ' + error.message + '</div>';
+        }
+    }
+    
+    // Проверка сессии
+    async function checkSession() {
+        const sessionId = document.getElementById('sessionId').value;
+        if (!sessionId) {
+            alert('❌ Введите Session ID');
+            return;
+        }
+        
+        const resultDiv = document.getElementById('sessionResult');
+        resultDiv.innerHTML = '<div>⏳ Загрузка...</div>';
+        
+        try {
+            const response = await fetch(`/debug/post_session/${sessionId}`);
+            const data = await response.json();
+            resultDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        } catch (error) {
+            resultDiv.innerHTML = '<div class="error-text">❌ Ошибка: ' + error.message + '</div>';
+        }
+    }
+    
+    // YouTube: список каналов
+    async function checkYoutubeChannels() {
+        const resultDiv = document.getElementById('youtubeChannelsResult');
+        resultDiv.innerHTML = '<div>⏳ Загрузка...</div>';
+        
+        try {
+            const response = await fetch('/debug/youtube_channels');
+            const data = await response.json();
+            
+            if (data.channels && data.channels.length > 0) {
+                let html = '<div class="success-text">📊 Найдено каналов: ' + data.count + '</div>';
+                html += '<div style="margin-top: 16px;">';
+                
+                for (const ch of data.channels) {
+                    html += `
+                        <div class="youtube-channel-card">
+                            <div class="channel-name">📺 ${escapeHtml(ch.youtube_channel_name)}</div>
+                            <div>🆔 ID: ${escapeHtml(ch.youtube_channel_id)}</div>
+                            <div>🔗 URL: <a href="${escapeHtml(ch.youtube_channel_url)}" target="_blank" style="color: var(--primary);">${escapeHtml(ch.youtube_channel_url)}</a></div>
+                            <div>📢 Целевые каналы: ${ch.target_channels.map(t => t.name).join(', ') || 'нет'}</div>
+                            <div>🎨 Кнопка: ${ch.button_url ? 'есть (' + ch.button_style + ')' : 'нет'}</div>
+                            <div>📝 Шаблон: ${ch.post_template ? 'задан' : 'стандартный'}</div>
+                            <div>✅ Активен: ${ch.is_active ? 'да' : 'нет'}</div>
+                            ${ch.last_video_id ? `<div>📹 Последнее видео ID: <code>${escapeHtml(ch.last_video_id)}</code></div>` : ''}
+                            ${ch.last_checked ? `<div>⏱️ Последняя проверка: ${escapeHtml(ch.last_checked)}</div>` : ''}
+                        </div>
+                    `;
+                }
+                html += '</div>';
+                resultDiv.innerHTML = html;
+                
+                // Обновляем select
+                const select = document.getElementById('youtubeChannelSelect');
+                select.innerHTML = '<option value="">-- Выберите YouTube канал --</option>';
+                for (const ch of data.channels) {
+                    select.innerHTML += `<option value="${ch.id}">📺 ${escapeHtml(ch.youtube_channel_name)}</option>`;
+                }
+            } else {
+                resultDiv.innerHTML = '<div class="warning-text">⚠️ Нет добавленных YouTube каналов</div>';
+            }
+        } catch (error) {
+            resultDiv.innerHTML = '<div class="error-text">❌ Ошибка: ' + error.message + '</div>';
+        }
+    }
+    
+    // YouTube: тест получения видео
+    async function testYoutubePost() {
+        const resultDiv = document.getElementById('youtubeChannelsResult');
+        resultDiv.innerHTML = '<div>⏳ Получение информации...</div>';
+        
+        try {
+            const response = await fetch('/debug/test_youtube_post');
+            const data = await response.json();
+            
+            if (data.error) {
+                resultDiv.innerHTML = '<div class="error-text">❌ ' + escapeHtml(data.error) + '</div>';
+            } else {
+                let html = '<div class="success-text">✅ Информация получена!</div>';
+                html += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                resultDiv.innerHTML = html;
+            }
+        } catch (error) {
+            resultDiv.innerHTML = '<div class="error-text">❌ Ошибка: ' + error.message + '</div>';
+        }
+    }
+    
+    // YouTube: принудительная отправка
+    async function forceYoutubeNotification() {
+        const channelId = document.getElementById('youtubeChannelSelect').value;
+        
+        if (!channelId) {
+            alert('❌ Выберите YouTube канал');
+            return;
+        }
+        
+        const resultDiv = document.getElementById('forceNotificationResult');
+        resultDiv.innerHTML = '<div>⏳ Отправка уведомления...</div>';
+        
+        try {
+            const formData = new FormData();
+            formData.append('youtube_channel_id', channelId);
+            
+            const response = await fetch('/debug/force_youtube_notification', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                let html = `<div class="success-text">✅ ${escapeHtml(data.message)}</div>`;
+                html += `<div style="margin-top: 12px;"><strong>📹 Видео:</strong> ${escapeHtml(data.video_info.title)}</div>`;
+                html += `<div><strong>🔗 Ссылка:</strong> <a href="${escapeHtml(data.video_info.url)}" target="_blank" style="color: var(--primary);">${escapeHtml(data.video_info.url)}</a></div>`;
+                html += `<div><strong>📊 Результаты:</strong> Успешно: ${data.success_count}, Ошибок: ${data.failed_count}</div>`;
+                html += '<pre>' + JSON.stringify(data.results, null, 2) + '</pre>';
+                resultDiv.innerHTML = html;
+            } else {
+                resultDiv.innerHTML = '<div class="error-text">❌ ' + escapeHtml(data.error) + '</div>';
+            }
+        } catch (error) {
+            resultDiv.innerHTML = '<div class="error-text">❌ Ошибка: ' + error.message + '</div>';
+        }
+    }
+    
+    // Helper для экранирования HTML
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // Автоматическая загрузка при открытии страницы
+    checkChannels();
+    checkYoutubeChannels();
+    
+    window.checkChannels = checkChannels;
+    window.checkBots = checkBots;
+    window.testSend = testSend;
+    window.checkSession = checkSession;
+    window.checkYoutubeChannels = checkYoutubeChannels;
+    window.testYoutubePost = testYoutubePost;
+    window.forceYoutubeNotification = forceYoutubeNotification;
+</script>
+{% endblock %}

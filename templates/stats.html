@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Статистика | Telegram Poster</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+    font-family:'Inter',sans-serif;
+    background: radial-gradient(circle at 20% 30%, #1a1a2e, #0a0a0f);
+    color:#fff;
+    min-height:100vh;
+    display:flex;
+}
+
+body::before{
+    content:'';
+    position:fixed;
+    width:200%;
+    height:200%;
+    top:-50%;
+    left:-50%;
+    background:
+        radial-gradient(circle at 20% 30%, rgba(99,102,241,0.2), transparent),
+        radial-gradient(circle at 80% 70%, rgba(236,72,153,0.2), transparent);
+    animation:rotate 60s linear infinite;
+    pointer-events:none;
+}
+@keyframes rotate{to{transform:rotate(360deg);}}
+
+.sidebar{
+    width:260px;
+    background:rgba(15,15,30,0.8);
+    backdrop-filter:blur(20px);
+    border-right:1px solid rgba(255,255,255,0.05);
+    padding:24px 16px;
+    z-index:2;
+    height:100vh;
+    position:sticky;
+    top:0;
+}
+
+.sidebar a{
+    text-decoration:none;
+}
+
+.nav-btn{
+    display:block;
+    padding:12px;
+    border-radius:14px;
+    text-align:center;
+    font-weight:700;
+    color:#fff;
+    text-decoration:none;
+    transition:0.3s;
+    margin-bottom:12px;
+}
+
+.nav-btn-primary{
+    background:linear-gradient(135deg,#6366f1,#ec4899);
+}
+
+.nav-btn-primary:hover{
+    transform:translateY(-2px);
+    box-shadow:0 5px 20px rgba(99,102,241,0.4);
+}
+
+.nav-btn-secondary{
+    background:rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.1);
+}
+
+.nav-btn-secondary:hover{
+    background:rgba(255,255,255,0.2);
+}
+
+.nav-btn.active{
+    opacity:0.8;
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,0.2);
+}
+
+.divider{
+    height:1px;
+    background:rgba(255,255,255,0.1);
+    margin:16px 0;
+}
+
+.main{
+    flex:1;
+    padding:32px 40px;
+    position:relative;
+    z-index:2;
+    overflow-y:auto;
+    max-height:100vh;
+}
+
+.title{
+    font-size:32px;
+    font-weight:800;
+    margin-bottom:8px;
+    background:linear-gradient(135deg,#6366f1,#ec4899);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    text-align:center;
+}
+
+.subtitle{
+    text-align:center;
+    color:#9ca3af;
+    font-size:14px;
+    margin-bottom:32px;
+}
+
+.stats-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:16px;
+    margin-bottom:32px;
+}
+
+.stat-card{
+    background:rgba(20,20,40,0.7);
+    backdrop-filter:blur(20px);
+    border-radius:20px;
+    padding:20px;
+    text-align:center;
+    border:1px solid rgba(255,255,255,0.08);
+}
+
+.stat-number{
+    font-size:36px;
+    font-weight:800;
+    margin-bottom:4px;
+}
+
+.stat-label{
+    font-size:12px;
+    color:#9ca3af;
+}
+
+.stat-total .stat-number{color:#6366f1;}
+.stat-success .stat-number{color:#10b981;}
+.stat-error .stat-number{color:#ef4444;}
+.stat-rate .stat-number{color:#3b82f6;}
+
+.filters{
+    display:flex;
+    gap:16px;
+    margin-bottom:24px;
+    flex-wrap:wrap;
+    align-items:center;
+}
+
+.search-input{
+    flex:1;
+    padding:12px 16px;
+    background:rgba(15,15,30,0.7);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:40px;
+    color:#fff;
+    font-size:14px;
+    outline:none;
+}
+
+.search-input:focus{
+    border-color:#6366f1;
+}
+
+.filter-select{
+    padding:12px 16px;
+    background:rgba(15,15,30,0.7);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:40px;
+    color:#fff;
+    font-size:14px;
+    cursor:pointer;
+}
+
+.posts-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.posts-table th,
+.posts-table td{
+    padding:14px 12px;
+    text-align:left;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+}
+
+.posts-table th{
+    color:#9ca3af;
+    font-weight:500;
+    font-size:13px;
+    cursor:pointer;
+}
+
+.posts-table th:hover{
+    color:#6366f1;
+}
+
+.posts-table tr:hover{
+    background:rgba(99,102,241,0.05);
+}
+
+.status-badge{
+    display:inline-block;
+    padding:4px 12px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:500;
+}
+
+.status-success{
+    background:rgba(16,185,129,0.15);
+    color:#10b981;
+}
+
+.status-error{
+    background:rgba(239,68,68,0.15);
+    color:#ef4444;
+}
+
+.status-pending{
+    background:rgba(245,158,11,0.15);
+    color:#f59e0b;
+}
+
+.post-text-preview{
+    max-width:400px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:13px;
+}
+
+.error-detail{
+    font-size:11px;
+    color:#ef4444;
+    margin-top:4px;
+    display:none;
+}
+
+tr.error-row .error-detail{
+    display:block;
+}
+
+.empty-state{
+    text-align:center;
+    padding:60px 20px;
+    background:rgba(20,20,40,0.7);
+    border-radius:24px;
+    border:1px solid rgba(255,255,255,0.08);
+}
+
+.empty-icon{font-size:64px;margin-bottom:16px;opacity:0.5;}
+
+.pagination{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    margin-top:24px;
+    flex-wrap:wrap;
+}
+
+.page-btn{
+    padding:8px 14px;
+    background:rgba(15,15,30,0.7);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:40px;
+    color:#fff;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.page-btn:hover{
+    border-color:#6366f1;
+}
+
+.page-btn.active{
+    background:linear-gradient(135deg,#6366f1,#ec4899);
+    border-color:transparent;
+}
+
+@media(max-width:900px){
+    .sidebar{display:none;}
+    .main{padding:20px;}
+    .stats-grid{grid-template-columns:repeat(2,1fr);}
+    .posts-table{display:block;overflow-x:auto;}
+    .filters{flex-direction:column;}
+    .search-input,.filter-select{width:100%;}
+    .title{font-size:24px;}
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <a href="/dashboard" class="nav-btn nav-btn-primary">🏠 Главная</a>
+    <a href="/my_bots" class="nav-btn nav-btn-primary">🤖 Мои боты</a>
+    <a href="/my_channels" class="nav-btn nav-btn-primary">📺 Мои каналы</a>
+    <a href="/create_post" class="nav-btn nav-btn-primary">✍️ Создать пост</a>
+    <a href="/scheduled_posts" class="nav-btn nav-btn-primary">⏰ Отложенные</a>
+    
+    <div class="divider"></div>
+    
+    <a href="/stats" class="nav-btn nav-btn-primary active">📊 Статистика</a>
+    <a href="/queue" class="nav-btn nav-btn-secondary">📋 Очередь</a>
+    
+    <div class="divider"></div>
+    
+    <div class="nav-btn nav-btn-secondary" id="profileBtn" style="cursor:pointer;">👤 Профиль</div>
+    <a href="/logout" class="nav-btn nav-btn-secondary" style="background:rgba(239,68,68,0.2);">🚪 Выйти</a>
+</div>
+
+<div class="main">
+
+    <div class="title">📊 Статистика</div>
+    <div class="subtitle">Детальная статистика постов и отправок</div>
+    
+    <div id="alertContainer"></div>
+
+    <!-- Статистика -->
+    <div class="stats-grid">
+        <div class="stat-card stat-total">
+            <div class="stat-number">{{ stats[0] if stats[0] else 0 }}</div>
+            <div class="stat-label">Всего постов</div>
+        </div>
+        <div class="stat-card stat-success">
+            <div class="stat-number">{{ stats[1] if stats[1] else 0 }}</div>
+            <div class="stat-label">✅ Успешно</div>
+        </div>
+        <div class="stat-card stat-error">
+            <div class="stat-number">{{ stats[2] if stats[2] else 0 }}</div>
+            <div class="stat-label">❌ Ошибок</div>
+        </div>
+        <div class="stat-card stat-rate">
+            <div class="stat-number">
+                {% if stats[0] > 0 %}{{ ((stats[1] / stats[0]) * 100)|round(1) }}%{% else %}0%{% endif %}
+            </div>
+            <div class="stat-label">📈 Успешность</div>
+        </div>
+    </div>
+
+    <!-- Фильтры -->
+    <div class="filters">
+        <input type="text" id="searchInput" class="search-input" placeholder="🔍 Поиск по тексту...">
+        <select id="statusFilter" class="filter-select">
+            <option value="all">Все статусы</option>
+            <option value="success">✅ Успешно</option>
+            <option value="error">❌ Ошибка</option>
+            <option value="pending">⏳ Ожидает</option>
+        </select>
+        <select id="channelFilter" class="filter-select">
+            <option value="all">Все каналы</option>
+            {% for channel in channels %}
+            <option value="{{ channel.channel_name }}">{{ channel.channel_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Таблица постов -->
+    <div id="postsContainer">
+        <table class="posts-table">
+            <thead>
+                <tr>
+                    <th data-sort="date">📅 Дата ↕</th>
+                    <th data-sort="channel">📢 Канал ↕</th>
+                    <th data-sort="text">📝 Текст ↕</th>
+                    <th data-sort="status">🎯 Статус ↕</th>
+                </tr>
+            </thead>
+            <tbody id="postsTableBody">
+                {% for post in posts %}
+                <tr data-status="{{ post.status }}" data-channel="{{ post.channel_name }}" data-text="{{ post.post_text|lower }}">
+                    <td style="font-size:12px; white-space:nowrap;">{{ post.sent_at[:16] if post.sent_at else '—' }}</td>
+                    <td style="font-size:13px;">{{ post.channel_name or '—' }}</td>
+                    <td class="post-text-preview">{{ post.post_text[:100] }}{% if post.post_text|length > 100 %}...{% endif %}</td>
+                    <td>
+                        <span class="status-badge {% if post.status == 'success' %}status-success{% elif post.status == 'error' %}status-error{% else %}status-pending{% endif %}">
+                            {% if post.status == 'success' %}✅ Успешно
+                            {% elif post.status == 'error' %}❌ Ошибка
+                            {% else %}⏳ Ожидает{% endif %}
+                        </span>
+                        {% if post.error %}
+                        <div class="error-detail">⚠️ {{ post.error[:80] }}{% if post.error|length > 80 %}...{% endif %}</div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if not posts %}
+    <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <p>Нет постов для отображения</p>
+        <a href="/create_post" class="btn btn-primary" style="margin-top:16px; display:inline-block; background:linear-gradient(135deg,#6366f1,#ec4899); padding:12px 24px; border-radius:12px; color:#fff; text-decoration:none;">✍️ Создать пост</a>
+    </div>
+    {% endif %}
+
+    <!-- Пагинация -->
+    <div class="pagination" id="pagination"></div>
+
+</div>
+
+<!-- Модалка профиля -->
+<div id="profileModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(8px); z-index:1000; align-items:center; justify-content:center;">
+    <div class="modal-content" style="background:rgba(20,20,40,0.95); border-radius:28px; padding:28px; width:90%; max-width:500px; border:1px solid rgba(255,255,255,0.1);">
+        <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <div class="modal-title" style="font-size:20px; font-weight:700;">👤 Мой профиль</div>
+            <button class="modal-close" onclick="closeProfileModal()" style="background:none; border:none; font-size:28px; cursor:pointer; color:#9ca3af;">&times;</button>
+        </div>
+        <form id="profileForm" action="/update_profile" method="post">
+            <div style="margin-bottom:16px;">
+                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">Логин</label>
+                <input type="text" name="username" id="profileUsername" value="{{ user.username if user else '' }}" style="width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(15,15,30,0.7); color:#fff;">
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">Полное имя</label>
+                <input type="text" name="full_name" id="profileFullName" value="{{ user.full_name if user else '' }}" style="width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(15,15,30,0.7); color:#fff;">
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">Email</label>
+                <input type="email" name="email" id="profileEmail" value="{{ user.email if user else '' }}" style="width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(15,15,30,0.7); color:#fff;">
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">Новый пароль</label>
+                <input type="password" name="new_password" id="profileNewPassword" style="width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(15,15,30,0.7); color:#fff;" placeholder="Оставьте пустым, чтобы не менять">
+            </div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">Подтверждение пароля</label>
+                <input type="password" name="confirm_password" id="profileConfirmPassword" style="width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(15,15,30,0.7); color:#fff;" placeholder="Подтвердите новый пароль">
+            </div>
+            <div style="display:flex; gap:12px; margin-top:24px; justify-content:flex-end;">
+                <button type="button" class="btn-secondary" onclick="closeProfileModal()" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:10px 20px; border-radius:12px;">Отмена</button>
+                <button type="submit" class="btn-primary" style="background:linear-gradient(135deg,#6366f1,#ec4899); border:none; color:#fff; padding:10px 20px; border-radius:12px;">💾 Сохранить</button>
+            </div>
+        </form>
+        <div style="margin-top:16px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.1); text-align:center;">
+            <form action="/delete_account" method="post" onsubmit="return confirm('Вы уверены, что хотите удалить свой аккаунт? Это действие нельзя отменить!')">
+                <button type="submit" class="btn-danger" style="background:linear-gradient(135deg,#ef4444,#dc2626); border:none; color:#fff; padding:10px 20px; border-radius:12px;">🗑️ Удалить аккаунт</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Модалка профиля
+const profileBtn = document.getElementById('profileBtn');
+const profileModal = document.getElementById('profileModal');
+
+function openProfileModal() {
+    profileModal.style.display = 'flex';
+}
+function closeProfileModal() {
+    profileModal.style.display = 'none';
+}
+
+if(profileBtn) {
+    profileBtn.addEventListener('click', openProfileModal);
+}
+
+document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape') closeProfileModal();
+});
+
+profileModal?.addEventListener('click', (e) => {
+    if(e.target === profileModal) closeProfileModal();
+});
+
+// ========== ФИЛЬТРАЦИЯ И ПАГИНАЦИЯ ==========
+let currentPage = 1;
+let rowsPerPage = 20;
+let currentSort = { column: 'date', direction: 'desc' };
+let filteredData = [];
+let allRows = [];
+
+const tbody = document.getElementById('postsTableBody');
+if(tbody){
+    allRows = Array.from(tbody.querySelectorAll('tr'));
+}
+
+function filterRows(){
+    const searchText = document.getElementById('searchInput')?.value.toLowerCase() || '';
+    const statusFilter = document.getElementById('statusFilter')?.value || 'all';
+    const channelFilter = document.getElementById('channelFilter')?.value || 'all';
+    
+    filteredData = allRows.filter(row => {
+        const status = row.dataset.status;
+        const channel = row.dataset.channel;
+        const text = row.dataset.text || '';
+        
+        const matchesSearch = searchText === '' || text.includes(searchText);
+        const matchesStatus = statusFilter === 'all' || status === statusFilter;
+        const matchesChannel = channelFilter === 'all' || channel === channelFilter;
+        
+        return matchesSearch && matchesStatus && matchesChannel;
+    });
+    
+    sortData();
+    renderPage();
+    renderPagination();
+}
+
+function sortData(){
+    const column = currentSort.column;
+    const direction = currentSort.direction;
+    
+    filteredData.sort((a,b) => {
+        let aVal, bVal;
+        if(column === 'date'){
+            aVal = a.cells[0]?.textContent || '';
+            bVal = b.cells[0]?.textContent || '';
+        } else if(column === 'channel'){
+            aVal = a.cells[1]?.textContent || '';
+            bVal = b.cells[1]?.textContent || '';
+        } else if(column === 'text'){
+            aVal = a.cells[2]?.textContent || '';
+            bVal = b.cells[2]?.textContent || '';
+        } else {
+            aVal = a.cells[3]?.textContent || '';
+            bVal = b.cells[3]?.textContent || '';
+        }
+        if(direction === 'asc') return aVal.localeCompare(bVal);
+        return bVal.localeCompare(aVal);
+    });
+}
+
+function renderPage(){
+    if(!tbody) return;
+    const start = (currentPage-1)*rowsPerPage;
+    const end = start+rowsPerPage;
+    const pageRows = filteredData.slice(start,end);
+    
+    tbody.innerHTML = '';
+    if(pageRows.length === 0){
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:40px;">Нет записей</td></tr>';
+        return;
+    }
+    pageRows.forEach(row => tbody.appendChild(row.cloneNode(true)));
+}
+
+function renderPagination(){
+    const paginationEl = document.getElementById('pagination');
+    if(!paginationEl) return;
+    const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+    if(totalPages <= 1){
+        paginationEl.innerHTML = '';
+        return;
+    }
+    let html = '';
+    if(currentPage > 1) html += `<button class="page-btn" data-page="${currentPage-1}">←</button>`;
+    const startPage = Math.max(1, currentPage-2);
+    const endPage = Math.min(totalPages, currentPage+2);
+    if(startPage > 1){
+        html += `<button class="page-btn" data-page="1">1</button>`;
+        if(startPage > 2) html += `<span style="padding:0 8px;">...</span>`;
+    }
+    for(let i=startPage; i<=endPage; i++){
+        html += `<button class="page-btn ${i===currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+    }
+    if(endPage < totalPages){
+        if(endPage < totalPages-1) html += `<span style="padding:0 8px;">...</span>`;
+        html += `<button class="page-btn" data-page="${totalPages}">${totalPages}</button>`;
+    }
+    if(currentPage < totalPages) html += `<button class="page-btn" data-page="${currentPage+1}">→</button>`;
+    paginationEl.innerHTML = html;
+    paginationEl.querySelectorAll('.page-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const page = parseInt(btn.dataset.page);
+            if(!isNaN(page)){
+                currentPage = page;
+                renderPage();
+                renderPagination();
+                window.scrollTo({top:0, behavior:'smooth'});
+            }
+        });
+    });
+}
+
+// Обработчики фильтров
+document.getElementById('searchInput')?.addEventListener('input', () => { currentPage=1; filterRows(); });
+document.getElementById('statusFilter')?.addEventListener('change', () => { currentPage=1; filterRows(); });
+document.getElementById('channelFilter')?.addEventListener('change', () => { currentPage=1; filterRows(); });
+
+// Сортировка
+document.querySelectorAll('.posts-table th').forEach(th => {
+    th.addEventListener('click', () => {
+        const column = th.dataset.sort;
+        if(currentSort.column === column){
+            currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+            currentSort.column = column;
+            currentSort.direction = 'asc';
+        }
+        sortData();
+        currentPage = 1;
+        renderPage();
+        renderPagination();
+    });
+});
+
+// Инициализация
+filterRows();
+
+// Сообщения из URL
+const urlParams = new URLSearchParams(window.location.search);
+const container = document.getElementById('alertContainer');
+if(urlParams.get('success') && container){
+    const div = document.createElement('div');
+    div.className = 'alert alert-success';
+    div.innerHTML = '✅ ' + decodeURIComponent(urlParams.get('success'));
+    container.appendChild(div);
+    setTimeout(() => div.remove(), 4000);
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+if(urlParams.get('error') && container){
+    const div = document.createElement('div');
+    div.className = 'alert alert-error';
+    div.innerHTML = '❌ ' + decodeURIComponent(urlParams.get('error'));
+    container.appendChild(div);
+    setTimeout(() => div.remove(), 4000);
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+
+console.log('✅ Страница статистики загружена');
+</script>
+</body>
+</html>

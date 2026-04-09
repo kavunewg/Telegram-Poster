@@ -1,0 +1,217 @@
+<!-- templates/landing.html -->
+{% extends "base.html" %}
+
+{% block title %}Telegram Постер | Управление публикациями{% endblock %}
+
+{% block content %}
+<div class="landing-wrapper">
+    <div class="landing-card">
+        <div class="landing-header">
+            <div class="logo-animation">
+                <span class="logo-pulse">🤖</span>
+            </div>
+            <h1 class="landing-title">Telegram Постер</h1>
+            <p class="landing-subtitle">
+                Создавайте и публикуйте посты в Telegram и Max каналы
+            </p>
+        </div>
+
+        <div class="features">
+            <div class="feature-item">
+                <div class="feature-icon">📢</div>
+                <div class="feature-text">Мгновенная публикация</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🎬</div>
+                <div class="feature-text">Поддержка видео и фото</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">⏰</div>
+                <div class="feature-text">Отложенные посты</div>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔘</div>
+                <div class="feature-text">Интерактивные кнопки</div>
+            </div>
+        </div>
+
+        <div class="landing-actions">
+            <a href="/login" class="btn btn-primary">
+                <span>🔐</span>
+                <span>Войти</span>
+            </a>
+            <a href="/register" class="btn btn-secondary">
+                <span>📝</span>
+                <span>Зарегистрироваться</span>
+            </a>
+        </div>
+
+        <div class="landing-footer">
+            <p>🚀 Быстро | 💪 Надёжно | 🔒 Безопасно</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .landing-wrapper {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+
+    .landing-card {
+        background: var(--card-bg);
+        border-radius: 48px;
+        padding: 60px 48px;
+        width: 100%;
+        max-width: 680px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.6s ease;
+        text-align: center;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .landing-header {
+        margin-bottom: 48px;
+    }
+
+    .logo-animation {
+        margin-bottom: 24px;
+    }
+
+    .logo-pulse {
+        font-size: 80px;
+        display: inline-block;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.08);
+        }
+    }
+
+    .landing-title {
+        font-size: 42px;
+        font-weight: 800;
+        margin-bottom: 16px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .landing-subtitle {
+        font-size: 16px;
+        color: var(--text-light);
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .features {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 24px;
+        margin-bottom: 48px;
+    }
+
+    .feature-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        min-width: 100px;
+    }
+
+    .feature-icon {
+        font-size: 32px;
+        background: var(--bg);
+        width: 64px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 32px;
+        transition: all 0.2s;
+    }
+
+    .feature-item:hover .feature-icon {
+        transform: translateY(-4px);
+        background: var(--primary);
+        color: white;
+    }
+
+    .feature-text {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-light);
+    }
+
+    .landing-actions {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        margin-bottom: 32px;
+        flex-wrap: wrap;
+    }
+
+    .landing-actions .btn {
+        min-width: 180px;
+        justify-content: center;
+        padding: 12px 28px;
+        font-size: 15px;
+    }
+
+    .landing-footer {
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+    }
+
+    .landing-footer p {
+        color: var(--text-light);
+        font-size: 13px;
+        letter-spacing: 0.5px;
+    }
+
+    @media (max-width: 560px) {
+        .landing-card {
+            padding: 40px 24px;
+        }
+        .landing-title {
+            font-size: 32px;
+        }
+        .logo-pulse {
+            font-size: 60px;
+        }
+        .features {
+            gap: 16px;
+        }
+        .feature-icon {
+            width: 52px;
+            height: 52px;
+            font-size: 26px;
+        }
+        .landing-actions .btn {
+            min-width: 140px;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мои боты | Telegram Poster</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+    font-family:'Inter',sans-serif;
+    background: radial-gradient(circle at 20% 30%, #1a1a2e, #0a0a0f);
+    color:#fff;
+    min-height:100vh;
+    display:flex;
+}
+
+body::before{
+    content:'';
+    position:fixed;
+    width:200%;
+    height:200%;
+    top:-50%;
+    left:-50%;
+    background:
+        radial-gradient(circle at 20% 30%, rgba(99,102,241,0.2), transparent),
+        radial-gradient(circle at 80% 70%, rgba(236,72,153,0.2), transparent);
+    animation:rotate 60s linear infinite;
+    pointer-events:none;
+}
+@keyframes rotate{to{transform:rotate(360deg);}}
+
+.sidebar{
+    width:260px;
+    background:rgba(15,15,30,0.8);
+    backdrop-filter:blur(20px);
+    border-right:1px solid rgba(255,255,255,0.05);
+    padding:24px 16px;
+    z-index:2;
+    height:100vh;
+    position:sticky;
+    top:0;
+}
+
+.sidebar a{
+    text-decoration:none;
+}
+
+.nav-btn{
+    display:block;
+    padding:12px;
+    border-radius:14px;
+    text-align:center;
+    font-weight:700;
+    color:#fff;
+    text-decoration:none;
+    transition:0.3s;
+    margin-bottom:12px;
+}
+
+.nav-btn-primary{
+    background:linear-gradient(135deg,#6366f1,#ec4899);
+}
+
+.nav-btn-primary:hover{
+    transform:translateY(-2px);
+    box-shadow:0 5px 20px rgba(99,102,241,0.4);
+}
+
+.nav-btn-secondary{
+    background:rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.1);
+}
+
+.nav-btn-secondary:hover{
+    background:rgba(255,255,255,0.2);
+}
+
+.divider{
+    height:1px;
+    background:rgba(255,255,255,0.1);
+    margin:16px 0;
+}
+
+.menu-item{
+    padding:12px 16px;
+    border-radius:14px;
+    margin-bottom:8px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    cursor:pointer;
+    transition:0.3s;
+    color:#cbd5e1;
+    font-weight:500;
+}
+
+.menu-item:hover{
+    background:rgba(99,102,241,0.15);
+    color:#fff;
+}
+
+.menu-item.active{
+    background:linear-gradient(135deg,#6366f1,#ec4899);
+    color:#fff;
+    box-shadow:0 0 20px rgba(99,102,241,0.3);
+}
+
+.main{
+    flex:1;
+    padding:32px 40px;
+    position:relative;
+    z-index:2;
+    overflow-y:auto;
+    max-height:100vh;
+}
+
+.title{
+    text-align:center;
+    font-size:32px;
+    font-weight:800;
+    margin-bottom:32px;
+    background:linear-gradient(135deg,#6366f1,#ec4899);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+}
+
+.platform-wrapper{
+    margin-bottom:20px;
+}
+
+.platform-card{
+    background:rgba(20,20,40,0.7);
+    backdrop-filter:blur(20px);
+    border-radius:24px;
+    border:1px solid rgba(255,255,255,0.08);
+    overflow:hidden;
+    transition:0.3s;
+}
+
+.platform-card:hover{
+    border-color:rgba(99,102,241,0.4);
+    box-shadow:0 10px 30px rgba(99,102,241,0.2);
+}
+
+.platform-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:20px;
+    cursor:pointer;
+}
+
+.platform-left{
+    display:flex;
+    gap:14px;
+    align-items:center;
+}
+
+.icon{
+    width:48px;
+    height:48px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:24px;
+    background:linear-gradient(135deg,#6366f1,#ec4899);
+}
+
+.platform-info{
+    display:flex;
+    flex-direction:column;
+}
+
+.platform-name{
+    font-weight:700;
+    font-size:18px;
+}
+
+.platform-sub{
+    font-size:12px;
+    color:#9ca3af;
+}
+
+.arrow{
+    font-size:24px;
+    color:#9ca3af;
+    transition:0.3s;
+}
+
+.platform-card.open .arrow{
+    transform:rotate(90deg);
+    color:#6366f1;
+}
+
+.platform-content{
+    max-height:0;
+    overflow:hidden;
+    transition:max-height 0.4s ease-out;
+    border-top:1px solid transparent;
+}
+
+.platform-card.open .platform-content{
+    max-height:500px;
+    border-top-color:rgba(255,255,255,0.08);
+}
+
+.bots-list{
+    padding:0 20px 20px 20px;
+}
+
+.bot-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 0;
+    border-bottom:1px solid rgba(255,255,255,0.05);
+}
+
+.bot-item:last-child{
+    border-bottom:none;
+}
+
+.bot-info{
+    flex:1;
+}
+
+.bot-name{
+    font-weight:600;
+    font-size:15px;
+    margin-bottom:4px;
+}
+
+.bot-meta{
+    font-size:11px;
+    color:#9ca3af;
+}
+
+.bot-actions{
+    display:flex;
+    gap:12px;
+}
+
+.bot-actions button{
+    background:none;
+    border:none;
+    cursor:pointer;
+    font-size:18px;
+    padding:6px;
+    border-radius:8px;
+    transition:0.2s;
+    color:#9ca3af;
+}
+
+.bot-actions button:hover{
+    background:rgba(255,255,255,0.1);
+}
+
+.edit-btn:hover{color:#f59e0b;}
+.delete-btn:hover{color:#ef4444;}
+
+.empty-state{
+    text-align:center;
+    padding:24px;
+    color:#9ca3af;
+}
+
+.btn{
+    background:linear-gradient(135deg,#6366f1,#ec4899);
+    border:none;
+    padding:10px 20px;
+    border-radius:12px;
+    color:#fff;
+    cursor:pointer;
+    font-weight:600;
+    transition:0.3s;
+    font-size:14px;
+}
+
+.btn-outline{
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.2);
+}
+
+.btn-outline:hover{
+    background:rgba(99,102,241,0.2);
+    border-color:#6366f1;
+}
+
+.btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 5px 20px rgba(99,102,241,0.4);
+}
+
+.add-block{
+    margin-top:24px;
+    background:rgba(20,20,40,0.7);
+    backdrop-filter:blur(20px);
+    border-radius:24px;
+    padding:20px;
+    border:1px solid rgba(255,255,255,0.08);
+}
+
+.add-title{
+    font-size:18px;
+    font-weight:600;
+    margin-bottom:16px;
+}
+
+.form{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+}
+
+.input{
+    padding:12px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,0.1);
+    background:rgba(15,15,30,0.7);
+    color:#fff;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+}
+
+.input:focus{
+    outline:none;
+    border-color:#6366f1;
+}
+
+select.input{
+    cursor:pointer;
+}
+
+/* Модальные окна */
+.modal{
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.7);
+    backdrop-filter:blur(8px);
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+}
+
+.modal.active{
+    display:flex;
+}
+
+.modal-content{
+    background:rgba(20,20,40,0.95);
+    backdrop-filter:blur(20px);
+    border-radius:28px;
+    padding:28px;
+    width:90%;
+    max-width:500px;
+    border:1px solid rgba(255,255,255,0.1);
+}
+
+.modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.modal-title{
+    font-size:20px;
+    font-weight:700;
+}
+
+.modal-close{
+    background:none;
+    border:none;
+    font-size:28px;
+    cursor:pointer;
+    color:#9ca3af;
+}
+
+.modal-close:hover{
+    color:#ef4444;
+}
+
+.modal-actions{
+    display:flex;
+    gap:12px;
+    margin-top:24px;
+    justify-content:flex-end;
+}
+
+.modal-actions .btn-secondary{
+    background:rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.2);
+    color:#fff;
+    padding:10px 20px;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.modal-actions .btn-secondary:hover{
+    background:rgba(255,255,255,0.2);
+}
+
+.alert{
+    padding:12px 16px;
+    border-radius:12px;
+    margin-bottom:20px;
+}
+
+.alert-success{
+    background:rgba(16,185,129,0.15);
+    border-left:3px solid #10b981;
+}
+
+.alert-error{
+    background:rgba(239,68,68,0.15);
+    border-left:3px solid #ef4444;
+}
+
+@media(max-width:900px){
+    .sidebar{display:none;}
+    .main{padding:20px;}
+    .form{grid-template-columns:1fr;}
+    .title{font-size:24px;}
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <a href="/dashboard" class="nav-btn nav-btn-primary">🏠 На главную</a>
+    <a href="/my_channels" class="nav-btn nav-btn-primary">📺 Мои каналы</a>
+    
+    <div class="divider"></div>
+    
+    <div class="menu-item" data-platform="all">🌐 Все</div>
+    <div class="menu-item" data-platform="telegram">🤖 Telegram</div>
+    <div class="menu-item" data-platform="max">🏢 MAX</div>
+    <div class="menu-item" data-platform="vk">📘 VK</div>
+    <div class="menu-item" data-platform="youtube">🎬 YouTube</div>
+</div>
+
+<div class="main">
+
+    <div class="title">🤖 Мои боты</div>
+    
+    <div id="alertContainer"></div>
+
+    <!-- Telegram боты -->
+    <div class="platform-wrapper" data-platform="telegram">
+        <div class="platform-card">
+            <div class="platform-header">
+                <div class="platform-left">
+                    <div class="icon">🤖</div>
+                    <div class="platform-info">
+                        <div class="platform-name">Telegram боты</div>
+                        <div class="platform-sub">{{ telegram_count }} ботов</div>
+                    </div>
+                </div>
+                <div class="arrow">›</div>
+            </div>
+            <div class="platform-content">
+                <div class="bots-list">
+                    {% for bot in telegram_bots %}
+                    <div class="bot-item" data-bot-id="{{ bot.id }}" data-platform="telegram">
+                        <div class="bot-info">
+                            <div class="bot-name">{{ bot.name }}</div>
+                            <div class="bot-meta">{{ bot.token[:20] }}... • {{ bot.channels_count }} каналов</div>
+                        </div>
+                        <div class="bot-actions">
+                            <button class="edit-btn" onclick="openEditBotModal({{ bot.id }}, 'telegram')">✏️</button>
+                            <form action="/delete_bot/{{ bot.id }}" method="post" style="display:inline" onsubmit="return confirm('Удалить бота?')">
+                                <button class="delete-btn">🗑️</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">📭 Нет ботов</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAX боты -->
+    <div class="platform-wrapper" data-platform="max">
+        <div class="platform-card">
+            <div class="platform-header">
+                <div class="platform-left">
+                    <div class="icon">🏢</div>
+                    <div class="platform-info">
+                        <div class="platform-name">MAX боты</div>
+                        <div class="platform-sub">{{ max_count }} ботов</div>
+                    </div>
+                </div>
+                <div class="arrow">›</div>
+            </div>
+            <div class="platform-content">
+                <div class="bots-list">
+                    {% for bot in max_bots %}
+                    <div class="bot-item" data-bot-id="{{ bot.id }}" data-platform="max">
+                        <div class="bot-info">
+                            <div class="bot-name">{{ bot.name }}</div>
+                            <div class="bot-meta">{{ bot.token[:20] }}... • {% if bot.inn %}ИНН: {{ bot.inn }}{% else %}без ИНН{% endif %}</div>
+                        </div>
+                        <div class="bot-actions">
+                            <button class="edit-btn" onclick="openEditBotModal({{ bot.id }}, 'max')">✏️</button>
+                            <form action="/delete_bot/{{ bot.id }}" method="post" style="display:inline" onsubmit="return confirm('Удалить бота?')">
+                                <button class="delete-btn">🗑️</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">📭 Нет ботов</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VK боты -->
+    <div class="platform-wrapper" data-platform="vk">
+        <div class="platform-card">
+            <div class="platform-header">
+                <div class="platform-left">
+                    <div class="icon">📘</div>
+                    <div class="platform-info">
+                        <div class="platform-name">VK боты</div>
+                        <div class="platform-sub">{{ vk_count }} ботов</div>
+                    </div>
+                </div>
+                <div class="arrow">›</div>
+            </div>
+            <div class="platform-content">
+                <div class="bots-list">
+                    {% for bot in vk_bots %}
+                    <div class="bot-item" data-bot-id="{{ bot.id }}" data-platform="vk">
+                        <div class="bot-info">
+                            <div class="bot-name">{{ bot.name }}</div>
+                            <div class="bot-meta">{{ bot.token[:20] }}... • VK API</div>
+                        </div>
+                        <div class="bot-actions">
+                            <button class="edit-btn" onclick="openEditBotModal({{ bot.id }}, 'vk')">✏️</button>
+                            <form action="/delete_bot/{{ bot.id }}" method="post" style="display:inline" onsubmit="return confirm('Удалить бота?')">
+                                <button class="delete-btn">🗑️</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">📭 Нет ботов</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- YouTube боты -->
+    <div class="platform-wrapper" data-platform="youtube">
+        <div class="platform-card">
+            <div class="platform-header">
+                <div class="platform-left">
+                    <div class="icon">🎬</div>
+                    <div class="platform-info">
+                        <div class="platform-name">YouTube боты</div>
+                        <div class="platform-sub">{{ youtube_count }} ботов</div>
+                    </div>
+                </div>
+                <div class="arrow">›</div>
+            </div>
+            <div class="platform-content">
+                <div class="bots-list">
+                    {% for bot in youtube_bots %}
+                    <div class="bot-item" data-bot-id="{{ bot.id }}" data-platform="youtube">
+                        <div class="bot-info">
+                            <div class="bot-name">{{ bot.name }}</div>
+                            <div class="bot-meta">{{ bot.youtube_api_key[:20] }}... • API Key</div>
+                        </div>
+                        <div class="bot-actions">
+                            <button class="edit-btn" onclick="openEditBotModal({{ bot.id }}, 'youtube')">✏️</button>
+                            <form action="/delete_bot/{{ bot.id }}" method="post" style="display:inline" onsubmit="return confirm('Удалить бота?')">
+                                <button class="delete-btn">🗑️</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">📭 Нет ботов</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Добавить бота -->
+    <div class="add-block">
+        <div class="add-title">➕ Добавить нового бота</div>
+        <form action="/add_bot" method="post" class="form">
+            <input type="text" name="bot_name" class="input" placeholder="Название бота" required>
+            <select name="platform" id="platformSelect" class="input">
+                <option value="telegram">🤖 Telegram</option>
+                <option value="max">🏢 MAX</option>
+                <option value="vk">📘 VK</option>
+                <option value="youtube">🎬 YouTube</option>
+            </select>
+            <input type="text" name="bot_token" id="botToken" class="input" placeholder="Токен / API ключ" required>
+            <input type="text" name="inn" id="innInput" class="input" placeholder="ИНН (для MAX)" style="display:none;">
+            <button type="submit" class="btn">+ Добавить</button>
+        </form>
+    </div>
+
+</div>
+
+<!-- Модалка редактирования бота -->
+<div id="editBotModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">✏️ Редактировать бота</div>
+            <button class="modal-close" onclick="closeEditBotModal()">&times;</button>
+        </div>
+        <form id="editBotForm" method="post">
+            <input type="hidden" name="bot_id" id="editBotId">
+            <input type="hidden" name="platform" id="editBotPlatform">
+            
+            <div style="margin-bottom:16px;">
+                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">Название</label>
+                <input type="text" name="bot_name" id="editBotName" class="input" style="width:100%;" required>
+            </div>
+            
+            <div style="margin-bottom:16px;">
+                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">Токен / API ключ</label>
+                <input type="text" name="bot_token" id="editBotToken" class="input" style="width:100%;" placeholder="Оставьте пустым, чтобы не менять">
+                <div class="info-hint" style="font-size:11px; color:#9ca3af; margin-top:4px;">Текущий: <span id="currentTokenDisplay"></span></div>
+            </div>
+            
+            <div id="editInnGroup" style="margin-bottom:16px; display:none;">
+                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">ИНН</label>
+                <input type="text" name="inn" id="editInn" class="input" style="width:100%;" placeholder="10 или 12 цифр">
+                <div class="info-hint" style="font-size:11px; color:#9ca3af; margin-top:4px;">Текущий: <span id="currentInnDisplay"></span></div>
+            </div>
+            
+            <div id="editYoutubeGroup" style="margin-bottom:16px; display:none;">
+                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">Частота проверки (минуты)</label>
+                <select name="check_interval" id="editCheckInterval" class="input" style="width:100%;">
+                    <option value="5">5 минут</option>
+                    <option value="10">10 минут</option>
+                    <option value="15">15 минут</option>
+                    <option value="30">30 минут</option>
+                    <option value="60">1 час</option>
+                    <option value="120">2 часа</option>
+                </select>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary" onclick="closeEditBotModal()">Отмена</button>
+                <button type="submit" class="btn">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Раскрытие карточек
+document.querySelectorAll('.platform-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+        if(e.target.closest('.edit-btn') || e.target.closest('.delete-btn') || e.target.closest('form')){
+            return;
+        }
+        card.classList.toggle('open');
+    });
+});
+
+// Показ поля ИНН для MAX
+const platformSelect = document.getElementById('platformSelect');
+const innInput = document.getElementById('innInput');
+
+if(platformSelect){
+    platformSelect.addEventListener('change', () => {
+        if(platformSelect.value === 'max'){
+            innInput.style.display = 'block';
+            innInput.required = true;
+        } else {
+            innInput.style.display = 'none';
+            innInput.required = false;
+        }
+    });
+}
+
+// Сайдбар фильтрация
+document.querySelectorAll('.menu-item').forEach(item => {
+    item.addEventListener('click', () => {
+        document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        
+        const platform = item.dataset.platform;
+        
+        document.querySelectorAll('.platform-wrapper').forEach(wrapper => {
+            if(platform === 'all' || wrapper.dataset.platform === platform){
+                wrapper.style.display = 'block';
+            } else {
+                wrapper.style.display = 'none';
+            }
+        });
+    });
+});
+
+// Открытие модалки редактирования бота
+function openEditBotModal(botId, platform) {
+    fetch(`/get_bot/${botId}`)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('editBotId').value = data.id;
+            document.getElementById('editBotPlatform').value = platform;
+            document.getElementById('editBotName').value = data.name || '';
+            document.getElementById('currentTokenDisplay').innerText = data.token ? (data.token.substring(0, 10) + '********') : 'не указан';
+            document.getElementById('editBotToken').value = '';
+            
+            // Скрываем все дополнительные поля
+            document.getElementById('editInnGroup').style.display = 'none';
+            document.getElementById('editYoutubeGroup').style.display = 'none';
+            
+            if(platform === 'max'){
+                document.getElementById('editInnGroup').style.display = 'block';
+                document.getElementById('editInn').value = data.inn || '';
+                document.getElementById('currentInnDisplay').innerText = data.inn || 'не указан';
+            } else if(platform === 'youtube'){
+                document.getElementById('editYoutubeGroup').style.display = 'block';
+                document.getElementById('editCheckInterval').value = data.check_interval || 15;
+            }
+            
+            document.getElementById('editBotModal').classList.add('active');
+        })
+        .catch(err => console.error('Ошибка загрузки бота:', err));
+}
+
+function closeEditBotModal() {
+    document.getElementById('editBotModal').classList.remove('active');
+}
+
+// Отправка формы редактирования
+document.getElementById('editBotForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const botId = document.getElementById('editBotId').value;
+    
+    try {
+        const response = await fetch(`/update_bot/${botId}`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        if(response.redirected){
+            window.location.href = response.url;
+        } else {
+            const result = await response.json();
+            if(result.success){
+                alert('Бот успешно обновлён');
+                window.location.reload();
+            } else {
+                alert('Ошибка: ' + (result.error || 'Неизвестная ошибка'));
+            }
+        }
+    } catch(err){
+        console.error(err);
+        alert('Ошибка при обновлении бота');
+    }
+});
+
+// Закрытие по ESC
+document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape') closeEditBotModal();
+});
+
+// Сообщения из URL
+const urlParams = new URLSearchParams(window.location.search);
+const container = document.getElementById('alertContainer');
+if(urlParams.get('success') && container){
+    const div = document.createElement('div');
+    div.className = 'alert alert-success';
+    div.innerHTML = '✅ ' + decodeURIComponent(urlParams.get('success'));
+    container.appendChild(div);
+    setTimeout(() => div.remove(), 4000);
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+if(urlParams.get('error') && container){
+    const div = document.createElement('div');
+    div.className = 'alert alert-error';
+    div.innerHTML = '❌ ' + decodeURIComponent(urlParams.get('error'));
+    container.appendChild(div);
+    setTimeout(() => div.remove(), 4000);
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+</script>
+</body>
+</html>

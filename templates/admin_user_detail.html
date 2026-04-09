@@ -1,0 +1,63 @@
+<!-- templates/admin_user_detail.html -->
+{% extends "base.html" %}
+
+{% block title %}Пользователь {{ user.username }} | Telegram Постер{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="header-actions">
+        <button onclick="toggleTheme()" class="btn btn-secondary btn-sm">🌓 Сменить тему</button>
+        <a href="/dashboard" class="btn btn-secondary btn-sm">🔙 Назад в админ-панель</a>
+    </div>
+
+    <div class="user-header" style="background: var(--stat-bg); border-radius: 20px; padding: 24px; margin-bottom: 24px;">
+        <h2 style="margin: 0 0 16px 0;">👤 {{ user.username }}</h2>
+        {% if user.is_admin == 1 %}<span class="badge-admin">👑 Администратор</span>{% endif %}
+        <p><strong>📛 ФИО:</strong> {{ user.full_name|default('Не указано') }}</p>
+        <p><strong>📧 Логин:</strong> {{ user.username }}</p>
+        <p><strong>📅 Дата регистрации:</strong> {{ user.created_at[:10] if user.created_at else 'Не указана' }}</p>
+        <p><strong>🏢 Проект:</strong> {{ user.project_name|default('Не указано') }}</p>
+    </div>
+
+    <h3>📊 Статистика</h3>
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-number">{{ stats.total_posts|default(0) }}</div><div class="stat-label">Всего постов</div></div>
+        <div class="stat-card"><div class="stat-number success">{{ stats.success_posts|default(0) }}</div><div class="stat-label">Успешно</div></div>
+        <div class="stat-card"><div class="stat-number error">{{ stats.error_posts|default(0) }}</div><div class="stat-label">Ошибок</div></div>
+    </div>
+
+    <h3>📢 Каналы</h3>
+    {% if channels %}
+    <div style="display: grid; gap: 12px;">
+        {% for channel in channels %}
+        <div style="background: var(--stat-bg); border-radius: 16px; padding: 16px; border: 1px solid var(--card-border);">
+            <strong>{{ channel.name }}</strong> <span class="badge">{% if channel.type == 'telegram' %}🤖 Telegram{% else %}📱 Max{% endif %}</span>
+            <div style="font-size: 12px; color: var(--text-muted);">ID: {{ channel.channel_id }}</div>
+            {% if channel.url %}<div style="font-size: 12px;"><a href="{{ channel.url }}" target="_blank" style="color: var(--primary);">🔗 {{ channel.url[:50] }}</a></div>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state"><div class="empty-icon">📭</div><div>Нет каналов</div></div>
+    {% endif %}
+
+    <h3>📝 История</h3>
+    {% if posts %}
+    <div style="max-height: 500px; overflow-y: auto;">
+        {% for post in posts %}
+        <div style="background: var(--stat-bg); border-radius: 16px; padding: 16px; margin-bottom: 12px; border-left: 4px solid {% if post.status == 'success' %}var(--success){% else %}var(--danger){% endif %};">
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+                <strong>{{ post.channel_name }}</strong>
+                <span>{% if post.status == 'success' %}✅ Успешно{% else %}❌ Ошибка{% endif %}</span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted);">📅 {{ post.created_at[:19] if post.created_at else 'Нет даты' }}</div>
+            <div style="margin-top: 8px; font-size: 13px;">{{ post.text[:150] if post.text else 'Нет текста' }}{% if post.text and post.text|length > 150 %}...{% endif %}</div>
+            {% if post.error %}<div style="margin-top: 8px; font-size: 12px; color: var(--danger);">🔴 {{ post.error[:150] }}</div>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state"><div class="empty-icon">📭</div><div>Нет постов</div></div>
+    {% endif %}
+</div>
+{% endblock %}

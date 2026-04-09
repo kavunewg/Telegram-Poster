@@ -1,0 +1,830 @@
+<!-- templates/edit_scheduled_post.html -->
+{% extends "base.html" %}
+
+{% block title %}{% if get_lang(request) == 'en' %}Edit Scheduled Post | Telegram Poster{% else %}Редактирование отложенного поста | Telegram Постер{% endif %}{% endblock %}
+
+{% block content %}
+<div class="edit-wrapper">
+    <div class="edit-card">
+        <div class="edit-header">
+            <div class="header-left">
+                <a href="/scheduled_posts" class="btn btn-secondary btn-sm">
+                    <span>←</span>
+                    <span>{% if get_lang(request) == 'en' %}Back to list{% else %}Назад к списку{% endif %}</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="edit-title-section">
+            <h1 class="edit-title">✏️ {% if get_lang(request) == 'en' %}Edit Scheduled Post{% else %}Редактирование отложенного поста{% endif %}</h1>
+            <p class="edit-subtitle">
+                {% if get_lang(request) == 'en' %}
+                Change post content, schedule time or channel settings
+                {% else %}
+                Измените содержимое поста, время публикации или настройки каналов
+                {% endif %}
+            </p>
+        </div>
+
+        <div id="alertContainer" class="message-container"></div>
+
+        <form id="editForm" action="/update_scheduled_post/{{ post.id }}" method="post" enctype="multipart/form-data">
+            <input type="hidden" id="channelsData" name="channels_data">
+            <input type="hidden" id="buttonData" name="button_data">
+
+            <!-- Выбор каналов -->
+            <div class="edit-section">
+                <div class="section-header">
+                    <span class="section-icon">📢</span>
+                    <h3 class="section-title">{% if get_lang(request) == 'en' %}Channels{% else %}Каналы публикации{% endif %}</h3>
+                    <span class="section-badge">{% if get_lang(request) == 'en' %}Required{% else %}Обязательно{% endif %}</span>
+                </div>
+                
+                <div class="channels-grid" id="channelsGrid">
+                    {% for channel in channels %}
+                    <div class="channel-card {% if channel.id in post_channels|map(attribute='id') %}selected{% endif %}" 
+                         data-id="{{ channel.id }}" data-name="{{ channel.channel_name }}" 
+                         data-channel-id="{{ channel.channel_id }}" data-platform="{{ channel.platform }}">
+                        <div class="channel-icon {% if channel.platform == 'telegram' %}telegram-icon{% else %}max-icon{% endif %}">
+                            {% if channel.platform == 'telegram' %}🤖{% else %}📱{% endif %}
+                        </div>
+                        <div class="channel-info">
+                            <div class="channel-name">{{ channel.channel_name }}</div>
+                            <div class="channel-id">{{ channel.channel_id }}</div>
+                        </div>
+                        <div class="check-indicator"></div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="selection-summary">
+                    <span>📊 {% if get_lang(request) == 'en' %}Selected{% else %}Выбрано{% endif %}:</span>
+                    <strong id="selectedCount">{{ post_channels|length }}</strong>
+                </div>
+            </div>
+
+            <!-- Текст поста -->
+            <div class="edit-section">
+                <div class="section-header">
+                    <span class="section-icon">📝</span>
+                    <h3 class="section-title">{% if get_lang(request) == 'en' %}Post Text{% else %}Текст поста{% endif %}</h3>
+                    <span class="section-badge">{% if get_lang(request) == 'en' %}Required{% else %}Обязательно{% endif %}</span>
+                </div>
+                <textarea name="post_text" class="post-textarea" placeholder="{% if get_lang(request) == 'en' %}Enter your post text...{% else %}Введите текст поста...{% endif %}" required>{{ post.post_text }}</textarea>
+            </div>
+
+            <!-- Дата и время -->
+            <div class="edit-section">
+                <div class="section-header">
+                    <span class="section-icon">📅</span>
+                    <h3 class="section-title">{% if get_lang(request) == 'en' %}Schedule Time{% else %}Время публикации{% endif %}</h3>
+                    <span class="section-badge">{% if get_lang(request) == 'en' %}Required{% else %}Обязательно{% endif %}</span>
+                </div>
+                <div class="datetime-row">
+                    <div class="form-group">
+                        <label>{% if get_lang(request) == 'en' %}Date{% else %}Дата{% endif %}</label>
+                        <input type="date" name="scheduled_date" id="scheduleDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>{% if get_lang(request) == 'en' %}Time{% else %}Время{% endif %}</label>
+                        <input type="time" name="scheduled_time" id="scheduleTime" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Кнопка -->
+            <div class="edit-section">
+                <div class="section-header">
+                    <span class="section-icon">🔘</span>
+                    <h3 class="section-title">{% if get_lang(request) == 'en' %}Button Settings{% else %}Настройки кнопки{% endif %}</h3>
+                    <span class="section-badge">{% if get_lang(request) == 'en' %}Optional{% else %}Опционально{% endif %}</span>
+                </div>
+                
+                <div class="color-options" id="colorOptions">
+                    <div class="color-option" data-color="success">
+                        <div class="color-dot success"></div>
+                        <span>🟢 {% if get_lang(request) == 'en' %}Green{% else %}Зелёная{% endif %}</span>
+                    </div>
+                    <div class="color-option" data-color="danger">
+                        <div class="color-dot danger"></div>
+                        <span>🔴 {% if get_lang(request) == 'en' %}Red{% else %}Красная{% endif %}</span>
+                    </div>
+                    <div class="color-option" data-color="primary">
+                        <div class="color-dot primary"></div>
+                        <span>🔵 {% if get_lang(request) == 'en' %}Blue{% else %}Синяя{% endif %}</span>
+                    </div>
+                    <div class="color-option" data-color="gray">
+                        <div class="color-dot gray"></div>
+                        <span>⚪ {% if get_lang(request) == 'en' %}Gray{% else %}Серая{% endif %}</span>
+                    </div>
+                </div>
+                
+                <div class="button-row">
+                    <div class="form-group">
+                        <label>{% if get_lang(request) == 'en' %}Button Text{% else %}Текст кнопки{% endif %}</label>
+                        <input type="text" name="button_text" id="buttonText" placeholder="{% if get_lang(request) == 'en' %}Click me{% else %}Нажми на меня{% endif %}" value="{{ button.text if button else '' }}">
+                    </div>
+                    <div class="form-group">
+                        <label>{% if get_lang(request) == 'en' %}Button URL{% else %}Ссылка кнопки{% endif %}</label>
+                        <input type="text" name="button_url" id="buttonUrl" placeholder="https://example.com" value="{{ button.url if button else '' }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Медиафайл -->
+            <div class="edit-section">
+                <div class="section-header">
+                    <span class="section-icon">📎</span>
+                    <h3 class="section-title">{% if get_lang(request) == 'en' %}Media File{% else %}Медиафайл{% endif %}</h3>
+                    <span class="section-badge">{% if get_lang(request) == 'en' %}Optional{% else %}Опционально{% endif %}</span>
+                </div>
+                
+                {% if post.media_name %}
+                <div class="existing-media" id="existingMediaPreview">
+                    <div class="media-info">
+                        <span>📎 {{ post.media_name }}</span>
+                        <span class="media-size">({{ post.media_size|default('?') }} MB)</span>
+                    </div>
+                    <label class="delete-checkbox">
+                        <input type="checkbox" name="delete_media" value="1">
+                        <span>🗑️ {% if get_lang(request) == 'en' %}Delete current file{% else %}Удалить текущий файл{% endif %}</span>
+                    </label>
+                </div>
+                {% endif %}
+                
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <p class="upload-text">
+                        {% if get_lang(request) == 'en' %}
+                        Click to upload a new file
+                        {% else %}
+                        Нажмите для загрузки нового файла
+                        {% endif %}
+                    </p>
+                    <p class="upload-hint">
+                        {% if get_lang(request) == 'en' %}
+                        JPG, PNG, GIF, MP4 (max 50MB)
+                        {% else %}
+                        JPG, PNG, GIF, MP4 (максимум 50 МБ)
+                        {% endif %}
+                    </p>
+                    <input type="file" name="media_file" id="mediaFile" accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.mov" style="display: none;">
+                    <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('mediaFile').click()">
+                        📂 {% if get_lang(request) == 'en' %}Select File{% else %}Выбрать файл{% endif %}
+                    </button>
+                </div>
+                
+                <div id="newMediaPreview" style="display: none;" class="new-media-preview">
+                    <span id="newMediaName"></span>
+                    <button type="button" onclick="removeNewMedia()" class="btn-danger-sm">🗑️ {% if get_lang(request) == 'en' %}Remove{% else %}Удалить{% endif %}</button>
+                </div>
+            </div>
+
+            <!-- Регулярный пост -->
+            <div class="edit-section">
+                <div class="section-header">
+                    <span class="section-icon">🔄</span>
+                    <h3 class="section-title">{% if get_lang(request) == 'en' %}Regular Post{% else %}Регулярный пост{% endif %}</h3>
+                    <span class="section-badge">{% if get_lang(request) == 'en' %}Optional{% else %}Опционально{% endif %}</span>
+                </div>
+                
+                <label class="regular-checkbox">
+                    <input type="checkbox" name="is_regular" value="1" id="isRegularCheckbox" {% if is_regular %}checked{% endif %}>
+                    <span>🔄 {% if get_lang(request) == 'en' %}Make this a regular recurring post{% else %}Сделать регулярным (повторяющимся){% endif %}</span>
+                </label>
+                
+                <div id="regularSettings" style="display: {% if is_regular %}block{% else %}none{% endif %};" class="regular-settings">
+                    <div class="form-group">
+                        <label>⏱️ {% if get_lang(request) == 'en' %}Interval (hours){% else %}Интервал (часы){% endif %}</label>
+                        <input type="number" name="regular_interval" id="regularInterval" value="{{ regular_settings.interval_hours or 24 }}" min="1" max="168">
+                        <div class="info-hint">💡 {% if get_lang(request) == 'en' %}How often to repeat the post (1-168 hours){% else %}Как часто повторять пост (1-168 часов){% endif %}</div>
+                    </div>
+                    <div class="form-row-small">
+                        <div class="form-group">
+                            <label>📅 {% if get_lang(request) == 'en' %}End Date{% else %}Дата окончания{% endif %}</label>
+                            <input type="date" name="regular_end_date" id="regularEndDate" value="{{ regular_settings.end_date or '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label>⏰ {% if get_lang(request) == 'en' %}End Time{% else %}Время окончания{% endif %}</label>
+                            <input type="time" name="regular_end_time" id="regularEndTime" value="{{ regular_settings.end_time or '' }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="edit-actions">
+                <a href="/scheduled_posts" class="btn btn-secondary">
+                    ❌ {% if get_lang(request) == 'en' %}Cancel{% else %}Отмена{% endif %}
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    💾 {% if get_lang(request) == 'en' %}Save Changes{% else %}Сохранить изменения{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .edit-wrapper {
+        min-height: 100vh;
+        padding: 40px 20px;
+    }
+
+    .edit-card {
+        max-width: 900px;
+        margin: 0 auto;
+        background: var(--card-bg);
+        border-radius: 32px;
+        padding: 40px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-lg);
+        animation: fadeInUp 0.5s ease;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .edit-header {
+        margin-bottom: 24px;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .edit-title-section {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .edit-title {
+        font-size: 32px;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 8px;
+    }
+
+    .edit-subtitle {
+        color: var(--text-light);
+        font-size: 14px;
+    }
+
+    .message-container {
+        margin-bottom: 24px;
+    }
+
+    /* Секции */
+    .edit-section {
+        background: var(--bg);
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 24px;
+        border: 1px solid var(--border);
+        transition: all 0.2s;
+    }
+
+    .edit-section:hover {
+        border-color: var(--primary);
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .section-icon {
+        font-size: 24px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text);
+        margin: 0;
+    }
+
+    .section-badge {
+        margin-left: auto;
+        font-size: 11px;
+        padding: 2px 10px;
+        border-radius: 20px;
+        background: var(--border);
+        color: var(--text-light);
+    }
+
+    /* Сетка каналов */
+    .channels-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .channel-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .channel-card:hover {
+        border-color: var(--primary);
+        transform: translateX(4px);
+    }
+
+    .channel-card.selected {
+        border-color: var(--success);
+        background: rgba(16, 185, 129, 0.08);
+    }
+
+    .channel-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+
+    .telegram-icon {
+        background: linear-gradient(135deg, #0088cc, #2aabee);
+    }
+
+    .max-icon {
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    }
+
+    .channel-info {
+        flex: 1;
+    }
+
+    .channel-name {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    .channel-id {
+        font-size: 11px;
+        color: var(--text-light);
+        font-family: monospace;
+    }
+
+    .check-indicator {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--input-bg);
+        border: 2px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .channel-card.selected .check-indicator {
+        background: var(--success);
+        border-color: var(--success);
+    }
+
+    .channel-card.selected .check-indicator::after {
+        content: '✓';
+        color: white;
+        font-size: 13px;
+        font-weight: bold;
+    }
+
+    .selection-summary {
+        padding: 12px 16px;
+        background: var(--input-bg);
+        border-radius: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+    }
+
+    /* Формы */
+    .post-textarea {
+        width: 100%;
+        padding: 14px 16px;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        font-size: 14px;
+        color: var(--text);
+        resize: vertical;
+        min-height: 180px;
+        font-family: inherit;
+    }
+
+    .post-textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .datetime-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-light);
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px 14px;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        font-size: 14px;
+        color: var(--text);
+        font-family: inherit;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .button-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    /* Цвета кнопок */
+    .color-options {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .color-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 40px;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 13px;
+    }
+
+    .color-option.active {
+        border-color: var(--primary);
+        background: var(--badge-bg);
+    }
+
+    .color-dot {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+    }
+
+    .color-dot.success { background: var(--success); }
+    .color-dot.danger { background: var(--danger); }
+    .color-dot.primary { background: var(--primary); }
+    .color-dot.gray { background: #6b7280; }
+
+    /* Медиа */
+    .upload-area {
+        border: 2px dashed var(--border);
+        border-radius: 20px;
+        padding: 32px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .upload-area:hover {
+        border-color: var(--primary);
+        background: rgba(99, 102, 241, 0.05);
+    }
+
+    .upload-icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+    }
+
+    .upload-text {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .upload-hint {
+        font-size: 11px;
+        color: var(--text-light);
+        margin-bottom: 16px;
+    }
+
+    .existing-media {
+        background: rgba(16, 185, 129, 0.1);
+        border-radius: 14px;
+        padding: 12px 16px;
+        margin-bottom: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .media-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+    }
+
+    .media-size {
+        font-size: 11px;
+        color: var(--text-light);
+    }
+
+    .delete-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+    .new-media-preview {
+        background: rgba(16, 185, 129, 0.1);
+        border-radius: 14px;
+        padding: 12px 16px;
+        margin-top: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .btn-danger-sm {
+        background: var(--danger);
+        color: white;
+        border: none;
+        padding: 6px 14px;
+        border-radius: 30px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-danger-sm:hover {
+        background: #dc2626;
+    }
+
+    /* Регулярный пост */
+    .regular-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        margin-bottom: 16px;
+    }
+
+    .regular-settings {
+        padding: 16px;
+        background: var(--input-bg);
+        border-radius: 14px;
+        margin-top: 8px;
+    }
+
+    .form-row-small {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .info-hint {
+        font-size: 11px;
+        color: var(--text-light);
+        margin-top: 6px;
+    }
+
+    /* Кнопки действий */
+    .edit-actions {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        margin-top: 32px;
+        flex-wrap: wrap;
+    }
+
+    .edit-actions .btn {
+        min-width: 160px;
+        justify-content: center;
+    }
+
+    /* Уведомления */
+    .alert-toast {
+        padding: 12px 16px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        font-size: 13px;
+        animation: slideIn 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .alert-toast.error {
+        background: rgba(239, 68, 68, 0.12);
+        border-left: 3px solid var(--danger);
+        color: var(--danger);
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .edit-wrapper {
+            padding: 20px 12px;
+        }
+        .edit-card {
+            padding: 24px;
+        }
+        .edit-title {
+            font-size: 24px;
+        }
+        .datetime-row {
+            grid-template-columns: 1fr;
+        }
+        .button-row {
+            grid-template-columns: 1fr;
+        }
+        .form-row-small {
+            grid-template-columns: 1fr;
+        }
+        .channels-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    // Выбранные каналы
+    let selectedChannels = [];
+    let selectedButtonColor = 'success';
+
+    // Инициализация выбранных каналов
+    document.querySelectorAll('.channel-card.selected').forEach(card => {
+        selectedChannels.push({
+            id: card.dataset.id,
+            name: card.dataset.name,
+            channel_id: card.dataset.channelId,
+            platform: card.dataset.platform
+        });
+    });
+    document.getElementById('selectedCount').textContent = selectedChannels.length;
+    document.getElementById('channelsData').value = JSON.stringify(selectedChannels);
+
+    // Выбор каналов
+    document.querySelectorAll('.channel-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const id = this.dataset.id;
+            if (this.classList.contains('selected')) {
+                this.classList.remove('selected');
+                selectedChannels = selectedChannels.filter(c => c.id !== id);
+            } else {
+                this.classList.add('selected');
+                selectedChannels.push({
+                    id: id,
+                    name: this.dataset.name,
+                    channel_id: this.dataset.channelId,
+                    platform: this.dataset.platform
+                });
+            }
+            document.getElementById('selectedCount').textContent = selectedChannels.length;
+            document.getElementById('channelsData').value = JSON.stringify(selectedChannels);
+        });
+    });
+
+    // Цвет кнопки
+    const buttonStyle = '{{ button.style if button else "success" }}';
+    document.querySelectorAll('.color-option').forEach(opt => {
+        if (opt.dataset.color === buttonStyle) opt.classList.add('active');
+        opt.addEventListener('click', function() {
+            document.querySelectorAll('.color-option').forEach(o => o.classList.remove('active'));
+            this.classList.add('active');
+            selectedButtonColor = this.dataset.color;
+            updateButtonData();
+        });
+    });
+
+    // Обновление данных кнопки
+    function updateButtonData() {
+        const buttonData = { style: selectedButtonColor };
+        const text = document.getElementById('buttonText').value;
+        const url = document.getElementById('buttonUrl').value;
+        if (text && url) {
+            buttonData.text = text;
+            buttonData.url = url;
+        }
+        document.getElementById('buttonData').value = JSON.stringify(buttonData);
+    }
+
+    document.getElementById('buttonText').addEventListener('input', updateButtonData);
+    document.getElementById('buttonUrl').addEventListener('input', updateButtonData);
+    updateButtonData();
+
+    // Дата и время
+    const scheduledAt = '{{ post.scheduled_at }}';
+    if (scheduledAt) {
+        const date = new Date(scheduledAt);
+        if (!isNaN(date.getTime())) {
+            document.getElementById('scheduleDate').value = date.toISOString().split('T')[0];
+            document.getElementById('scheduleTime').value = date.toTimeString().slice(0, 5);
+        }
+    }
+    
+    if (!document.getElementById('scheduleDate').value) {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() + 5);
+        document.getElementById('scheduleDate').value = now.toISOString().split('T')[0];
+        document.getElementById('scheduleTime').value = now.toTimeString().slice(0, 5);
+    }
+
+    // Регулярный пост
+    const regularCheckbox = document.getElementById('isRegularCheckbox');
+    const regularSettings = document.getElementById('regularSettings');
+    regularCheckbox.addEventListener('change', () => {
+        regularSettings.style.display = regularCheckbox.checked ? 'block' : 'none';
+    });
+
+    // Медиафайл
+    const mediaInput = document.getElementById('mediaFile');
+    const newMediaPreview = document.getElementById('newMediaPreview');
+    const newMediaName = document.getElementById('newMediaName');
+    
+    mediaInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            newMediaName.textContent = this.files[0].name;
+            newMediaPreview.style.display = 'flex';
+        }
+    });
+    
+    window.removeNewMedia = function() {
+        mediaInput.value = '';
+        newMediaPreview.style.display = 'none';
+    };
+
+    // Уведомления об ошибках
+    const urlParams = new URLSearchParams(window.location.search);
+    const errorMsg = urlParams.get('error');
+    if (errorMsg) {
+        const container = document.getElementById('alertContainer');
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert-toast error';
+        alertDiv.innerHTML = '❌ ' + decodeURIComponent(errorMsg);
+        container.appendChild(alertDiv);
+        setTimeout(() => alertDiv.remove(), 5000);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,684 @@
+<!-- templates/queue.html -->
+{% extends "base.html" %}
+
+{% block title %}{% if get_lang(request) == 'en' %}Send Queue | Telegram Poster{% else %}Очередь отправки | Telegram Постер{% endif %}{% endblock %}
+
+{% block content %}
+<div class="queue-wrapper">
+    <div class="queue-card">
+        <div class="queue-header">
+            <div class="header-left">
+                <a href="/dashboard" class="btn btn-secondary btn-sm">
+                    <span>←</span>
+                    <span>{% if get_lang(request) == 'en' %}Dashboard{% else %}Панель управления{% endif %}</span>
+                </a>
+            </div>
+            <div class="header-right">
+                <button onclick="toggleTheme()" class="theme-btn-small">
+                    <span id="theme-icon-small">☀️</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="queue-title-section">
+            <h1 class="queue-title">📋 {% if get_lang(request) == 'en' %}Send Queue{% else %}Очередь отправки{% endif %}</h1>
+            <p class="queue-subtitle">
+                {% if get_lang(request) == 'en' %}
+                Track and manage your pending posts
+                {% else %}
+                Отслеживайте и управляйте вашими постами в очереди
+                {% endif %}
+            </p>
+        </div>
+
+        <div id="messageContainer" class="message-container"></div>
+
+        <!-- Статистика -->
+        <div class="stats-grid-queue">
+            <div class="stat-card-queue">
+                <div class="stat-number-queue" id="stat-total">0</div>
+                <div class="stat-label-queue">📊 {% if get_lang(request) == 'en' %}Total{% else %}Всего{% endif %}</div>
+            </div>
+            <div class="stat-card-queue">
+                <div class="stat-number-queue pending" id="stat-pending">0</div>
+                <div class="stat-label-queue">🟡 {% if get_lang(request) == 'en' %}Pending{% else %}В очереди{% endif %}</div>
+            </div>
+            <div class="stat-card-queue">
+                <div class="stat-number-queue processing" id="stat-processing">0</div>
+                <div class="stat-label-queue">🔵 {% if get_lang(request) == 'en' %}Processing{% else %}Отправляется{% endif %}</div>
+            </div>
+            <div class="stat-card-queue">
+                <div class="stat-number-queue success" id="stat-success">0</div>
+                <div class="stat-label-queue">✅ {% if get_lang(request) == 'en' %}Success{% else %}Успешно{% endif %}</div>
+            </div>
+            <div class="stat-card-queue">
+                <div class="stat-number-queue failed" id="stat-failed">0</div>
+                <div class="stat-label-queue">❌ {% if get_lang(request) == 'en' %}Failed{% else %}Ошибок{% endif %}</div>
+            </div>
+        </div>
+
+        <!-- Список задач -->
+        <div id="queueList" class="queue-list">
+            <div class="empty-state-queue">
+                <div class="empty-icon-queue">📭</div>
+                <p>{% if get_lang(request) == 'en' %}Queue is empty{% else %}Очередь пуста{% endif %}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Кнопка обновления -->
+<button class="refresh-fab" id="refreshBtn" title="{% if get_lang(request) == 'en' %}Refresh{% else %}Обновить{% endif %}">
+    🔄
+</button>
+
+<style>
+    .queue-wrapper {
+        min-height: 100vh;
+        padding: 40px 20px;
+    }
+
+    .queue-card {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: var(--card-bg);
+        border-radius: 32px;
+        padding: 40px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-lg);
+        animation: fadeInUp 0.5s ease;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .queue-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .theme-btn-small {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 40px;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.2s;
+    }
+
+    .theme-btn-small:hover {
+        border-color: var(--primary);
+        transform: translateY(-1px);
+    }
+
+    .queue-title-section {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .queue-title {
+        font-size: 32px;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 8px;
+    }
+
+    .queue-subtitle {
+        color: var(--text-light);
+        font-size: 14px;
+    }
+
+    .message-container {
+        margin-bottom: 24px;
+    }
+
+    /* Статистика */
+    .stats-grid-queue {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        margin-bottom: 32px;
+        flex-wrap: wrap;
+    }
+
+    .stat-card-queue {
+        background: var(--bg);
+        border-radius: 20px;
+        padding: 16px 24px;
+        text-align: center;
+        min-width: 100px;
+        border: 1px solid var(--border);
+        transition: all 0.2s;
+    }
+
+    .stat-card-queue:hover {
+        transform: translateY(-2px);
+        border-color: var(--primary);
+    }
+
+    .stat-number-queue {
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--primary);
+        margin-bottom: 4px;
+    }
+
+    .stat-number-queue.pending { color: var(--warning); }
+    .stat-number-queue.processing { color: var(--info); }
+    .stat-number-queue.success { color: var(--success); }
+    .stat-number-queue.failed { color: var(--danger); }
+
+    .stat-label-queue {
+        font-size: 12px;
+        color: var(--text-light);
+    }
+
+    /* Список задач */
+    .queue-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        max-height: 500px;
+        overflow-y: auto;
+        padding-right: 8px;
+    }
+
+    .queue-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .queue-list::-webkit-scrollbar-track {
+        background: var(--border);
+        border-radius: 10px;
+    }
+
+    .queue-list::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 10px;
+    }
+
+    .queue-task {
+        background: var(--bg);
+        border-radius: 20px;
+        padding: 20px;
+        border: 1px solid var(--border);
+        transition: all 0.2s;
+    }
+
+    .queue-task:hover {
+        border-color: var(--primary);
+        transform: translateX(4px);
+    }
+
+    .task-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border);
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .task-status {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .task-status.pending { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .task-status.processing { background: rgba(59, 130, 246, 0.15); color: var(--info); }
+    .task-status.retry { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+    .task-status.success { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+    .task-status.failed { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+
+    .task-id {
+        font-size: 11px;
+        color: var(--text-light);
+        font-family: monospace;
+    }
+
+    .task-body {
+        margin-bottom: 16px;
+    }
+
+    .task-channel {
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: var(--text);
+    }
+
+    .task-text {
+        font-size: 13px;
+        color: var(--text-light);
+        background: var(--input-bg);
+        padding: 10px 12px;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        white-space: pre-wrap;
+        word-break: break-word;
+        line-height: 1.4;
+    }
+
+    .task-meta {
+        display: flex;
+        gap: 16px;
+        font-size: 11px;
+        color: var(--text-light);
+    }
+
+    .task-error {
+        margin-top: 10px;
+        padding: 10px;
+        background: rgba(239, 68, 68, 0.1);
+        border-radius: 10px;
+        font-size: 11px;
+        color: var(--danger);
+        word-break: break-word;
+    }
+
+    .task-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        padding-top: 12px;
+        border-top: 1px solid var(--border);
+    }
+
+    .btn-retry {
+        background: var(--warning);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 40px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+
+    .btn-retry:hover {
+        background: #d97706;
+        transform: translateY(-1px);
+    }
+
+    .btn-delete {
+        background: var(--danger);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 40px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+
+    .btn-delete:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+    }
+
+    /* Пустое состояние */
+    .empty-state-queue {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-light);
+    }
+
+    .empty-icon-queue {
+        font-size: 64px;
+        margin-bottom: 16px;
+        opacity: 0.7;
+    }
+
+    /* Кнопка обновления */
+    .refresh-fab {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        border: none;
+        cursor: pointer;
+        font-size: 24px;
+        color: white;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        transition: all 0.3s ease;
+        z-index: 100;
+    }
+
+    .refresh-fab:hover {
+        transform: rotate(180deg) scale(1.1);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+    }
+
+    /* Уведомления */
+    .alert-toast {
+        padding: 12px 16px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        font-size: 13px;
+        animation: slideIn 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .alert-toast.success {
+        background: rgba(16, 185, 129, 0.12);
+        border-left: 3px solid var(--success);
+        color: var(--success);
+    }
+
+    .alert-toast.error {
+        background: rgba(239, 68, 68, 0.12);
+        border-left: 3px solid var(--danger);
+        color: var(--danger);
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .queue-wrapper {
+            padding: 20px 12px;
+        }
+        .queue-card {
+            padding: 24px;
+        }
+        .queue-title {
+            font-size: 24px;
+        }
+        .stats-grid-queue {
+            gap: 10px;
+        }
+        .stat-card-queue {
+            padding: 12px 16px;
+            min-width: 70px;
+        }
+        .stat-number-queue {
+            font-size: 24px;
+        }
+        .task-actions {
+            justify-content: stretch;
+        }
+        .btn-retry, .btn-delete {
+            flex: 1;
+            justify-content: center;
+        }
+    }
+</style>
+
+<script>
+    // ========== УТИЛИТЫ ==========
+    const currentLang = document.documentElement.lang || 'ru';
+
+    function showMessage(message, type) {
+        const container = document.getElementById('messageContainer');
+        if (!container) return;
+        
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `alert-toast ${type}`;
+        msgDiv.innerHTML = (type === 'success' ? '✅ ' : '❌ ') + message;
+        container.appendChild(msgDiv);
+        
+        setTimeout(() => msgDiv.remove(), 5000);
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return '—';
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleString(currentLang === 'ru' ? 'ru-RU' : 'en-US', {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch {
+            return dateString;
+        }
+    }
+
+    function truncate(text, maxLength = 100) {
+        if (!text) return '';
+        if (text.length <= maxLength) return text;
+        return text.substring(0, maxLength) + '...';
+    }
+
+    function getStatusLabel(status) {
+        const labels = {
+            'pending': currentLang === 'ru' ? '🟡 В очереди' : '🟡 Pending',
+            'processing': currentLang === 'ru' ? '🔵 Отправляется' : '🔵 Processing',
+            'retry': currentLang === 'ru' ? '🔴 Ошибка (повтор)' : '🔴 Error (retry)',
+            'success': currentLang === 'ru' ? '🟢 Отправлено' : '🟢 Success',
+            'failed': currentLang === 'ru' ? '🔴 Ошибка' : '🔴 Failed'
+        };
+        return labels[status] || status;
+    }
+
+    function getStatusClass(status) {
+        const classes = {
+            'pending': 'pending',
+            'processing': 'processing',
+            'retry': 'failed',
+            'success': 'success',
+            'failed': 'failed'
+        };
+        return classes[status] || 'pending';
+    }
+
+    // ========== ЗАГРУЗКА ОЧЕРЕДИ ==========
+    async function loadQueue() {
+        try {
+            const response = await fetch('/api/queue');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const tasks = await response.json();
+            const container = document.getElementById('queueList');
+            
+            if (!container) return;
+            
+            updateStats(tasks);
+            
+            if (!tasks || tasks.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state-queue">
+                        <div class="empty-icon-queue">📭</div>
+                        <p>${currentLang === 'ru' ? 'Очередь пуста' : 'Queue is empty'}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = tasks.map(task => `
+                <div class="queue-task">
+                    <div class="task-header">
+                        <span class="task-status ${getStatusClass(task.status)}">${getStatusLabel(task.status)}</span>
+                        <span class="task-id">#${task.id}</span>
+                    </div>
+                    <div class="task-body">
+                        <div class="task-channel">📢 ${truncate(task.channel || 'Неизвестно', 30)}</div>
+                        <div class="task-text">${truncate(task.text || task.post_text || '', 150)}</div>
+                        <div class="task-meta">
+                            <span>🔄 ${currentLang === 'ru' ? 'Попыток' : 'Attempts'}: ${task.attempts || 0}</span>
+                            <span>📅 ${formatDate(task.created_at)}</span>
+                        </div>
+                        ${task.error ? `<div class="task-error">⚠️ ${truncate(task.error, 200)}</div>` : ''}
+                    </div>
+                    <div class="task-actions">
+                        ${task.status !== 'success' ? `
+                            <button class="btn-retry" onclick="retryTask(${task.id})">
+                                🔄 ${currentLang === 'ru' ? 'Повторить' : 'Retry'}
+                            </button>
+                        ` : ''}
+                        <button class="btn-delete" onclick="deleteTask(${task.id})">
+                            🗑️ ${currentLang === 'ru' ? 'Удалить' : 'Delete'}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+        } catch (error) {
+            console.error('Failed to load queue:', error);
+            const container = document.getElementById('queueList');
+            if (container) {
+                container.innerHTML = `
+                    <div class="empty-state-queue">
+                        <div class="empty-icon-queue">❌</div>
+                        <p>${currentLang === 'ru' ? 'Ошибка загрузки очереди' : 'Failed to load queue'}</p>
+                    </div>
+                `;
+            }
+        }
+    }
+
+    function updateStats(tasks) {
+        const stats = {
+            total: tasks.length,
+            pending: tasks.filter(t => t.status === 'pending').length,
+            processing: tasks.filter(t => t.status === 'processing').length,
+            success: tasks.filter(t => t.status === 'success').length,
+            failed: tasks.filter(t => t.status === 'failed' || t.status === 'retry').length
+        };
+        
+        document.getElementById('stat-total').textContent = stats.total;
+        document.getElementById('stat-pending').textContent = stats.pending;
+        document.getElementById('stat-processing').textContent = stats.processing;
+        document.getElementById('stat-success').textContent = stats.success;
+        document.getElementById('stat-failed').textContent = stats.failed;
+    }
+
+    // ========== ДЕЙСТВИЯ С ЗАДАЧАМИ ==========
+    async function retryTask(taskId) {
+        const confirmMsg = currentLang === 'ru' 
+            ? 'Повторить отправку этого поста?' 
+            : 'Retry sending this post?';
+        
+        if (!confirm(confirmMsg)) return;
+        
+        try {
+            const response = await fetch(`/api/queue/retry/${taskId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            if (response.ok) {
+                const successMsg = currentLang === 'ru' 
+                    ? 'Задача добавлена в очередь' 
+                    : 'Task added to queue';
+                showMessage(successMsg, 'success');
+                setTimeout(() => loadQueue(), 500);
+            } else {
+                const errorMsg = currentLang === 'ru' 
+                    ? 'Ошибка при повторе' 
+                    : 'Error while retrying';
+                showMessage(errorMsg, 'error');
+            }
+        } catch (error) {
+            showMessage('Network error', 'error');
+        }
+    }
+
+    async function deleteTask(taskId) {
+        const confirmMsg = currentLang === 'ru' 
+            ? 'Удалить задачу из очереди?' 
+            : 'Delete task from queue?';
+        
+        if (!confirm(confirmMsg)) return;
+        
+        try {
+            const response = await fetch(`/api/queue/${taskId}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                const successMsg = currentLang === 'ru' 
+                    ? 'Задача удалена' 
+                    : 'Task deleted';
+                showMessage(successMsg, 'success');
+                loadQueue();
+            } else {
+                const errorMsg = currentLang === 'ru' 
+                    ? 'Ошибка при удалении' 
+                    : 'Error while deleting';
+                showMessage(errorMsg, 'error');
+            }
+        } catch (error) {
+            showMessage('Network error', 'error');
+        }
+    }
+
+    // ========== ТЕМА ==========
+    function initThemeIcon() {
+        const isDark = document.body.classList.contains('dark');
+        const themeIcon = document.getElementById('theme-icon-small');
+        if (themeIcon) {
+            themeIcon.textContent = isDark ? '🌙' : '☀️';
+        }
+    }
+
+    // Переопределяем toggleTheme для обновления иконки
+    const originalToggleTheme = window.toggleTheme;
+    window.toggleTheme = function() {
+        if (originalToggleTheme) originalToggleTheme();
+        initThemeIcon();
+    };
+
+    // ========== ИНИЦИАЛИЗАЦИЯ ==========
+    document.addEventListener('DOMContentLoaded', () => {
+        initThemeIcon();
+        loadQueue();
+        
+        document.getElementById('refreshBtn')?.addEventListener('click', loadQueue);
+        
+        // Автообновление каждые 10 секунд
+        setInterval(loadQueue, 10000);
+        
+        console.log('✅ Страница очереди загружена');
+    });
+    
+    // Делаем функции глобальными
+    window.retryTask = retryTask;
+    window.deleteTask = deleteTask;
+</script>
+{% endblock %}

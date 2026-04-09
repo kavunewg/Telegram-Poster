@@ -1,0 +1,549 @@
+<!-- templates/vk_channels.html -->
+{% extends "base.html" %}
+
+{% block title %}{% if get_lang(request) == 'en' %}VK Channels | Telegram Poster{% else %}VK Каналы | Telegram Постер{% endif %}{% endblock %}
+
+{% block content %}
+<div class="vk-wrapper">
+    <div class="vk-card">
+        <div class="vk-header">
+            <div class="header-left">
+                <a href="/dashboard" class="btn btn-secondary btn-sm">
+                    <span>←</span>
+                    <span>{% if get_lang(request) == 'en' %}Dashboard{% else %}Панель управления{% endif %}</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="vk-title-section">
+            <h1 class="vk-title">📘 {% if get_lang(request) == 'en' %}VK Channels{% else %}VK Каналы{% endif %}</h1>
+            <p class="vk-subtitle">
+                {% if get_lang(request) == 'en' %}
+                Manage your VK groups for cross-posting
+                {% else %}
+                Управляйте вашими VK группами для кросс-постинга
+                {% endif %}
+            </p>
+        </div>
+
+        <div id="alertContainer" class="message-container"></div>
+
+        <!-- Список каналов -->
+        {% if channels %}
+        <div class="channels-grid">
+            {% for channel in channels %}
+            <div class="channel-card">
+                <div class="channel-header">
+                    <div class="channel-icon">
+                        <span>📘</span>
+                    </div>
+                    <div class="channel-info">
+                        <div class="channel-name">{{ channel.group_name }}</div>
+                        <div class="channel-id">ID: {{ channel.group_id }}</div>
+                        {% if channel.group_screen_name %}
+                        <div class="channel-screen">@{{ channel.group_screen_name }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="channel-status">
+                        {% if channel.is_active %}
+                        <span class="status-badge active">● {% if get_lang(request) == 'en' %}Active{% else %}Активен{% endif %}</span>
+                        {% else %}
+                        <span class="status-badge inactive">● {% if get_lang(request) == 'en' %}Inactive{% else %}Неактивен{% endif %}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="channel-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">🔄 {% if get_lang(request) == 'en' %}Auto-post{% else %}Автопостинг{% endif %}</span>
+                        <span class="stat-value">{{ '✅ ' + ('On' if get_lang(request) == 'en' else 'Вкл') if channel.is_active else '❌ ' + ('Off' if get_lang(request) == 'en' else 'Выкл') }}</span>
+                    </div>
+                    {% if channel.last_post_at %}
+                    <div class="stat-item">
+                        <span class="stat-label">📅 {% if get_lang(request) == 'en' %}Last post{% else %}Последний пост{% endif %}</span>
+                        <span class="stat-value">{{ channel.last_post_at[:10] if channel.last_post_at else '—' }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="channel-actions">
+                    <form action="/toggle_vk_channel/{{ channel.id }}" method="post" style="display: inline;">
+                        <input type="hidden" name="is_active" value="{{ 0 if channel.is_active else 1 }}">
+                        <button type="submit" class="btn btn-sm {% if channel.is_active %}btn-warning{% else %}btn-success{% endif %}">
+                            {% if channel.is_active %}
+                            ⏸ {% if get_lang(request) == 'en' %}Disable{% else %}Отключить{% endif %}
+                            {% else %}
+                            ▶ {% if get_lang(request) == 'en' %}Enable{% else %}Включить{% endif %}
+                            {% endif %}
+                        </button>
+                    </form>
+                    <form action="/delete_vk_channel/{{ channel.id }}" method="post" style="display: inline;" 
+                          onsubmit="return confirm('{% if get_lang(request) == 'en' %}Delete this channel? All data will be lost.{% else %}Удалить этот канал? Все данные будут потеряны.{% endif %}')">
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            🗑️ {% if get_lang(request) == 'en' %}Delete{% else %}Удалить{% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📘</div>
+            <h3 class="empty-title">{% if get_lang(request) == 'en' %}No VK channels added{% else %}Нет добавленных VK каналов{% endif %}</h3>
+            <p class="empty-text">
+                {% if get_lang(request) == 'en' %}
+                Add your first VK group to start cross-posting
+                {% else %}
+                Добавьте вашу первую VK группу для кросс-постинга
+                {% endif %}
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- Форма добавления -->
+        <div class="add-form">
+            <div class="add-form-header">
+                <span class="add-icon">➕</span>
+                <h3 class="add-title">{% if get_lang(request) == 'en' %}Add VK Group{% else %}Добавить VK группу{% endif %}</h3>
+            </div>
+            
+            <form action="/add_vk_channel" method="post">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>🔢 {% if get_lang(request) == 'en' %}Group ID{% else %}ID группы{% endif %}</label>
+                        <input type="number" name="group_id" placeholder="123456789" required>
+                        <div class="info-hint">
+                            💡 {% if get_lang(request) == 'en' %}Positive number, e.g. 123456789{% else %}Положительное число, например: 123456789{% endif %}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>🔑 {% if get_lang(request) == 'en' %}Access Token{% else %}Ключ доступа (токен){% endif %}</label>
+                        <input type="text" name="access_token" placeholder="vk1.a.xYz..." required>
+                        <div class="info-hint">
+                            💡 {% if get_lang(request) == 'en' %}How to get: {% else %}Как получить: {% endif %}
+                            <a href="https://vk.com/dev/access_token" target="_blank" class="hint-link">
+                                {% if get_lang(request) == 'en' %}Instructions{% else %}Инструкция{% endif %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>🏷️ {% if get_lang(request) == 'en' %}Group Name (optional){% else %}Название группы (опционально){% endif %}</label>
+                        <input type="text" name="group_name" placeholder="{% if get_lang(request) == 'en' %}My VK Group{% else %}Моя VK группа{% endif %}">
+                        <div class="info-hint">
+                            💡 {% if get_lang(request) == 'en' %}Will be fetched automatically if left empty{% else %}Будет получено автоматически, если оставить пустым{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary add-btn">
+                    ➕ {% if get_lang(request) == 'en' %}Add Group{% else %}Добавить группу{% endif %}
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .vk-wrapper {
+        min-height: 100vh;
+        padding: 40px 20px;
+    }
+
+    .vk-card {
+        max-width: 1100px;
+        margin: 0 auto;
+        background: var(--card-bg);
+        border-radius: 32px;
+        padding: 40px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-lg);
+        animation: fadeInUp 0.5s ease;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .vk-header {
+        margin-bottom: 24px;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .vk-title-section {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .vk-title {
+        font-size: 32px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #4c75a3, #2a5885);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 8px;
+    }
+
+    .vk-subtitle {
+        color: var(--text-light);
+        font-size: 14px;
+    }
+
+    .message-container {
+        margin-bottom: 24px;
+    }
+
+    /* Сетка каналов */
+    .channels-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 20px;
+        margin-bottom: 32px;
+    }
+
+    .channel-card {
+        background: var(--bg);
+        border-radius: 20px;
+        padding: 20px;
+        border: 1px solid var(--border);
+        transition: all 0.2s;
+    }
+
+    .channel-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--primary);
+        box-shadow: var(--shadow-md);
+    }
+
+    .channel-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+
+    .channel-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #4c75a3, #2a5885);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        flex-shrink: 0;
+    }
+
+    .channel-info {
+        flex: 1;
+    }
+
+    .channel-name {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: var(--text);
+    }
+
+    .channel-id {
+        font-size: 11px;
+        color: var(--text-light);
+        font-family: monospace;
+    }
+
+    .channel-screen {
+        font-size: 11px;
+        color: var(--primary);
+        margin-top: 2px;
+    }
+
+    .channel-status {
+        flex-shrink: 0;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+
+    .status-badge.active {
+        background: rgba(16, 185, 129, 0.15);
+        color: var(--success);
+    }
+
+    .status-badge.inactive {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--danger);
+    }
+
+    /* Статистика канала */
+    .channel-stats {
+        display: flex;
+        gap: 16px;
+        padding: 12px 0;
+        margin-bottom: 12px;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+    }
+
+    .stat-label {
+        color: var(--text-light);
+    }
+
+    .stat-value {
+        font-weight: 500;
+        color: var(--text);
+    }
+
+    /* Кнопки действий */
+    .channel-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .btn-success {
+        background: var(--success);
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #059669;
+    }
+
+    .btn-warning {
+        background: var(--warning);
+        color: white;
+    }
+
+    .btn-warning:hover {
+        background: #d97706;
+    }
+
+    /* Пустое состояние */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: var(--bg);
+        border-radius: 24px;
+        margin-bottom: 32px;
+    }
+
+    .empty-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+        opacity: 0.7;
+    }
+
+    .empty-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--text);
+    }
+
+    .empty-text {
+        color: var(--text-light);
+        font-size: 13px;
+    }
+
+    /* Форма добавления */
+    .add-form {
+        background: var(--bg);
+        border-radius: 24px;
+        padding: 28px;
+        margin-top: 8px;
+    }
+
+    .add-form-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .add-icon {
+        font-size: 28px;
+    }
+
+    .add-title {
+        font-size: 20px;
+        font-weight: 600;
+        margin: 0;
+        color: var(--text);
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 0;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-light);
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px 14px;
+        background: var(--input-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        font-size: 14px;
+        color: var(--text);
+        font-family: inherit;
+        transition: all 0.2s;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .info-hint {
+        font-size: 11px;
+        color: var(--text-light);
+        margin-top: 6px;
+    }
+
+    .hint-link {
+        color: var(--primary);
+        text-decoration: none;
+    }
+
+    .hint-link:hover {
+        text-decoration: underline;
+    }
+
+    .add-btn {
+        margin-top: 8px;
+        min-width: 200px;
+    }
+
+    /* Уведомления */
+    .alert-toast {
+        padding: 12px 16px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        font-size: 13px;
+        animation: slideIn 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .alert-toast.success {
+        background: rgba(16, 185, 129, 0.12);
+        border-left: 3px solid var(--success);
+        color: var(--success);
+    }
+
+    .alert-toast.error {
+        background: rgba(239, 68, 68, 0.12);
+        border-left: 3px solid var(--danger);
+        color: var(--danger);
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .vk-wrapper {
+            padding: 20px 12px;
+        }
+        .vk-card {
+            padding: 24px;
+        }
+        .vk-title {
+            font-size: 24px;
+        }
+        .channels-grid {
+            grid-template-columns: 1fr;
+        }
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        .channel-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .channel-status {
+            align-self: flex-start;
+        }
+        .channel-stats {
+            flex-wrap: wrap;
+        }
+    }
+</style>
+
+<script>
+    // Уведомления
+    const urlParams = new URLSearchParams(window.location.search);
+    const successMsg = urlParams.get('success');
+    const errorMsg = urlParams.get('error');
+    
+    if (successMsg) {
+        const container = document.getElementById('alertContainer');
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert-toast success';
+        alertDiv.innerHTML = '✅ ' + decodeURIComponent(successMsg);
+        container.appendChild(alertDiv);
+        setTimeout(() => alertDiv.remove(), 5000);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    if (errorMsg) {
+        const container = document.getElementById('alertContainer');
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert-toast error';
+        alertDiv.innerHTML = '❌ ' + decodeURIComponent(errorMsg);
+        container.appendChild(alertDiv);
+        setTimeout(() => alertDiv.remove(), 5000);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+</script>
+{% endblock %}
