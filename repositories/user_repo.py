@@ -38,17 +38,10 @@ class UserRepository:
         if not username:
             return None
         
-        print(f"🔍 Поиск пользователя: {username}")
-
         return fetch_one(
             f"SELECT id, username, password_hash, full_name, email, project_name, youtube_api_key, is_admin, created_at FROM {self.table} WHERE LOWER(username) = ?",
-        (username.lower(),)
-    )
-        print(f"   Результат: {'найден' if result else 'не найден'}")
-        if result:
-            print(f"   id={result.get('id')}, username={result.get('username')}")
-        
-        return result
+            (username.lower(),)
+        )
 
 
     def get_by_email(self, email: str) -> Optional[Dict]:

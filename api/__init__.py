@@ -1,21 +1,18 @@
 """
-API роутеры
+API routers bootstrap.
 """
-from fastapi import APIRouter
 from fastapi.templating import Jinja2Templates
-from api import edit_scheduled
 
-from api import auth, dashboard, channels, bots, posts, scheduled, debug, admin, youtube, queue as queue_router, stats, edit_scheduled
+from api import admin, auth, bots, channels, dashboard, debug, edit_scheduled, posts, queue as queue_router, scheduled, stats, youtube
 
 templates: Jinja2Templates = None
 
 
 def setup_routes(app, templates_obj: Jinja2Templates):
-    """Настройка всех роутеров"""
+    """Configure application routers and shared templates."""
     global templates
     templates = templates_obj
-    
-    # Передаём шаблоны
+
     auth.set_templates(templates_obj)
     dashboard.set_templates(templates_obj)
     channels.set_templates(templates_obj)
@@ -24,19 +21,20 @@ def setup_routes(app, templates_obj: Jinja2Templates):
     scheduled.set_templates(templates_obj)
     youtube.set_templates(templates_obj)
     admin.set_templates(templates_obj)
-    queue.set_templates(templates_obj) 
+    queue_router.set_templates(templates_obj)
     stats.set_templates(templates_obj)
-    
-    # Подключаем роутеры
+
     app.include_router(auth.router)
     app.include_router(dashboard.router)
     app.include_router(channels.router)
     app.include_router(bots.router)
     app.include_router(posts.router)
     app.include_router(scheduled.router)
+    app.include_router(debug.router)
     app.include_router(youtube.router)
     app.include_router(admin.router)
-    app.include_router(queue.router)
+    app.include_router(queue_router.router)
     app.include_router(stats.router)
-    
+    app.include_router(edit_scheduled.router)
+
     return app

@@ -38,7 +38,11 @@ async def update_profile(
             return RedirectResponse(url="/dashboard?error=Email уже используется", status_code=303)
     
     success = user_repo.update_profile(
-        user["id"], username, full_name, email, youtube_api_key
+        user_id=user["id"],
+        username=username,
+        full_name=full_name,
+        email=email,
+        youtube_api_key=youtube_api_key,
     )
     
     if success:

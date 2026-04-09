@@ -26,7 +26,7 @@
             </p>
         </div>
 
-        {% if bots_count == 0 %}
+        {% if (bots|length) == 0 %}
         <div class="warning-banner">
             <div class="warning-icon">⚠️</div>
             <div class="warning-content">
@@ -118,7 +118,7 @@
                     <div class="upload-icon">📁</div>
                     <p>{% if get_lang(request) == 'en' %}Click or drag to upload{% else %}Нажмите или перетащите файл{% endif %}</p>
                     <p class="upload-hint">JPG, PNG, GIF, MP4 (max 50MB)</p>
-                    <input type="file" name="media" id="mediaFile" accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.mov" style="display: none;">
+                    <input type="file" name="media_file" id="mediaFile" accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.mov" style="display: none;">
                     <button type="button" class="btn btn-primary btn-sm" id="selectFileBtn">📂 {% if get_lang(request) == 'en' %}Select File{% else %}Выбрать файл{% endif %}</button>
                 </div>
                 <div id="mediaPreview" class="media-preview" style="display: none;">

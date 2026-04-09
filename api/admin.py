@@ -114,7 +114,16 @@ async def admin_add_user(
     if existing_user:
         return RedirectResponse(url=f"/dashboard?error=Пользователь с таким логином уже существует", status_code=303)
     
-    user_id = user_repo.create(username, password, full_name, project_name, admin_user["id"])
+    try:
+        user_id = user_repo.create(
+            username=username,
+            password=password,
+            full_name=full_name,
+            project_name=project_name,
+            created_by=admin_user["id"]
+        )
+    except ValueError as exc:
+        return RedirectResponse(url=f"/dashboard?error={exc}", status_code=303)
     
     if user_id:
         return RedirectResponse(url=f"/dashboard?success=Пользователь {username} успешно добавлен", status_code=303)

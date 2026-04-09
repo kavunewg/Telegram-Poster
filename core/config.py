@@ -13,8 +13,8 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
 
 # Настройки администратора
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "admin123"
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 
 # YouTube API Key (по умолчанию из env)

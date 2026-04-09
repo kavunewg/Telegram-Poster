@@ -52,20 +52,3 @@ async def scheduled_posts(request: Request):
     })
 
 
-@router.post("/delete_scheduled_post/{post_id}")
-async def delete_post(request: Request, post_id: int):
-    user = get_user(request)
-
-    if not user:
-        return RedirectResponse("/login", status_code=303)
-
-    post = schedule_repo.get_post_by_id(post_id, user["id"])
-    if not post:
-        return RedirectResponse("/scheduled_posts?error=not_found", status_code=303)
-
-    if post.get("media_path"):
-        delete_media_file(post["media_path"])
-
-    schedule_repo.delete_post(post_id)
-
-    return RedirectResponse("/scheduled_posts?success=deleted", status_code=303)

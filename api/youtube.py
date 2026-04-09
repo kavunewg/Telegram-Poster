@@ -61,7 +61,10 @@ async def add_youtube_channel_endpoint(
     if "error" in channel_info:
         return RedirectResponse(url=f"/my_channels?error={channel_info['error']}", status_code=303)
     
-    target_list = json.loads(target_channels)
+    try:
+        target_list = json.loads(target_channels)
+    except json.JSONDecodeError:
+        return RedirectResponse(url="/my_channels?error=Неверный список целевых каналов", status_code=303)
     
     youtube_repo.add_channel(
         user["id"],
@@ -148,7 +151,9 @@ async def update_youtube_channel(
         return RedirectResponse(url="/my_channels?error=Канал не найден", status_code=303)
     
     # Сохраняем существующие target_channels или пустой список
-    current_targets = current_channel.get('target_channels', '[]')
+    current_targets = current_channel.get('target_channels', [])
+    current_button_url = current_channel.get('button_url')
+    current_button_style = current_channel.get('button_style', 'success')
     
     success = youtube_repo.update_channel(
         channel_id, 
@@ -156,8 +161,8 @@ async def update_youtube_channel(
         current_targets,  # оставляем существующие целевые каналы
         post_template, 
         include_description,
-        None,  # button_url
-        'success'  # button_style
+        current_button_url,
+        current_button_style
     )
     
     if success:

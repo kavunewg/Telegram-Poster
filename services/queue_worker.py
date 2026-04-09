@@ -360,11 +360,11 @@ class QueueWorker:
         for session_id, session in POST_SESSIONS.items():
             if session.get('user_id') == user_id:
                 if success:
-                    session['completed_count'] = session.get('completed_count', 0) + 1
                     session['results']['success'] = session['results'].get('success', 0) + 1
                 else:
                     session['results']['failed'] = session['results'].get('failed', 0) + 1
-                
+
+                session['completed_count'] = session.get('completed_count', 0) + 1
                 total = len(session.get('channels', []))
                 completed = session.get('completed_count', 0)
                 session['progress'] = int((completed / total) * 100) if total > 0 else 0

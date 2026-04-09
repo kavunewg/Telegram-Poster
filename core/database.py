@@ -331,6 +331,7 @@ def init_db():
                 channel_url TEXT,
                 platform TEXT DEFAULT 'telegram',
                 api_key TEXT,
+                is_main INTEGER DEFAULT 0,
                 created_at TEXT,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
@@ -382,6 +383,7 @@ def init_db():
                 regular_settings TEXT,
                 status TEXT DEFAULT 'pending',
                 created_at TEXT,
+                updated_at TEXT,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         """)
@@ -506,26 +508,46 @@ def _run_migrations(conn: sqlite3.Connection):
             cursor.execute("UPDATE sessions SET created_at = datetime('now') WHERE created_at IS NULL")
             logger.info("  ✓ Added created_at column to sessions")
     
+    if table_exists('user_channels'):
+        columns = get_table_columns('user_channels')
+
+        if 'is_main' not in columns:
+            cursor.execute("ALTER TABLE user_channels ADD COLUMN is_main INTEGER DEFAULT 0")
+            logger.info("  Added is_main column to user_channels")
+
+    if table_exists('scheduled_posts'):
+        columns = get_table_columns('scheduled_posts')
+
+        if 'updated_at' not in columns:
+            cursor.execute("ALTER TABLE scheduled_posts ADD COLUMN updated_at TEXT")
+            cursor.execute("UPDATE scheduled_posts SET updated_at = created_at WHERE updated_at IS NULL")
+            logger.info("  Added updated_at column to scheduled_posts")
+
     conn.commit()
 
 
 def _create_default_admin(conn: sqlite3.Connection):
     """Создание администратора по умолчанию"""
+    from core.config import ADMIN_PASSWORD, ADMIN_USERNAME
     from utils.helpers import hash_password
     
     cursor = conn.cursor()
     
     try:
-        cursor.execute("SELECT id FROM users WHERE username = 'admin'")
+        if not ADMIN_USERNAME or not ADMIN_PASSWORD:
+            logger.info("  - Skipping default admin creation because ADMIN_PASSWORD is not configured")
+            return
+
+        cursor.execute("SELECT id FROM users WHERE username = ?", (ADMIN_USERNAME,))
         if not cursor.fetchone():
-            hashed_pw = hash_password("admin123")
+            hashed_pw = hash_password(ADMIN_PASSWORD)
             now = datetime.now().isoformat()
             cursor.execute("""
                 INSERT INTO users (username, password_hash, full_name, is_admin, created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?, ?)
-            """, ("admin", hashed_pw, "Administrator", 1, now, now))
+            """, (ADMIN_USERNAME, hashed_pw, "Administrator", 1, now, now))
             conn.commit()
-            logger.info("  ✓ Created default admin (login: admin, password: admin123)")
+            logger.info("  Created default admin account: %s", ADMIN_USERNAME)
     except Exception as e:
         logger.warning(f"Could not create default admin: {e}")
 
