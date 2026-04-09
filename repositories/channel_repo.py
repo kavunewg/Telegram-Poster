@@ -2,10 +2,13 @@
 Repository for user channels.
 """
 
+import logging
 from typing import Any, Dict, List, Optional
 
 from core.database import get_db_connection
 from repositories.base_repo import BaseRepository
+
+logger = logging.getLogger(__name__)
 
 
 class ChannelRepository(BaseRepository):
@@ -141,7 +144,11 @@ class ChannelRepository(BaseRepository):
     def delete_channel(self, channel_id: int, user_id: int) -> bool:
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM bot_channels WHERE channel_id = ?", (channel_id,))
+            # Keep compatibility with old DB snapshots where bot_channels may be absent.
+            try:
+                cursor.execute("DELETE FROM bot_channels WHERE channel_id = ?", (channel_id,))
+            except Exception as exc:
+                logger.warning("Could not cleanup bot_channels for channel %s: %s", channel_id, exc)
             cursor.execute(
                 "DELETE FROM user_channels WHERE id = ? AND user_id = ?",
                 (channel_id, user_id),

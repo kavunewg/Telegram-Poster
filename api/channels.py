@@ -2,6 +2,7 @@
 Маршруты для управления каналами
 """
 import json
+import logging
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -21,6 +22,7 @@ except ImportError:
 
 router = APIRouter(tags=["channels"])
 templates: Jinja2Templates = None
+logger = logging.getLogger(__name__)
 
 
 def set_templates(templates_obj: Jinja2Templates):
@@ -190,7 +192,11 @@ async def delete_channel_by_id(request: Request, channel_id: int):
     channel_ids = [ch.get("id") for ch in channels]
     
     if channel_id in channel_ids:
-        channel_repo.delete_channel(channel_id, user["id"])
+        try:
+            channel_repo.delete_channel(channel_id, user["id"])
+        except Exception as exc:
+            logger.exception("Channel delete failed: user_id=%s channel_id=%s", user["id"], channel_id)
+            return RedirectResponse(url=f"/my_channels?error=Ошибка удаления канала: {exc}", status_code=303)
         return RedirectResponse(url="/my_channels?success=Канал удален", status_code=303)
     
     return RedirectResponse(url="/my_channels?error=Канал не найден", status_code=303)
@@ -218,7 +224,11 @@ async def delete_channel_post(request: Request):
     channel_ids = [ch.get("id") for ch in channels]
     
     if channel_id in channel_ids:
-        channel_repo.delete_channel(channel_id, user["id"])
+        try:
+            channel_repo.delete_channel(channel_id, user["id"])
+        except Exception as exc:
+            logger.exception("Channel delete failed (form): user_id=%s channel_id=%s", user["id"], channel_id)
+            return RedirectResponse(url=f"/my_channels?error=Ошибка удаления канала: {exc}", status_code=303)
         return RedirectResponse(url="/my_channels?success=Канал удален", status_code=303)
     
     return RedirectResponse(url="/my_channels?error=Канал не найден", status_code=303)
