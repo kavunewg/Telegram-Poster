@@ -275,8 +275,14 @@ def _add_tasks_to_queue(
 
 def _parse_scheduled_datetime(scheduled_date: str, scheduled_time: str) -> datetime:
     local_tz = pytz.timezone(TIMEZONE)
-    dt = datetime.strptime(f"{scheduled_date} {scheduled_time}", "%Y-%m-%d %H:%M")
-    return local_tz.localize(dt)
+    last_error = None
+    for fmt in ("%Y-%m-%d %H:%M", "%Y-%m-%d %H:%M:%S"):
+        try:
+            dt = datetime.strptime(f"{scheduled_date} {scheduled_time}", fmt)
+            return local_tz.localize(dt)
+        except ValueError as exc:
+            last_error = exc
+    raise HTTPException(status_code=400, detail="Invalid date/time format") from last_error
 
 
 async def _schedule_post_internal(
@@ -402,19 +408,29 @@ async def publish_unified(
     button = _parse_button_data(button_data)
 
     if scheduled_date and scheduled_time:
-        post_id = await _schedule_post_internal(
-            user=user,
-            channels=channels,
-            post_text=clean_post_text,
-            scheduled_date=scheduled_date,
-            scheduled_time=scheduled_time,
-            is_regular=is_regular,
-            regular_interval=regular_interval,
-            regular_end_date=regular_end_date,
-            regular_end_time=regular_end_time,
-            media_file=media_file,
-            button=button,
-        )
+        try:
+            post_id = await _schedule_post_internal(
+                user=user,
+                channels=channels,
+                post_text=clean_post_text,
+                scheduled_date=scheduled_date,
+                scheduled_time=scheduled_time,
+                is_regular=is_regular,
+                regular_interval=regular_interval,
+                regular_end_date=regular_end_date,
+                regular_end_time=regular_end_time,
+                media_file=media_file,
+                button=button,
+            )
+        except HTTPException as exc:
+            if _is_ajax(request):
+                return JSONResponse({"success": False, "detail": exc.detail}, status_code=exc.status_code)
+            raise
+        except Exception as exc:
+            logger.exception("Scheduling via /publish_unified failed")
+            if _is_ajax(request):
+                return JSONResponse({"success": False, "detail": str(exc)}, status_code=500)
+            raise
         if _is_ajax(request):
             return JSONResponse(
                 {
