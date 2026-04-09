@@ -3,6 +3,7 @@ Repository for user channels.
 """
 
 import logging
+import sqlite3
 from typing import Any, Dict, List, Optional
 
 from core.database import get_db_connection
@@ -149,12 +150,67 @@ class ChannelRepository(BaseRepository):
                 cursor.execute("DELETE FROM bot_channels WHERE channel_id = ?", (channel_id,))
             except Exception as exc:
                 logger.warning("Could not cleanup bot_channels for channel %s: %s", channel_id, exc)
-            cursor.execute(
-                "DELETE FROM user_channels WHERE id = ? AND user_id = ?",
-                (channel_id, user_id),
-            )
-            conn.commit()
-            return cursor.rowcount > 0
+            try:
+                cursor.execute(
+                    "DELETE FROM user_channels WHERE id = ? AND user_id = ?",
+                    (channel_id, user_id),
+                )
+                conn.commit()
+                return cursor.rowcount > 0
+            except sqlite3.IntegrityError:
+                logger.warning(
+                    "FK blocked direct user_channels delete (channel_id=%s user_id=%s). Running dependency cleanup.",
+                    channel_id,
+                    user_id,
+                )
+                self._cleanup_channel_dependencies(conn, channel_id)
+                cursor.execute(
+                    "DELETE FROM user_channels WHERE id = ? AND user_id = ?",
+                    (channel_id, user_id),
+                )
+                conn.commit()
+                return cursor.rowcount > 0
+
+    def _cleanup_channel_dependencies(self, conn, channel_id: int) -> None:
+        """
+        Remove/neutralize rows from legacy child tables that reference user_channels(id).
+        Helps when DB schema differs from current migrations.
+        """
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = [row[0] for row in cursor.fetchall()]
+
+        for table_name in tables:
+            if table_name in {"sqlite_sequence", "user_channels"}:
+                continue
+            try:
+                cursor.execute(f"PRAGMA foreign_key_list({table_name})")
+                fk_rows = cursor.fetchall()
+            except Exception:
+                continue
+
+            for fk in fk_rows:
+                # PRAGMA foreign_key_list columns:
+                # (id, seq, table, from, to, on_update, on_delete, match)
+                ref_table = fk[2]
+                from_col = fk[3]
+                on_delete = (fk[6] or "").upper()
+                if ref_table != "user_channels" or not from_col:
+                    continue
+
+                if on_delete == "SET NULL":
+                    sql = f"UPDATE {table_name} SET {from_col} = NULL WHERE {from_col} = ?"
+                else:
+                    sql = f"DELETE FROM {table_name} WHERE {from_col} = ?"
+                try:
+                    cursor.execute(sql, (channel_id,))
+                except Exception as exc:
+                    logger.warning(
+                        "Dependency cleanup failed for %s.%s -> user_channels(id): %s",
+                        table_name,
+                        from_col,
+                        exc,
+                    )
 
 
 channel_repo = ChannelRepository()
