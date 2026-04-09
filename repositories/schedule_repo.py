@@ -12,6 +12,21 @@ from core.database import get_db_connection, insert
 class ScheduleRepository:
     def __init__(self):
         self._init_table()
+        self._refresh_schema_flags()
+
+    def _refresh_schema_flags(self) -> None:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("PRAGMA table_info(scheduled_posts)")
+            rows = cursor.fetchall()
+        self._columns = {row["name"] if hasattr(row, "keys") else row[1] for row in rows}
+        self._has_scheduled_time = "scheduled_time" in self._columns
+        self._scheduled_select_expr = (
+            "COALESCE(scheduled_at, scheduled_time) AS scheduled_at"
+            if self._has_scheduled_time
+            else "scheduled_at"
+        )
+        self._scheduled_order_expr = "COALESCE(scheduled_at, scheduled_time)" if self._has_scheduled_time else "scheduled_at"
 
     def _init_table(self):
         with get_db_connection() as conn:
@@ -58,31 +73,48 @@ class ScheduleRepository:
         regular_settings: dict = None,
     ) -> int:
         now = datetime.now().isoformat()
-        return insert(
-            """
-            INSERT INTO scheduled_posts (
-                user_id, channels, post_text, media_path, media_name,
-                media_size, media_type, button, scheduled_at, is_regular,
-                regular_settings, status, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                user_id,
-                json.dumps(channels, ensure_ascii=False),
-                post_text,
-                media_path,
-                media_name,
-                media_size,
-                media_type,
-                json.dumps(button, ensure_ascii=False) if button else None,
-                scheduled_at,
-                1 if is_regular else 0,
-                json.dumps(regular_settings, ensure_ascii=False) if regular_settings else None,
-                "pending",
-                now,
-                now,
-            ),
-        )
+        columns = [
+            "user_id",
+            "channels",
+            "post_text",
+            "media_path",
+            "media_name",
+            "media_size",
+            "media_type",
+            "button",
+            "scheduled_at",
+            "is_regular",
+            "regular_settings",
+            "status",
+            "created_at",
+            "updated_at",
+        ]
+        values = [
+            user_id,
+            json.dumps(channels, ensure_ascii=False),
+            post_text,
+            media_path,
+            media_name,
+            media_size,
+            media_type,
+            json.dumps(button, ensure_ascii=False) if button else None,
+            scheduled_at,
+            1 if is_regular else 0,
+            json.dumps(regular_settings, ensure_ascii=False) if regular_settings else None,
+            "pending",
+            now,
+            now,
+        ]
+        if self._has_scheduled_time:
+            columns.append("scheduled_time")
+            values.append(scheduled_at)
+
+        placeholders = ", ".join("?" for _ in columns)
+        sql = f"""
+            INSERT INTO scheduled_posts ({", ".join(columns)})
+            VALUES ({placeholders})
+        """
+        return insert(sql, tuple(values))
 
     def _deserialize_post(self, row) -> Dict:
         post = dict(row)
@@ -107,13 +139,13 @@ class ScheduleRepository:
         with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                """
+                f"""
                 SELECT id, user_id, channels, post_text, media_path, media_name,
-                       media_size, media_type, button, scheduled_at, is_regular,
+                       media_size, media_type, button, {self._scheduled_select_expr}, is_regular,
                        regular_settings, status, created_at, updated_at
                 FROM scheduled_posts
                 WHERE user_id = ?
-                ORDER BY scheduled_at ASC
+                ORDER BY {self._scheduled_order_expr} ASC
                 """,
                 (user_id,),
             )
@@ -124,9 +156,9 @@ class ScheduleRepository:
             cursor = conn.cursor()
             if user_id is None:
                 cursor.execute(
-                    """
+                    f"""
                     SELECT id, user_id, channels, post_text, media_path, media_name,
-                           media_size, media_type, button, scheduled_at, is_regular,
+                           media_size, media_type, button, {self._scheduled_select_expr}, is_regular,
                            regular_settings, status, created_at, updated_at
                     FROM scheduled_posts
                     WHERE id = ?
@@ -135,9 +167,9 @@ class ScheduleRepository:
                 )
             else:
                 cursor.execute(
-                    """
+                    f"""
                     SELECT id, user_id, channels, post_text, media_path, media_name,
-                           media_size, media_type, button, scheduled_at, is_regular,
+                           media_size, media_type, button, {self._scheduled_select_expr}, is_regular,
                            regular_settings, status, created_at, updated_at
                     FROM scheduled_posts
                     WHERE id = ? AND user_id = ?
@@ -151,13 +183,13 @@ class ScheduleRepository:
         with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                """
+                f"""
                 SELECT id, user_id, channels, post_text, media_path, media_name,
-                       media_size, media_type, button, scheduled_at, is_regular,
+                       media_size, media_type, button, {self._scheduled_select_expr}, is_regular,
                        regular_settings, status, created_at, updated_at
                 FROM scheduled_posts
                 WHERE status = 'pending'
-                ORDER BY scheduled_at ASC
+                ORDER BY {self._scheduled_order_expr} ASC
                 """
             )
             return [self._deserialize_post(row) for row in cursor.fetchall()]
@@ -179,29 +211,43 @@ class ScheduleRepository:
     ) -> bool:
         with get_db_connection() as conn:
             cursor = conn.cursor()
+            fields = [
+                "channels = ?",
+                "post_text = ?",
+                "media_path = ?",
+                "media_name = ?",
+                "media_size = ?",
+                "media_type = ?",
+                "button = ?",
+                "scheduled_at = ?",
+                "is_regular = ?",
+                "regular_settings = ?",
+                "updated_at = ?",
+            ]
+            params = [
+                json.dumps(channels, ensure_ascii=False),
+                post_text,
+                media_path,
+                media_name,
+                media_size,
+                media_type,
+                json.dumps(button, ensure_ascii=False) if button else None,
+                scheduled_at,
+                1 if is_regular else 0,
+                json.dumps(regular_settings, ensure_ascii=False) if regular_settings else None,
+                datetime.now().isoformat(),
+            ]
+            if self._has_scheduled_time:
+                fields.append("scheduled_time = ?")
+                params.append(scheduled_at)
+            params.extend([post_id, user_id])
             cursor.execute(
-                """
+                f"""
                 UPDATE scheduled_posts
-                SET channels = ?, post_text = ?, media_path = ?, media_name = ?,
-                    media_size = ?, media_type = ?, button = ?, scheduled_at = ?,
-                    is_regular = ?, regular_settings = ?, updated_at = ?
+                SET {", ".join(fields)}
                 WHERE id = ? AND user_id = ?
                 """,
-                (
-                    json.dumps(channels, ensure_ascii=False),
-                    post_text,
-                    media_path,
-                    media_name,
-                    media_size,
-                    media_type,
-                    json.dumps(button, ensure_ascii=False) if button else None,
-                    scheduled_at,
-                    1 if is_regular else 0,
-                    json.dumps(regular_settings, ensure_ascii=False) if regular_settings else None,
-                    datetime.now().isoformat(),
-                    post_id,
-                    user_id,
-                ),
+                tuple(params),
             )
             conn.commit()
             return cursor.rowcount > 0
@@ -223,13 +269,19 @@ class ScheduleRepository:
     def update_scheduled_time(self, post_id: int, scheduled_at: str) -> bool:
         with get_db_connection() as conn:
             cursor = conn.cursor()
+            fields = ["scheduled_at = ?", "updated_at = ?"]
+            params = [scheduled_at, datetime.now().isoformat()]
+            if self._has_scheduled_time:
+                fields.append("scheduled_time = ?")
+                params.append(scheduled_at)
+            params.append(post_id)
             cursor.execute(
-                """
+                f"""
                 UPDATE scheduled_posts
-                SET scheduled_at = ?, updated_at = ?
+                SET {", ".join(fields)}
                 WHERE id = ?
                 """,
-                (scheduled_at, datetime.now().isoformat(), post_id),
+                tuple(params),
             )
             conn.commit()
             return cursor.rowcount > 0

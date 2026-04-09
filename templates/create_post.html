@@ -555,6 +555,7 @@
 <script>
     // ========== СОСТОЯНИЕ ==========
     let selectedChannelsData = [];
+    const selectedChannelsMap = new Map();
     let selectedButtonColor = 'success';
     let userBots = [];
     let submitMode = 'instant';
@@ -660,29 +661,42 @@
 
     // ========== ВЫБОР КАНАЛОВ ==========
     function updateSelectionSummary() {
+        selectedChannelsData = Array.from(selectedChannelsMap.values());
         if (selectedCountSpan) selectedCountSpan.textContent = selectedChannelsData.length;
         if (channelsDataInput) channelsDataInput.value = JSON.stringify(selectedChannelsData);
     }
 
     function toggleChannelItem(item) {
-        const channelId = item.dataset.channelId;
+        const nowMs = Date.now();
+        const lastToggleMs = Number(item.dataset.lastToggleMs || 0);
+        if (nowMs - lastToggleMs < 200) return;
+        item.dataset.lastToggleMs = String(nowMs);
+
+        const rawChannelId = (item.dataset.channelId || '').trim();
+        const channelId = Number(rawChannelId);
+        if (!Number.isInteger(channelId) || channelId <= 0) {
+            showAlert('Ошибка: некорректный ID канала. Обновите страницу и попробуйте снова.', 'error');
+            return;
+        }
         const channelName = item.dataset.channelName;
         const channelTelegramId = item.dataset.channelTelegramId;
         const platform = item.dataset.platform;
         const botToken = item.dataset.botToken;
         const botId = item.dataset.botId;
 
+        const channelKey = String(channelId);
+
         if (item.classList.contains('selected')) {
             item.classList.remove('selected');
-            selectedChannelsData = selectedChannelsData.filter(ch => ch.id !== channelId);
+            selectedChannelsMap.delete(channelKey);
         } else {
             if (!botToken && platform === 'telegram') {
                 showAlert('У этого канала нет бота. Сначала добавьте бота на странице "Мои боты"', 'error');
                 return;
             }
             item.classList.add('selected');
-            selectedChannelsData.push({
-                id: parseInt(channelId),
+            selectedChannelsMap.set(channelKey, {
+                id: channelId,
                 name: channelName,
                 channel_id: channelTelegramId,
                 platform: platform,
@@ -697,6 +711,8 @@
         if (!channelsContainer) return;
         const channelItems = document.querySelectorAll('.channel-item');
         channelItems.forEach(item => {
+            if (item.dataset.boundClick === '1') return;
+            item.dataset.boundClick = '1';
             item.addEventListener('click', (e) => {
                 e.stopPropagation();
                 toggleChannelItem(item);
