@@ -334,8 +334,30 @@ body::before{
 .alert-error{background:rgba(239,68,68,0.15);border-left:3px solid #ef4444;color:#ef4444;}
 
 @media(max-width:900px){
-    .sidebar{display:none;}
-    .main{padding:20px;}
+    body{display:block;}
+    .sidebar{
+        display:flex;
+        width:100%;
+        height:auto;
+        position:sticky;
+        top:0;
+        padding:10px 12px;
+        gap:8px;
+        overflow-x:auto;
+        border-right:none;
+        border-bottom:1px solid rgba(255,255,255,0.08);
+        white-space:nowrap;
+    }
+    .sidebar .divider{display:none;}
+    .sidebar .nav-btn{
+        flex:0 0 auto;
+        margin-bottom:0;
+        width:auto;
+        padding:10px 12px;
+        border-radius:12px;
+        font-size:13px;
+    }
+    .main{padding:20px 12px; max-height:none;}
     .stats-grid{grid-template-columns:repeat(2,1fr);}
     .posts-grid{grid-template-columns:1fr;}
     .title{font-size:24px;}
