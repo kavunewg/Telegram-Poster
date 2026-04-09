@@ -1,7 +1,7 @@
-<!-- templates/create_post.html -->
+﻿<!-- templates/create_post.html -->
 {% extends "base.html" %}
 
-{% block title %}{% if get_lang(request) == 'en' %}Create Post | Telegram Poster{% else %}Создать пост | Telegram Постер{% endif %}{% endblock %}
+{% block title %}{% if get_lang(request) == 'en' %}Create Post | Telegram Poster{% else %}РЎРѕР·РґР°С‚СЊ РїРѕСЃС‚ | Telegram РџРѕСЃС‚РµСЂ{% endif %}{% endblock %}
 
 {% block content %}
 <div class="create-wrapper">
@@ -9,31 +9,31 @@
         <div class="create-header">
             <div class="header-left">
                 <a href="/dashboard" class="btn btn-secondary btn-sm">
-                    <span>←</span>
-                    <span>{% if get_lang(request) == 'en' %}Dashboard{% else %}Панель управления{% endif %}</span>
+                    <span>в†ђ</span>
+                    <span>{% if get_lang(request) == 'en' %}Dashboard{% else %}РџР°РЅРµР»СЊ СѓРїСЂР°РІР»РµРЅРёСЏ{% endif %}</span>
                 </a>
             </div>
         </div>
 
         <div class="create-title-section">
-            <h1 class="create-title">📝 {% if get_lang(request) == 'en' %}Create Post{% else %}Создать пост{% endif %}</h1>
+            <h1 class="create-title">рџ“ќ {% if get_lang(request) == 'en' %}Create Post{% else %}РЎРѕР·РґР°С‚СЊ РїРѕСЃС‚{% endif %}</h1>
             <p class="create-subtitle">
                 {% if get_lang(request) == 'en' %}
                 Create and publish a message to your channels
                 {% else %}
-                Создайте и опубликуйте сообщение в ваших каналах
+                РЎРѕР·РґР°Р№С‚Рµ Рё РѕРїСѓР±Р»РёРєСѓР№С‚Рµ СЃРѕРѕР±С‰РµРЅРёРµ РІ РІР°С€РёС… РєР°РЅР°Р»Р°С…
                 {% endif %}
             </p>
         </div>
 
         {% if (bots|length) == 0 %}
         <div class="warning-banner">
-            <div class="warning-icon">⚠️</div>
+            <div class="warning-icon">вљ пёЏ</div>
             <div class="warning-content">
-                <strong>{% if get_lang(request) == 'en' %}No bots added yet{% else %}Нет добавленных ботов{% endif %}</strong>
+                <strong>{% if get_lang(request) == 'en' %}No bots added yet{% else %}РќРµС‚ РґРѕР±Р°РІР»РµРЅРЅС‹С… Р±РѕС‚РѕРІ{% endif %}</strong>
                 <p>
-                    {% if get_lang(request) == 'en' %}Please add a Telegram bot first on the{% else %}Сначала добавьте Telegram бота на странице{% endif %} 
-                    <a href="/my_bots">{% if get_lang(request) == 'en' %}My Bots{% else %}Мои боты{% endif %}</a>
+                    {% if get_lang(request) == 'en' %}Please add a Telegram bot first on the{% else %}РЎРЅР°С‡Р°Р»Р° РґРѕР±Р°РІСЊС‚Рµ Telegram Р±РѕС‚Р° РЅР° СЃС‚СЂР°РЅРёС†Рµ{% endif %} 
+                    <a href="/my_bots">{% if get_lang(request) == 'en' %}My Bots{% else %}РњРѕРё Р±РѕС‚С‹{% endif %}</a>
                 </p>
             </div>
         </div>
@@ -51,12 +51,12 @@
             <input type="hidden" name="regular_end_date" id="regularEndDateInput" value="">
             <input type="hidden" name="regular_end_time" id="regularEndTimeInput" value="">
 
-            <!-- Выбор каналов -->
+            <!-- Р’С‹Р±РѕСЂ РєР°РЅР°Р»РѕРІ -->
             <div class="form-section">
                 <div class="section-header">
-                    <span class="section-icon">📢</span>
-                    <h3 class="section-title">{% if get_lang(request) == 'en' %}Channels{% else %}Каналы{% endif %}</h3>
-                    <span class="section-badge required">{% if get_lang(request) == 'en' %}Required{% else %}Обязательно{% endif %}</span>
+                    <span class="section-icon">рџ“ў</span>
+                    <h3 class="section-title">{% if get_lang(request) == 'en' %}Channels{% else %}РљР°РЅР°Р»С‹{% endif %}</h3>
+                    <span class="section-badge required">{% if get_lang(request) == 'en' %}Required{% else %}РћР±СЏР·Р°С‚РµР»СЊРЅРѕ{% endif %}</span>
                 </div>
                 
                 <div class="channels-grid" id="channelsContainer">
@@ -64,13 +64,13 @@
                         {% for channel in channels %}
                         <div class="channel-item" data-channel-id="{{ channel.id }}" data-channel-name="{{ channel.channel_name }}" data-channel-telegram-id="{{ channel.channel_id }}" data-platform="{{ channel.platform }}">
                             <div class="channel-icon {% if channel.platform == 'telegram' %}telegram-bg{% else %}max-bg{% endif %}">
-                                {% if channel.platform == 'telegram' %}🤖{% else %}📱{% endif %}
+                                {% if channel.platform == 'telegram' %}рџ¤–{% else %}рџ“±{% endif %}
                             </div>
                             <div class="channel-info">
                                 <div class="channel-name">{{ channel.channel_name }}</div>
                                 <div class="channel-telegram-id">{{ channel.channel_id }}</div>
                                 {% if channel.bot_name %}
-                                <div class="channel-bot">🤖 {{ channel.bot_name }}</div>
+                                <div class="channel-bot">рџ¤– {{ channel.bot_name }}</div>
                                 {% endif %}
                             </div>
                             <div class="channel-checkbox">
@@ -80,68 +80,68 @@
                         {% endfor %}
                     {% else %}
                         <div class="empty-state">
-                            <div class="empty-icon">📭</div>
-                            <p>{% if get_lang(request) == 'en' %}No channels found{% else %}Нет добавленных каналов{% endif %}</p>
+                            <div class="empty-icon">рџ“­</div>
+                            <p>{% if get_lang(request) == 'en' %}No channels found{% else %}РќРµС‚ РґРѕР±Р°РІР»РµРЅРЅС‹С… РєР°РЅР°Р»РѕРІ{% endif %}</p>
                         </div>
                     {% endif %}
                 </div>
                 
                 <div class="selection-summary">
-                    <span>📊 {% if get_lang(request) == 'en' %}Selected{% else %}Выбрано{% endif %}:</span>
+                    <span>рџ“Љ {% if get_lang(request) == 'en' %}Selected{% else %}Р’С‹Р±СЂР°РЅРѕ{% endif %}:</span>
                     <strong id="selectedCount">0</strong>
-                    <span>{% if get_lang(request) == 'en' %}channels{% else %}каналов{% endif %}</span>
+                    <span>{% if get_lang(request) == 'en' %}channels{% else %}РєР°РЅР°Р»РѕРІ{% endif %}</span>
                 </div>
             </div>
 
-            <!-- Текст поста -->
+            <!-- РўРµРєСЃС‚ РїРѕСЃС‚Р° -->
             <div class="form-section">
                 <div class="section-header">
-                    <span class="section-icon">📝</span>
-                    <h3 class="section-title">{% if get_lang(request) == 'en' %}Post Text{% else %}Текст поста{% endif %}</h3>
-                    <span class="section-badge required">{% if get_lang(request) == 'en' %}Required{% else %}Обязательно{% endif %}</span>
+                    <span class="section-icon">рџ“ќ</span>
+                    <h3 class="section-title">{% if get_lang(request) == 'en' %}Post Text{% else %}РўРµРєСЃС‚ РїРѕСЃС‚Р°{% endif %}</h3>
+                    <span class="section-badge required">{% if get_lang(request) == 'en' %}Required{% else %}РћР±СЏР·Р°С‚РµР»СЊРЅРѕ{% endif %}</span>
                 </div>
-                <textarea name="post_text" id="postText" class="post-textarea" placeholder="{% if get_lang(request) == 'en' %}Enter your message text...{% else %}Введите текст сообщения...{% endif %}" rows="6"></textarea>
+                <textarea name="post_text" id="postText" class="post-textarea" placeholder="{% if get_lang(request) == 'en' %}Enter your message text...{% else %}Р’РІРµРґРёС‚Рµ С‚РµРєСЃС‚ СЃРѕРѕР±С‰РµРЅРёСЏ...{% endif %}" rows="6"></textarea>
                 <div class="textarea-hint">
-                    <span id="charCount">0</span> {% if get_lang(request) == 'en' %}characters{% else %}символов{% endif %}
+                    <span id="charCount">0</span> {% if get_lang(request) == 'en' %}characters{% else %}СЃРёРјРІРѕР»РѕРІ{% endif %}
                 </div>
             </div>
 
-            <!-- Медиафайл -->
+            <!-- РњРµРґРёР°С„Р°Р№Р» -->
             <div class="form-section">
                 <div class="section-header">
-                    <span class="section-icon">📎</span>
-                    <h3 class="section-title">{% if get_lang(request) == 'en' %}Media File{% else %}Медиафайл{% endif %}</h3>
-                    <span class="section-badge optional">{% if get_lang(request) == 'en' %}Optional{% else %}Опционально{% endif %}</span>
+                    <span class="section-icon">рџ“Ћ</span>
+                    <h3 class="section-title">{% if get_lang(request) == 'en' %}Media File{% else %}РњРµРґРёР°С„Р°Р№Р»{% endif %}</h3>
+                    <span class="section-badge optional">{% if get_lang(request) == 'en' %}Optional{% else %}РћРїС†РёРѕРЅР°Р»СЊРЅРѕ{% endif %}</span>
                 </div>
                 
                 <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">📁</div>
-                    <p>{% if get_lang(request) == 'en' %}Click or drag to upload{% else %}Нажмите или перетащите файл{% endif %}</p>
+                    <div class="upload-icon">рџ“Ѓ</div>
+                    <p>{% if get_lang(request) == 'en' %}Click or drag to upload{% else %}РќР°Р¶РјРёС‚Рµ РёР»Рё РїРµСЂРµС‚Р°С‰РёС‚Рµ С„Р°Р№Р»{% endif %}</p>
                     <p class="upload-hint">JPG, PNG, GIF, MP4 (max 50MB)</p>
                     <input type="file" name="media_file" id="mediaFile" accept=".jpg,.jpeg,.png,.gif,.webp,.mp4,.mov" style="display: none;">
-                    <button type="button" class="btn btn-primary btn-sm" id="selectFileBtn">📂 {% if get_lang(request) == 'en' %}Select File{% else %}Выбрать файл{% endif %}</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="selectFileBtn">рџ“‚ {% if get_lang(request) == 'en' %}Select File{% else %}Р’С‹Р±СЂР°С‚СЊ С„Р°Р№Р»{% endif %}</button>
                 </div>
                 <div id="mediaPreview" class="media-preview" style="display: none;">
                     <span id="mediaFileName"></span>
-                    <button type="button" class="btn-remove" id="removeMediaBtn">🗑️ {% if get_lang(request) == 'en' %}Remove{% else %}Удалить{% endif %}</button>
+                    <button type="button" class="btn-remove" id="removeMediaBtn">рџ—‘пёЏ {% if get_lang(request) == 'en' %}Remove{% else %}РЈРґР°Р»РёС‚СЊ{% endif %}</button>
                 </div>
             </div>
 
-            <!-- Кнопка -->
+            <!-- РљРЅРѕРїРєР° -->
             <div class="form-section">
                 <div class="section-header">
-                    <span class="section-icon">🔘</span>
-                    <h3 class="section-title">{% if get_lang(request) == 'en' %}Inline Button{% else %}Кнопка{% endif %}</h3>
-                    <span class="section-badge optional">{% if get_lang(request) == 'en' %}Optional{% else %}Опционально{% endif %}</span>
+                    <span class="section-icon">рџ”</span>
+                    <h3 class="section-title">{% if get_lang(request) == 'en' %}Inline Button{% else %}РљРЅРѕРїРєР°{% endif %}</h3>
+                    <span class="section-badge optional">{% if get_lang(request) == 'en' %}Optional{% else %}РћРїС†РёРѕРЅР°Р»СЊРЅРѕ{% endif %}</span>
                 </div>
                 
                 <div class="button-row">
                     <div class="form-group">
-                        <label>{% if get_lang(request) == 'en' %}Button Text{% else %}Текст кнопки{% endif %}</label>
-                        <input type="text" id="buttonText" placeholder="{% if get_lang(request) == 'en' %}Click me{% else %}Нажми на меня{% endif %}">
+                        <label>{% if get_lang(request) == 'en' %}Button Text{% else %}РўРµРєСЃС‚ РєРЅРѕРїРєРё{% endif %}</label>
+                        <input type="text" id="buttonText" placeholder="{% if get_lang(request) == 'en' %}Click me{% else %}РќР°Р¶РјРё РЅР° РјРµРЅСЏ{% endif %}">
                     </div>
                     <div class="form-group">
-                        <label>{% if get_lang(request) == 'en' %}Button URL{% else %}Ссылка{% endif %}</label>
+                        <label>{% if get_lang(request) == 'en' %}Button URL{% else %}РЎСЃС‹Р»РєР°{% endif %}</label>
                         <input type="text" id="buttonUrl" placeholder="https://example.com">
                     </div>
                 </div>
@@ -149,86 +149,86 @@
                 <div class="color-options">
                     <div class="color-option active" data-color="success">
                         <div class="color-dot success"></div>
-                        <span>🟢 {% if get_lang(request) == 'en' %}Green{% else %}Зелёная{% endif %}</span>
+                        <span>рџџў {% if get_lang(request) == 'en' %}Green{% else %}Р—РµР»С‘РЅР°СЏ{% endif %}</span>
                     </div>
                     <div class="color-option" data-color="danger">
                         <div class="color-dot danger"></div>
-                        <span>🔴 {% if get_lang(request) == 'en' %}Red{% else %}Красная{% endif %}</span>
+                        <span>рџ”ґ {% if get_lang(request) == 'en' %}Red{% else %}РљСЂР°СЃРЅР°СЏ{% endif %}</span>
                     </div>
                     <div class="color-option" data-color="primary">
                         <div class="color-dot primary"></div>
-                        <span>🔵 {% if get_lang(request) == 'en' %}Blue{% else %}Синяя{% endif %}</span>
+                        <span>рџ”µ {% if get_lang(request) == 'en' %}Blue{% else %}РЎРёРЅСЏСЏ{% endif %}</span>
                     </div>
                     <div class="color-option" data-color="gray">
                         <div class="color-dot gray"></div>
-                        <span>⚪ {% if get_lang(request) == 'en' %}Gray{% else %}Серая{% endif %}</span>
+                        <span>вљЄ {% if get_lang(request) == 'en' %}Gray{% else %}РЎРµСЂР°СЏ{% endif %}</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Кнопки действий -->
+            <!-- РљРЅРѕРїРєРё РґРµР№СЃС‚РІРёР№ -->
             <div class="action-buttons">
-                <a href="/dashboard" class="btn btn-secondary">❌ {% if get_lang(request) == 'en' %}Cancel{% else %}Отмена{% endif %}</a>
-                <button type="button" class="btn btn-primary" id="scheduleBtn">📅 {% if get_lang(request) == 'en' %}Schedule{% else %}Запланировать{% endif %}</button>
-                <button type="button" class="btn btn-warning" id="regularBtn">🔄 {% if get_lang(request) == 'en' %}Make Regular{% else %}Сделать регулярным{% endif %}</button>
-                <button type="submit" class="btn btn-success" id="submitBtn">📤 {% if get_lang(request) == 'en' %}Publish Now{% else %}Опубликовать сейчас{% endif %}</button>
+                <a href="/dashboard" class="btn btn-secondary">вќЊ {% if get_lang(request) == 'en' %}Cancel{% else %}РћС‚РјРµРЅР°{% endif %}</a>
+                <button type="button" class="btn btn-primary" id="scheduleBtn">рџ“… {% if get_lang(request) == 'en' %}Schedule{% else %}Р—Р°РїР»Р°РЅРёСЂРѕРІР°С‚СЊ{% endif %}</button>
+                <button type="button" class="btn btn-warning" id="regularBtn">рџ”„ {% if get_lang(request) == 'en' %}Make Regular{% else %}РЎРґРµР»Р°С‚СЊ СЂРµРіСѓР»СЏСЂРЅС‹Рј{% endif %}</button>
+                <button type="submit" class="btn btn-success" id="submitBtn">рџ“¤ {% if get_lang(request) == 'en' %}Publish Now{% else %}РћРїСѓР±Р»РёРєРѕРІР°С‚СЊ СЃРµР№С‡Р°СЃ{% endif %}</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Модалка планирования -->
+<!-- РњРѕРґР°Р»РєР° РїР»Р°РЅРёСЂРѕРІР°РЅРёСЏ -->
 <div id="scheduleModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>📅 {% if get_lang(request) == 'en' %}Schedule Post{% else %}Запланировать пост{% endif %}</h3>
+            <h3>рџ“… {% if get_lang(request) == 'en' %}Schedule Post{% else %}Р—Р°РїР»Р°РЅРёСЂРѕРІР°С‚СЊ РїРѕСЃС‚{% endif %}</h3>
             <button class="modal-close" id="closeScheduleModal">&times;</button>
         </div>
         <div class="form-group">
-            <label>{% if get_lang(request) == 'en' %}Date{% else %}Дата{% endif %}</label>
+            <label>{% if get_lang(request) == 'en' %}Date{% else %}Р”Р°С‚Р°{% endif %}</label>
             <input type="date" id="scheduleDate" class="modal-input">
         </div>
         <div class="form-group">
-            <label>{% if get_lang(request) == 'en' %}Time{% else %}Время{% endif %}</label>
+            <label>{% if get_lang(request) == 'en' %}Time{% else %}Р’СЂРµРјСЏ{% endif %}</label>
             <input type="time" id="scheduleTime" class="modal-input">
         </div>
         <div class="modal-buttons">
-            <button class="btn btn-secondary" id="cancelScheduleBtn">{% if get_lang(request) == 'en' %}Cancel{% else %}Отмена{% endif %}</button>
-            <button class="btn btn-primary" id="confirmScheduleBtn">{% if get_lang(request) == 'en' %}Schedule{% else %}Запланировать{% endif %}</button>
+            <button class="btn btn-secondary" id="cancelScheduleBtn">{% if get_lang(request) == 'en' %}Cancel{% else %}РћС‚РјРµРЅР°{% endif %}</button>
+            <button class="btn btn-primary" id="confirmScheduleBtn">{% if get_lang(request) == 'en' %}Schedule{% else %}Р—Р°РїР»Р°РЅРёСЂРѕРІР°С‚СЊ{% endif %}</button>
         </div>
     </div>
 </div>
 
-<!-- Модалка регулярного поста -->
+<!-- РњРѕРґР°Р»РєР° СЂРµРіСѓР»СЏСЂРЅРѕРіРѕ РїРѕСЃС‚Р° -->
 <div id="regularModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>🔄 {% if get_lang(request) == 'en' %}Regular Post{% else %}Регулярный пост{% endif %}</h3>
+            <h3>рџ”„ {% if get_lang(request) == 'en' %}Regular Post{% else %}Р РµРіСѓР»СЏСЂРЅС‹Р№ РїРѕСЃС‚{% endif %}</h3>
             <button class="modal-close" id="closeRegularModal">&times;</button>
         </div>
         <div class="form-group">
-            <label>{% if get_lang(request) == 'en' %}Start Date{% else %}Дата начала{% endif %}</label>
+            <label>{% if get_lang(request) == 'en' %}Start Date{% else %}Р”Р°С‚Р° РЅР°С‡Р°Р»Р°{% endif %}</label>
             <input type="date" id="regularStartDate" class="modal-input">
         </div>
         <div class="form-group">
-            <label>{% if get_lang(request) == 'en' %}Start Time{% else %}Время начала{% endif %}</label>
+            <label>{% if get_lang(request) == 'en' %}Start Time{% else %}Р’СЂРµРјСЏ РЅР°С‡Р°Р»Р°{% endif %}</label>
             <input type="time" id="regularStartTime" class="modal-input">
         </div>
         <div class="form-group">
-            <label>{% if get_lang(request) == 'en' %}Interval (hours){% else %}Интервал (часы){% endif %}</label>
+            <label>{% if get_lang(request) == 'en' %}Interval (hours){% else %}РРЅС‚РµСЂРІР°Р» (С‡Р°СЃС‹){% endif %}</label>
             <input type="number" id="regularInterval" value="24" min="1" max="168" class="modal-input">
         </div>
         <div class="form-group">
-            <label>{% if get_lang(request) == 'en' %}End Date (optional){% else %}Дата окончания (опционально){% endif %}</label>
+            <label>{% if get_lang(request) == 'en' %}End Date (optional){% else %}Р”Р°С‚Р° РѕРєРѕРЅС‡Р°РЅРёСЏ (РѕРїС†РёРѕРЅР°Р»СЊРЅРѕ){% endif %}</label>
             <input type="date" id="regularEndDate" class="modal-input">
         </div>
         <div class="form-group">
-            <label>{% if get_lang(request) == 'en' %}End Time (optional){% else %}Время окончания (опционально){% endif %}</label>
+            <label>{% if get_lang(request) == 'en' %}End Time (optional){% else %}Р’СЂРµРјСЏ РѕРєРѕРЅС‡Р°РЅРёСЏ (РѕРїС†РёРѕРЅР°Р»СЊРЅРѕ){% endif %}</label>
             <input type="time" id="regularEndTime" class="modal-input">
         </div>
         <div class="modal-buttons">
-            <button class="btn btn-secondary" id="cancelRegularBtn">{% if get_lang(request) == 'en' %}Cancel{% else %}Отмена{% endif %}</button>
-            <button class="btn btn-warning" id="confirmRegularBtn">{% if get_lang(request) == 'en' %}Create Regular{% else %}Создать регулярный{% endif %}</button>
+            <button class="btn btn-secondary" id="cancelRegularBtn">{% if get_lang(request) == 'en' %}Cancel{% else %}РћС‚РјРµРЅР°{% endif %}</button>
+            <button class="btn btn-warning" id="confirmRegularBtn">{% if get_lang(request) == 'en' %}Create Regular{% else %}РЎРѕР·РґР°С‚СЊ СЂРµРіСѓР»СЏСЂРЅС‹Р№{% endif %}</button>
         </div>
     </div>
 </div>
@@ -346,7 +346,7 @@
         justify-content: center;
     }
     .channel-item.selected .channel-checkbox { background: var(--success); border-color: var(--success); }
-    .channel-item.selected .checkbox-inner::after { content: '✓'; color: white; font-size: 14px; font-weight: bold; }
+    .channel-item.selected .checkbox-inner::after { content: 'вњ“'; color: white; font-size: 14px; font-weight: bold; }
     
     .selection-summary {
         padding: 12px 16px;
@@ -553,12 +553,13 @@
 </style>
 
 <script>
-    // ========== СОСТОЯНИЕ ==========
+    // ========== РЎРћРЎРўРћРЇРќРР• ==========
     let selectedChannelsData = [];
     let selectedButtonColor = 'success';
     let userBots = [];
+    let submitMode = 'instant';
 
-    // ========== DOM ЭЛЕМЕНТЫ ==========
+    // ========== DOM Р­Р›Р•РњР•РќРўР« ==========
     const channelsContainer = document.getElementById('channelsContainer');
     const selectedCountSpan = document.getElementById('selectedCount');
     const channelsDataInput = document.getElementById('channelsDataInput');
@@ -580,7 +581,7 @@
     const regularBtn = document.getElementById('regularBtn');
     const submitBtn = document.getElementById('submitBtn');
 
-    // Модалки
+    // РњРѕРґР°Р»РєРё
     const scheduleModal = document.getElementById('scheduleModal');
     const regularModal = document.getElementById('regularModal');
     const scheduleDate = document.getElementById('scheduleDate');
@@ -591,12 +592,12 @@
     const regularEndDate = document.getElementById('regularEndDate');
     const regularEndTime = document.getElementById('regularEndTime');
 
-    // ========== УТИЛИТЫ ==========
+    // ========== РЈРўРР›РРўР« ==========
     function showAlert(message, type) {
         if (!alertContainer) return;
         const div = document.createElement('div');
         div.className = `alert-toast ${type}`;
-        div.innerHTML = (type === 'success' ? '✅ ' : '❌ ') + message;
+        div.innerHTML = (type === 'success' ? 'вњ… ' : 'вќЊ ') + message;
         alertContainer.appendChild(div);
         setTimeout(() => div.remove(), 5000);
     }
@@ -627,18 +628,18 @@
         }
     }
 
-    // ========== ЗАГРУЗКА БОТОВ ==========
+    // ========== Р—РђР“Р РЈР—РљРђ Р‘РћРўРћР’ ==========
     async function loadBots() {
         try {
             const response = await fetch('/api/bots');
             const data = await response.json();
             if (data.success && data.bots) {
                 userBots = data.bots;
-                console.log('✅ Загружено ботов:', userBots.length);
+                console.log('вњ… Р—Р°РіСЂСѓР¶РµРЅРѕ Р±РѕС‚РѕРІ:', userBots.length);
                 updateBotsInChannels();
             }
         } catch (error) {
-            console.error('❌ Ошибка загрузки ботов:', error);
+            console.error('вќЊ РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё Р±РѕС‚РѕРІ:', error);
         }
     }
 
@@ -651,13 +652,13 @@
                 item.dataset.botId = bot.id;
                 const botSpan = item.querySelector('.channel-bot');
                 if (botSpan) {
-                    botSpan.innerHTML = `🤖 ${bot.name}`;
+                    botSpan.innerHTML = `рџ¤– ${bot.name}`;
                 }
             }
         });
     }
 
-    // ========== ВЫБОР КАНАЛОВ ==========
+    // ========== Р’Р«Р‘РћР  РљРђРќРђР›РћР’ ==========
     function updateSelectionSummary() {
         if (selectedCountSpan) selectedCountSpan.textContent = selectedChannelsData.length;
         if (channelsDataInput) channelsDataInput.value = JSON.stringify(selectedChannelsData);
@@ -676,7 +677,7 @@
             selectedChannelsData = selectedChannelsData.filter(ch => ch.id !== channelId);
         } else {
             if (!botToken && platform === 'telegram') {
-                showAlert('У этого канала нет бота. Сначала добавьте бота на странице "Мои боты"', 'error');
+                showAlert('РЈ СЌС‚РѕРіРѕ РєР°РЅР°Р»Р° РЅРµС‚ Р±РѕС‚Р°. РЎРЅР°С‡Р°Р»Р° РґРѕР±Р°РІСЊС‚Рµ Р±РѕС‚Р° РЅР° СЃС‚СЂР°РЅРёС†Рµ "РњРѕРё Р±РѕС‚С‹"', 'error');
                 return;
             }
             item.classList.add('selected');
@@ -701,10 +702,10 @@
                 toggleChannelItem(item);
             });
         });
-        console.log('✅ Инициализация выбора каналов, найдено:', channelItems.length);
+        console.log('вњ… РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РІС‹Р±РѕСЂР° РєР°РЅР°Р»РѕРІ, РЅР°Р№РґРµРЅРѕ:', channelItems.length);
     }
 
-    // ========== ТЕКСТ ПОСТА ==========
+    // ========== РўР•РљРЎРў РџРћРЎРўРђ ==========
     function initTextCounter() {
         if (!postTextarea || !charCountSpan) return;
         postTextarea.addEventListener('input', () => {
@@ -712,13 +713,20 @@
         });
     }
 
-    // ========== МЕДИА ==========
+    // ========== РњР•Р”РРђ ==========
     function initMediaUpload() {
         if (selectFileBtn) {
-            selectFileBtn.addEventListener('click', () => mediaFile.click());
+            selectFileBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                mediaFile.click();
+            });
         }
         if (uploadArea) {
-            uploadArea.addEventListener('click', () => mediaFile.click());
+            uploadArea.addEventListener('click', (e) => {
+                if (e.target === selectFileBtn) return;
+                mediaFile.click();
+            });
         }
         if (mediaFile) {
             mediaFile.addEventListener('change', (e) => {
@@ -737,7 +745,6 @@
         }
     }
 
-    // ========== ЦВЕТ КНОПКИ ==========
     function initColorOptions() {
         colorOptions.forEach(opt => {
             opt.addEventListener('click', () => {
@@ -749,7 +756,7 @@
         });
     }
 
-    // ========== МОДАЛКИ ==========
+    // ========== РњРћР”РђР›РљР ==========
     function openModal(modal) {
         if (modal) modal.classList.add('active');
     }
@@ -766,7 +773,6 @@
 
         scheduleBtn?.addEventListener('click', () => openModal(scheduleModal));
         regularBtn?.addEventListener('click', () => openModal(regularModal));
-        
         document.getElementById('closeScheduleModal')?.addEventListener('click', () => closeModal(scheduleModal));
         document.getElementById('closeRegularModal')?.addEventListener('click', () => closeModal(regularModal));
         document.getElementById('cancelScheduleBtn')?.addEventListener('click', () => closeModal(scheduleModal));
@@ -779,11 +785,12 @@
                 showAlert('Выберите дату и время', 'error');
                 return;
             }
+            submitMode = 'schedule';
             document.getElementById('scheduledDateInput').value = date;
             document.getElementById('scheduledTimeInput').value = time;
             document.getElementById('isRegularInput').value = '0';
             closeModal(scheduleModal);
-            postForm.dispatchEvent(new Event('submit'));
+            postForm.dispatchEvent(new Event('submit', { cancelable: true }));
         });
 
         document.getElementById('confirmRegularBtn')?.addEventListener('click', () => {
@@ -793,6 +800,7 @@
                 showAlert('Выберите дату и время начала', 'error');
                 return;
             }
+            submitMode = 'regular';
             document.getElementById('scheduledDateInput').value = date;
             document.getElementById('scheduledTimeInput').value = time;
             document.getElementById('isRegularInput').value = '1';
@@ -800,55 +808,49 @@
             if (regularEndDate?.value) document.getElementById('regularEndDateInput').value = regularEndDate.value;
             if (regularEndTime?.value) document.getElementById('regularEndTimeInput').value = regularEndTime.value;
             closeModal(regularModal);
-            postForm.dispatchEvent(new Event('submit'));
-        });
-
-        [scheduleModal, regularModal].forEach(modal => {
-            if (modal) {
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) closeModal(modal);
-                });
-            }
+            postForm.dispatchEvent(new Event('submit', { cancelable: true }));
         });
     }
 
-    // ========== ОТПРАВКА ФОРМЫ ==========
     function initFormSubmit() {
         if (!postForm) return;
         postForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
+            if (submitMode === 'instant') {
+                document.getElementById('isRegularInput').value = '0';
+                document.getElementById('scheduledDateInput').value = '';
+                document.getElementById('scheduledTimeInput').value = '';
+                document.getElementById('regularIntervalInput').value = '';
+                document.getElementById('regularEndDateInput').value = '';
+                document.getElementById('regularEndTimeInput').value = '';
+            }
+
             if (selectedChannelsData.length === 0) {
                 showAlert('Выберите хотя бы один канал', 'error');
                 return;
             }
-            
+
             const postText = postTextarea?.value.trim();
             if (!postText) {
                 showAlert('Введите текст поста', 'error');
                 return;
             }
-            
+
             const originalText = submitBtn?.innerHTML || 'Опубликовать';
             if (submitBtn) {
                 submitBtn.innerHTML = '<span class="spinner"></span> Публикация...';
                 submitBtn.disabled = true;
             }
-            
+
             const formData = new FormData();
-            
-            // 1. Данные каналов (JSON строка)
             formData.append('channels_data', JSON.stringify(selectedChannelsData));
-            
-            // 2. Текст поста
             formData.append('post_text', postText);
-            
-            // 3. Медиафайл (если есть)
+
             if (mediaFile.files && mediaFile.files[0]) {
                 formData.append('media_file', mediaFile.files[0]);
             }
-            
-            // 4. Кнопка (если заполнена)
+
             const btnText = buttonText?.value.trim();
             const btnUrl = buttonUrl?.value.trim();
             if (btnText && btnUrl && selectedButtonColor !== 'gray') {
@@ -859,17 +861,16 @@
                 };
                 formData.append('button_data', JSON.stringify(buttonData));
             }
-            
-            // 5. Планирование (если есть)
+
             const isRegular = document.getElementById('isRegularInput')?.value || '0';
             const scheduledDate = document.getElementById('scheduledDateInput')?.value;
             const scheduledTime = document.getElementById('scheduledTimeInput')?.value;
-            
+
             if (scheduledDate && scheduledTime) {
                 formData.append('scheduled_date', scheduledDate);
                 formData.append('scheduled_time', scheduledTime);
                 formData.append('is_regular', isRegular);
-                
+
                 if (isRegular === '1') {
                     formData.append('regular_interval', document.getElementById('regularIntervalInput')?.value || '24');
                     if (document.getElementById('regularEndDateInput')?.value) {
@@ -882,71 +883,73 @@
             } else {
                 formData.append('is_regular', '0');
             }
-            
-            // Отладка: выводим что отправляем
-            console.log('📤 Отправка данных:');
-            for (let pair of formData.entries()) {
-                if (pair[0] === 'media_file') {
-                    console.log(`   ${pair[0]}: ${pair[1].name} (${pair[1].size} bytes)`);
-                } else {
-                    console.log(`   ${pair[0]}: ${pair[1]}`);
-                }
-            }
-            
+
             try {
-                const response = await fetch('/publish_unified', { 
-                    method: 'POST', 
-                    body: formData 
+                const response = await fetch('/publish_unified', {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    body: formData,
+                    credentials: 'same-origin'
                 });
-                
-                console.log('📥 Статус ответа:', response.status);
-                
-                if (response.redirected) {
-                    console.log('🔀 Редирект на:', response.url);
-                    window.location.href = response.url;
-                } else {
-                    const result = await response.json();
-                    console.log('📦 Результат:', result);
-                    
-                    if (result.success) {
-                        showAlert('Пост успешно опубликован!', 'success');
-                        if (result.session_id) {
-                            setTimeout(() => {
-                                window.location.href = `/publish_unified/${result.session_id}`;
-                            }, 1500);
-                        } else {
-                            setTimeout(() => {
-                                window.location.href = '/dashboard';
-                            }, 1500);
-                        }
+
+                const contentType = response.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    const text = await response.text();
+                    throw new Error(text.startsWith('<') ? 'Server returned HTML instead of JSON' : text);
+                }
+
+                const result = await response.json();
+                if (result.success) {
+                    if (result.scheduled) {
+                        showAlert('Пост успешно запланирован!', 'success');
+                        setTimeout(() => {
+                            window.location.href = '/scheduled_posts';
+                        }, 1200);
+                    } else if (result.session_id) {
+                        showAlert('Публикация запущена!', 'success');
+                        setTimeout(() => {
+                            window.location.href = `/publish_unified/${result.session_id}`;
+                        }, 800);
                     } else {
-                        showAlert(result.error || result.detail || 'Ошибка публикации', 'error');
-                        if (submitBtn) {
-                            submitBtn.innerHTML = originalText;
-                            submitBtn.disabled = false;
-                        }
+                        showAlert('Пост успешно опубликован!', 'success');
+                        setTimeout(() => {
+                            window.location.href = '/dashboard';
+                        }, 1200);
+                    }
+                } else {
+                    showAlert(result.error || result.detail || 'Ошибка публикации', 'error');
+                    if (submitBtn) {
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
                     }
                 }
             } catch (error) {
-                console.error('❌ Ошибка:', error);
+                console.error('Ошибка:', error);
                 showAlert('Ошибка сети: ' + error.message, 'error');
                 if (submitBtn) {
                     submitBtn.innerHTML = originalText;
                     submitBtn.disabled = false;
                 }
             }
-            
-            // Сбрасываем скрытые поля планирования
+
             document.getElementById('isRegularInput').value = '0';
             document.getElementById('scheduledDateInput').value = '';
             document.getElementById('scheduledTimeInput').value = '';
             document.getElementById('regularIntervalInput').value = '';
             document.getElementById('regularEndDateInput').value = '';
             document.getElementById('regularEndTimeInput').value = '';
+            submitMode = 'instant';
         });
     }
 
-    // ========== ИНИЦИАЛИЗАЦИЯ ==========
+    // ========== РРќРР¦РРђР›РР—РђР¦РРЇ ==========
+    submitBtn?.addEventListener('click', () => {
+        submitMode = 'instant';
+    });
+
     document.addEventListener('DOMContentLoaded', async () => {
         await loadBots();
         initChannelSelection();
@@ -963,7 +966,11 @@
         const errorMsg = urlParams.get('error');
         if (errorMsg) showAlert(decodeURIComponent(errorMsg), 'error');
         
-        console.log('✅ Страница создания поста загружена');
+        console.log('вњ… РЎС‚СЂР°РЅРёС†Р° СЃРѕР·РґР°РЅРёСЏ РїРѕСЃС‚Р° Р·Р°РіСЂСѓР¶РµРЅР°');
     });
 </script>
 {% endblock %}
+
+
+
+

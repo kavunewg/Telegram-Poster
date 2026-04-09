@@ -129,11 +129,11 @@ class QueueWorker:
                 self.repo.update_task_status(task_id, 'success')
                 self.stats['success'] += 1
                 logger.info(f"✅ Задача {task_id} выполнена успешно за {elapsed:.2f}с")
-                self._update_progress(user_id, task_id, True)
+                self._update_progress(user_id, task_id, True, payload.get('post_session_id'))
             else:
                 # Ошибка
                 error_msg = result.get('error', 'Unknown error')
-                await self._handle_error(task_id, attempts, error_msg, user_id)
+                await self._handle_error(task_id, attempts, error_msg, user_id, payload.get('post_session_id'))
                 
         except asyncio.CancelledError:
             logger.warning(f"⚠️ Задача {task_id} отменена при остановке")
@@ -141,7 +141,7 @@ class QueueWorker:
         except Exception as e:
             logger.error(f"❌ Критическая ошибка при обработке задачи {task_id}: {e}")
             traceback.print_exc()
-            await self._handle_error(task_id, attempts, str(e), user_id)
+            await self._handle_error(task_id, attempts, str(e), user_id, payload.get('post_session_id'))
         finally:
             self.stats['processed'] += 1
 
@@ -232,7 +232,7 @@ class QueueWorker:
             traceback.print_exc()
             return {'success': False, 'error': str(e)}
     
-    async def _handle_error(self, task_id: int, attempts: int, error_msg: str, user_id: int):
+    async def _handle_error(self, task_id: int, attempts: int, error_msg: str, user_id: int, post_session_id: str = None):
         """Обработка ошибки задачи"""
         new_attempts = attempts + 1
         logger.error(f"❌ Ошибка задачи {task_id}: {error_msg}")
@@ -242,7 +242,7 @@ class QueueWorker:
             self.repo.update_task_status(task_id, 'failed', error_msg, new_attempts)
             self.stats['failed'] += 1
             logger.error(f"❌ Задача {task_id} окончательно провалена после {new_attempts} попыток")
-            self._update_progress(user_id, task_id, False)
+            self._update_progress(user_id, task_id, False, post_session_id)
             
             # Отправляем уведомление об ошибке (опционально)
             await self._notify_error(user_id, task_id, error_msg)
@@ -353,27 +353,39 @@ class QueueWorker:
             return {'success': False, 'error': 'Request timeout (30s)'}
         except Exception as e:
             logger.error(f"MAX send error: {e}")
-            return {'success': False, 'error': str(e)}
-    
-    def _update_progress(self, user_id: int, task_id: int, success: bool):
+            return {'success': False, 'error': str(e)}    def _update_progress(self, user_id: int, task_id: int, success: bool, post_session_id: str = None):
         """Обновление прогресса в сессии"""
-        for session_id, session in POST_SESSIONS.items():
-            if session.get('user_id') == user_id:
-                if success:
-                    session['results']['success'] = session['results'].get('success', 0) + 1
-                else:
-                    session['results']['failed'] = session['results'].get('failed', 0) + 1
+        target_session_id = post_session_id
+        target_session = POST_SESSIONS.get(target_session_id) if target_session_id else None
 
-                session['completed_count'] = session.get('completed_count', 0) + 1
-                total = len(session.get('channels', []))
-                completed = session.get('completed_count', 0)
-                session['progress'] = int((completed / total) * 100) if total > 0 else 0
-                
-                if completed >= total:
-                    session['publishing'] = False
-                    logger.info(f"📊 Сессия {session_id} завершена: успешно {session['results']['success']}, ошибок {session['results']['failed']}")
-                break
-    
+        if target_session is None:
+            for session_id, session in POST_SESSIONS.items():
+                if session.get('user_id') == user_id and session.get('publishing'):
+                    target_session_id = session_id
+                    target_session = session
+                    break
+
+        if target_session is None:
+            return
+
+        if success:
+            target_session['results']['success'] = target_session['results'].get('success', 0) + 1
+        else:
+            target_session['results']['failed'] = target_session['results'].get('failed', 0) + 1
+
+        target_session['completed_count'] = target_session.get('completed_count', 0) + 1
+        total = len(target_session.get('channels', []))
+        completed = target_session.get('completed_count', 0)
+        target_session['progress'] = int((completed / total) * 100) if total > 0 else 0
+
+        if completed >= total:
+            target_session['publishing'] = False
+            logger.info(
+                f"📊 Сессия {target_session_id} завершена: "
+                f"успешно {target_session['results']['success']}, "
+                f"ошибок {target_session['results']['failed']}"
+            )
+
     async def _notify_error(self, user_id: int, task_id: int, error_msg: str):
         """Уведомление об ошибке (можно расширить)"""
         logger.warning(f"📧 Уведомление об ошибке для пользователя {user_id}, задача {task_id}: {error_msg[:100]}")
@@ -418,3 +430,4 @@ async def stop_queue_worker():
 async def get_worker_stats():
     """Получить статистику воркера"""
     return await queue_worker.get_stats()
+

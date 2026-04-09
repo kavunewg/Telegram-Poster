@@ -81,7 +81,8 @@ class PostStatsRepository(BaseRepository):
             return {
                 "total": row[0] if row else 0,
                 "success": row[1] or 0 if row else 0,
-                "error": row[2] or 0 if row else 0
+                "error": row[2] or 0 if row else 0,
+                "failed": row[2] or 0 if row else 0,
             }
 
     # =========================

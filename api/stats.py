@@ -50,7 +50,7 @@ async def stats_page(request: Request):
         stats_list = [
             stats.get("total", 0),
             stats.get("success", 0),
-            stats.get("failed", 0)
+            stats.get("failed", stats.get("error", 0))
         ]
     elif isinstance(stats, (list, tuple)):
         stats_list = list(stats) if len(stats) >= 3 else [0, 0, 0]
@@ -81,7 +81,7 @@ async def api_stats(request: Request):
         return {
             "total": stats.get("total", 0),
             "success": stats.get("success", 0),
-            "failed": stats.get("failed", 0)
+            "failed": stats.get("failed", stats.get("error", 0))
         }
     elif isinstance(stats, (list, tuple)):
         return {

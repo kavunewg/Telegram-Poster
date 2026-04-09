@@ -232,6 +232,7 @@ def _create_post_session(
 
 def _add_tasks_to_queue(
     user_id: int,
+    post_session_id: str,
     channels: List[Dict[str, Any]],
     post_text: str,
     media_info: Optional[Dict[str, Any]],
@@ -242,6 +243,7 @@ def _add_tasks_to_queue(
         bot_token = channel.get("bot_token")
         payload = {
             "user_id": user_id,
+            "post_session_id": post_session_id,
             "text": post_text,
             "media_path": media_info.get("path") if media_info else None,
             "media_name": media_info.get("name") if media_info else None,
@@ -296,7 +298,11 @@ async def _schedule_post_internal(
     if scheduled_dt <= now_local:
         raise HTTPException(status_code=400, detail="Scheduled time cannot be in the past")
 
-    media_info = await _save_uploaded_media(user["id"], media_file)
+    try:
+        media_info = await _save_uploaded_media(user["id"], media_file)
+    except Exception:
+        POST_SESSIONS.pop(post_session_id, None)
+        raise
     is_regular_flag = is_regular == "1"
     regular_settings = None
     if is_regular_flag:
@@ -420,18 +426,31 @@ async def publish_unified(
             )
         return RedirectResponse(url="/scheduled_posts?success=Post+scheduled", status_code=303)
 
-    media_info = await _save_uploaded_media(user["id"], media_file)
-    tasks_count = _add_tasks_to_queue(user["id"], channels, clean_post_text, media_info, button)
-
     post_session_id = str(uuid.uuid4())
     _create_post_session(
         session_id=post_session_id,
         user_id=user["id"],
         channels=channels,
         post_text=clean_post_text,
+        media_info=None,
+        button=button,
+    )
+
+    media_info = await _save_uploaded_media(user["id"], media_file)
+    tasks_count = _add_tasks_to_queue(
+        user_id=user["id"],
+        post_session_id=post_session_id,
+        channels=channels,
+        post_text=clean_post_text,
         media_info=media_info,
         button=button,
     )
+    session = POST_SESSIONS.get(post_session_id)
+    if session:
+        session["media_path"] = media_info.get("path") if media_info else None
+        session["media_name"] = media_info.get("name") if media_info else None
+        session["media_size"] = media_info.get("size") if media_info else None
+        session["media_type"] = media_info.get("type") if media_info else None
 
     if _is_ajax(request):
         return JSONResponse(
@@ -525,7 +544,9 @@ async def check_status(post_session_id: str):
             }
         )
 
+    channels = session.get("channels", [])
     results = session.get("results", {"success": 0, "failed": 0})
+    results["total"] = len(channels)
     final_status = "error" if results.get("failed", 0) > 0 and results.get("success", 0) == 0 else "success"
     return JSONResponse({"status": final_status, "results": results})
 

@@ -47,7 +47,7 @@ async def send_to_telegram(channel_session: dict, session_id: str) -> dict:
     button = channel_session.get("button")
     reply_markup = None
     if button and button.get("text") and button.get("url"):
-        reply_markup = json.dumps({"inline_keyboard": [[{"text": button["text"], "url": button["url"]}]]})
+        reply_markup = {"inline_keyboard": [[{"text": button["text"], "url": button["url"]}]]}
 
     try:
         async with aiohttp.ClientSession() as session:
@@ -69,7 +69,7 @@ async def send_to_telegram(channel_session: dict, session_id: str) -> dict:
                     data.add_field("caption", caption)
                     data.add_field("parse_mode", "HTML")
                     if reply_markup:
-                        data.add_field("reply_markup", reply_markup)
+                        data.add_field("reply_markup", json.dumps(reply_markup))
                     data.add_field(field_name, file_obj, filename=os.path.basename(media_path))
 
                     url = f"https://api.telegram.org/bot{bot_token}/{method}"
