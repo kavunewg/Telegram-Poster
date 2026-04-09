@@ -47,7 +47,12 @@ async def send_to_telegram(channel_session: dict, session_id: str) -> dict:
     button = channel_session.get("button")
     reply_markup = None
     if button and button.get("text") and button.get("url"):
-        reply_markup = {"inline_keyboard": [[{"text": button["text"], "url": button["url"]}]]}
+        tg_button = {"text": button["text"], "url": button["url"]}
+        button_style = (button.get("style") or "").strip().lower()
+        # Backward-compatible: older project versions sent Telegram button style directly.
+        if button_style in {"primary", "success", "danger"}:
+            tg_button["style"] = button_style
+        reply_markup = {"inline_keyboard": [[tg_button]]}
 
     try:
         async with aiohttp.ClientSession() as session:
