@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
 <title>Панель управления | Telegram Poster</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -88,6 +89,14 @@ body::before{
     height:1px;
     background:rgba(255,255,255,0.1);
     margin:16px 0;
+}
+
+.mobile-topbar{
+    display:none;
+}
+
+.menu-backdrop{
+    display:none;
 }
 
 .main{
@@ -314,29 +323,76 @@ body::before{
 
 @media(max-width:900px){
     body{display:block;}
-    .sidebar{
+    .mobile-topbar{
         display:flex;
-        width:100%;
-        height:auto;
+        align-items:center;
+        justify-content:space-between;
         position:sticky;
         top:0;
+        z-index:40;
         padding:10px 12px;
-        gap:8px;
-        overflow-x:auto;
-        border-right:none;
+        background:rgba(10,10,18,0.88);
+        backdrop-filter:blur(14px);
         border-bottom:1px solid rgba(255,255,255,0.08);
-        white-space:nowrap;
     }
-    .sidebar .divider{display:none;}
+    .mobile-brand{
+        font-weight:700;
+        font-size:15px;
+        color:#fff;
+    }
+    .menu-toggle{
+        width:40px;
+        height:40px;
+        border-radius:10px;
+        border:1px solid rgba(255,255,255,0.16);
+        background:rgba(255,255,255,0.06);
+        color:#fff;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:20px;
+        cursor:pointer;
+    }
+    .menu-backdrop{
+        display:block;
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,0.5);
+        opacity:0;
+        visibility:hidden;
+        transition:opacity 0.25s ease, visibility 0.25s ease;
+        z-index:45;
+    }
+    .menu-backdrop.active{
+        opacity:1;
+        visibility:visible;
+    }
+    .sidebar{
+        display:block;
+        width:280px;
+        height:100vh;
+        position:fixed;
+        top:0;
+        left:-100%;
+        padding:18px 14px;
+        overflow-y:auto;
+        border-right:1px solid rgba(255,255,255,0.08);
+        border-bottom:none;
+        transition:left 0.25s ease;
+        z-index:50;
+    }
+    .sidebar.open{
+        left:0;
+    }
+    .sidebar .divider{display:block;}
     .sidebar .nav-btn{
-        flex:0 0 auto;
-        margin-bottom:0;
-        width:auto;
+        margin-bottom:10px;
+        width:100%;
         padding:10px 12px;
         border-radius:12px;
         font-size:13px;
     }
-    .main{padding:20px 12px; max-height:none;}
+    .main{padding:16px 12px 20px; max-height:none;}
     .stats-grid{grid-template-columns:repeat(2,1fr);}
     .actions-grid{grid-template-columns:1fr;}
     .title{font-size:24px;}
@@ -345,6 +401,12 @@ body::before{
 </head>
 
 <body>
+
+<div class="mobile-topbar">
+    <button class="menu-toggle" id="menuToggleBtn" aria-label="Открыть меню" aria-expanded="false">☰</button>
+    <div class="mobile-brand">Telegram Poster</div>
+</div>
+<div class="menu-backdrop" id="menuBackdrop"></div>
 
 <div class="sidebar">
     <a href="/dashboard" class="nav-btn nav-btn-primary active">🏠 Главная</a>
@@ -484,11 +546,11 @@ body::before{
             </div>
             <div style="margin-bottom:16px;">
                 <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">Новый пароль</label>
-                <input type="password" name="new_password" id="profileNewPassword" class="input" style="width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(15,15,30,0.7); color:#fff;" placeholder="Оставьте пустым, чтобы не менять">
+                <input type="password" name="new_password" id="profileNewPassword" autocomplete="new-password" class="input" style="width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(15,15,30,0.7); color:#fff;" placeholder="Оставьте пустым, чтобы не менять">
             </div>
             <div style="margin-bottom:16px;">
                 <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">Подтверждение пароля</label>
-                <input type="password" name="confirm_password" id="profileConfirmPassword" class="input" style="width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(15,15,30,0.7); color:#fff;" placeholder="Подтвердите новый пароль">
+                <input type="password" name="confirm_password" id="profileConfirmPassword" autocomplete="new-password" class="input" style="width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(15,15,30,0.7); color:#fff;" placeholder="Подтвердите новый пароль">
             </div>
             <div class="modal-actions">
                 <button type="button" class="btn-secondary" id="cancelProfileBtn">Отмена</button>
@@ -519,6 +581,34 @@ const profileModal = document.getElementById('profileModal');
 const profileBtn = document.getElementById('profileBtn');
 const closeProfileModalBtn = document.getElementById('closeProfileModalBtn');
 const cancelProfileBtn = document.getElementById('cancelProfileBtn');
+const menuToggleBtn = document.getElementById('menuToggleBtn');
+const menuBackdrop = document.getElementById('menuBackdrop');
+const sidebar = document.querySelector('.sidebar');
+
+function closeMobileMenu(){
+    sidebar?.classList.remove('open');
+    menuBackdrop?.classList.remove('active');
+    menuToggleBtn?.setAttribute('aria-expanded', 'false');
+}
+
+function openMobileMenu(){
+    sidebar?.classList.add('open');
+    menuBackdrop?.classList.add('active');
+    menuToggleBtn?.setAttribute('aria-expanded', 'true');
+}
+
+menuToggleBtn?.addEventListener('click', () => {
+    if (sidebar?.classList.contains('open')) closeMobileMenu();
+    else openMobileMenu();
+});
+
+menuBackdrop?.addEventListener('click', closeMobileMenu);
+
+document.querySelectorAll('.sidebar a, .sidebar .nav-btn').forEach((el) => {
+    el.addEventListener('click', () => {
+        if (window.innerWidth <= 900) closeMobileMenu();
+    });
+});
 
 profileBtn?.addEventListener('click', () => profileModal.classList.add('active'));
 closeProfileModalBtn?.addEventListener('click', () => profileModal.classList.remove('active'));
@@ -527,6 +617,7 @@ cancelProfileBtn?.addEventListener('click', () => profileModal.classList.remove(
 // Закрытие по ESC
 document.addEventListener('keydown', (e) => {
     if(e.key === 'Escape'){
+        closeMobileMenu();
         statsModal?.classList.remove('active');
         profileModal?.classList.remove('active');
     }
