@@ -72,6 +72,14 @@ body::before{
 }
 
 /* 📦 MAIN */
+.mobile-topbar{
+    display:none;
+}
+
+.menu-backdrop{
+    display:none;
+}
+
 .main{
     flex:1;
     padding:32px 40px;
@@ -390,25 +398,72 @@ textarea.input{
 /* 📱 АДАПТИВ */
 @media(max-width:900px){
     body{display:block;}
-    .sidebar{
+    .mobile-topbar{
         display:flex;
-        width:100%;
-        height:auto;
+        align-items:center;
+        justify-content:space-between;
         position:sticky;
         top:0;
+        z-index:40;
         padding:10px 12px;
-        gap:8px;
-        overflow-x:auto;
-        border-right:none;
+        background:rgba(10,10,18,0.88);
+        backdrop-filter:blur(14px);
         border-bottom:1px solid rgba(255,255,255,0.08);
-        white-space:nowrap;
     }
-    .sidebar .divider{display:none;}
+    .mobile-brand{
+        font-weight:700;
+        font-size:15px;
+        color:#fff;
+    }
+    .menu-toggle{
+        width:40px;
+        height:40px;
+        border-radius:10px;
+        border:1px solid rgba(255,255,255,0.16);
+        background:rgba(255,255,255,0.06);
+        color:#fff;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:20px;
+        cursor:pointer;
+    }
+    .menu-backdrop{
+        display:block;
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,0.5);
+        opacity:0;
+        visibility:hidden;
+        transition:opacity 0.25s ease, visibility 0.25s ease;
+        z-index:45;
+    }
+    .menu-backdrop.active{
+        opacity:1;
+        visibility:visible;
+    }
+    .sidebar{
+        display:block;
+        width:280px;
+        height:100vh;
+        position:fixed;
+        top:0;
+        left:-100%;
+        padding:18px 14px;
+        overflow-y:auto;
+        border-right:1px solid rgba(255,255,255,0.08);
+        border-bottom:none;
+        transition:left 0.25s ease;
+        z-index:50;
+    }
+    .sidebar.open{
+        left:0;
+    }
+    .sidebar .divider{display:block;}
     .sidebar .nav-btn,
     .sidebar .menu-item{
-        flex:0 0 auto;
-        margin-bottom:0;
-        width:auto;
+        margin-bottom:10px;
+        width:100%;
         padding:10px 12px;
         border-radius:12px;
         font-size:13px;
@@ -465,6 +520,12 @@ textarea.input{
 </head>
 
 <body>
+
+<div class="mobile-topbar">
+    <button class="menu-toggle" id="menuToggleBtn" aria-label="Открыть меню" aria-expanded="false">☰</button>
+    <div class="mobile-brand">Telegram Poster</div>
+</div>
+<div class="menu-backdrop" id="menuBackdrop"></div>
 
 <!-- SIDEBAR -->
 <div class="sidebar">
@@ -757,6 +818,34 @@ document.querySelectorAll('.platform-card').forEach(card => {
 const ps = document.getElementById('platformSelect');
 const addPlatform = document.getElementById('addPlatform');
 const channelIdInput = document.getElementById('channelIdInput');
+const menuToggleBtn = document.getElementById('menuToggleBtn');
+const menuBackdrop = document.getElementById('menuBackdrop');
+const sidebar = document.querySelector('.sidebar');
+
+function closeMobileMenu(){
+    sidebar?.classList.remove('open');
+    menuBackdrop?.classList.remove('active');
+    menuToggleBtn?.setAttribute('aria-expanded', 'false');
+}
+
+function openMobileMenu(){
+    sidebar?.classList.add('open');
+    menuBackdrop?.classList.add('active');
+    menuToggleBtn?.setAttribute('aria-expanded', 'true');
+}
+
+menuToggleBtn?.addEventListener('click', () => {
+    if(sidebar?.classList.contains('open')) closeMobileMenu();
+    else openMobileMenu();
+});
+
+menuBackdrop?.addEventListener('click', closeMobileMenu);
+
+document.querySelectorAll('.sidebar a, .sidebar .menu-item').forEach((el) => {
+    el.addEventListener('click', () => {
+        if(window.innerWidth <= 900) closeMobileMenu();
+    });
+});
 
 if(ps){
     ps.onchange = () => {
@@ -830,6 +919,7 @@ document.querySelectorAll('.menu-item').forEach(item => {
 // Закрытие по ESC
 document.addEventListener('keydown', (e) => {
     if(e.key === 'Escape'){
+        closeMobileMenu();
         closeEditModal();
         closeEditYoutubeModal();
         closeAddYoutubeModal();
