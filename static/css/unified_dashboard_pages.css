@@ -1,5 +1,20 @@
 /* Unified look for standalone dashboard pages */
 
+:root {
+    --home-bg: #fbf1fa;
+    --home-bg-soft: #fff8fe;
+    --home-panel: rgba(255, 255, 255, 0.84);
+    --home-panel-strong: rgba(255, 255, 255, 0.92);
+    --home-border: rgba(180, 115, 190, 0.18);
+    --home-text: #241a33;
+    --home-muted: #6f6285;
+    --home-primary: #8b5cf6;
+    --home-primary-strong: #7c3aed;
+    --home-accent: #ec4899;
+    --home-shadow: 0 18px 48px rgba(133, 86, 166, 0.12);
+    --home-shadow-soft: 0 10px 24px rgba(133, 86, 166, 0.08);
+}
+
 html, body {
     min-height: 100%;
 }
@@ -9,7 +24,7 @@ body {
     background:
         radial-gradient(circle at 12% 12%, rgba(255,255,255,0.62), transparent 28%),
         linear-gradient(168deg, #f8eefa 0%, #f0deef 48%, #e5cfe9 100%) !important;
-    color: var(--text) !important;
+    color: var(--home-text) !important;
 }
 
 body::before {
@@ -31,80 +46,210 @@ body::before {
 }
 
 .sidebar {
-    background: rgba(255, 255, 255, 0.82) !important;
-    border-right: 1px solid var(--border) !important;
-    backdrop-filter: blur(16px) !important;
+    background: rgba(255, 255, 255, 0.78) !important;
+    border-right: 1px solid var(--home-border) !important;
+    backdrop-filter: blur(18px) !important;
+    box-shadow: 12px 0 36px rgba(133, 86, 166, 0.08) !important;
 }
 
 .main {
     position: relative;
     z-index: 1;
+    background: transparent !important;
 }
 
 .title {
-    background: linear-gradient(135deg, var(--primary), var(--primary-light)) !important;
+    background: linear-gradient(135deg, var(--home-primary), var(--home-accent)) !important;
     -webkit-background-clip: text !important;
     background-clip: text !important;
     color: transparent !important;
 }
 
 .subtitle {
-    color: var(--text-light) !important;
+    color: var(--home-muted) !important;
 }
 
-.nav-btn,
-.menu-item {
-    border: 1px solid transparent;
+.nav-btn {
+    border: 1px solid transparent !important;
+    border-radius: 18px !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em !important;
 }
 
 .nav-btn-secondary {
     background: rgba(255, 255, 255, 0.82) !important;
-    border-color: var(--border) !important;
-    color: var(--text) !important;
+    border-color: var(--home-border) !important;
+    color: var(--home-text) !important;
+    box-shadow: none !important;
 }
 
 .nav-btn-primary,
 .menu-item.active,
 .nav-btn.active {
-    background: linear-gradient(135deg, var(--primary), var(--primary-light)) !important;
-    box-shadow: 0 10px 22px rgba(99, 102, 241, 0.35) !important;
+    background: linear-gradient(135deg, var(--home-primary), var(--home-accent)) !important;
+    box-shadow: 0 12px 24px rgba(236, 72, 153, 0.18) !important;
     color: #fff !important;
 }
 
 .menu-item {
-    color: var(--text-light) !important;
-    background: transparent !important;
+    color: var(--home-muted) !important;
+    background: rgba(255, 255, 255, 0.42) !important;
+    border: 1px solid rgba(180, 115, 190, 0.12) !important;
+    border-radius: 16px !important;
+    font-weight: 700 !important;
 }
 
 .menu-item:hover {
     background: rgba(139, 92, 246, 0.12) !important;
-    color: var(--text) !important;
+    color: var(--home-text) !important;
 }
 
 .welcome-card,
 .platform-card,
 .stat-card,
 .post-card,
+.action-card,
+.add-block,
+.empty-state,
+.modal-content,
+.platform-content,
 .settings-card,
 .content-card {
-    background: rgba(255, 255, 255, 0.84) !important;
-    border: 1px solid var(--border) !important;
-    box-shadow: var(--shadow-md) !important;
+    background: var(--home-panel) !important;
+    border: 1px solid var(--home-border) !important;
+    box-shadow: var(--home-shadow) !important;
+    backdrop-filter: blur(18px) !important;
+    color: var(--home-text) !important;
 }
 
 .platform-card:hover,
 .post-card:hover,
-.stat-card:hover {
+.stat-card:hover,
+.action-card:hover {
     border-color: rgba(167, 139, 250, 0.5) !important;
+}
+
+.welcome-sub,
+.platform-sub,
+.stat-label,
+.action-desc,
+.empty-state,
+.channel-meta,
+.post-time,
+.post-text,
+.faq-item p {
+    color: var(--home-muted) !important;
+}
+
+.action-title,
+.platform-name,
+.channel-name,
+.modal-title,
+.welcome-name {
+    color: var(--home-text) !important;
+}
+
+.icon,
+.action-icon {
+    background: linear-gradient(135deg, var(--home-primary), var(--home-accent)) !important;
+    color: #fff !important;
+    box-shadow: 0 10px 20px rgba(236, 72, 153, 0.14) !important;
+}
+
+.action-card {
+    text-decoration: none !important;
+}
+
+.post-text,
+.post-time,
+.button-preview,
+.channel-tag,
+.page-btn,
+.search-input,
+.filter-select {
+    background: rgba(255, 255, 255, 0.72) !important;
+    border: 1px solid var(--home-border) !important;
+    color: var(--home-text) !important;
+}
+
+.button-preview,
+.channel-tag {
+    box-shadow: var(--home-shadow-soft) !important;
+}
+
+.regular-badge {
+    background: rgba(139, 92, 246, 0.14) !important;
+    color: var(--home-primary-strong) !important;
+}
+
+.status-pending {
+    background: rgba(245, 158, 11, 0.14) !important;
+    color: #d97706 !important;
+}
+
+.status-processing {
+    background: rgba(59, 130, 246, 0.14) !important;
+    color: #2563eb !important;
+}
+
+.status-success {
+    background: rgba(16, 185, 129, 0.14) !important;
+    color: #059669 !important;
+}
+
+.status-failed,
+.status-error {
+    background: rgba(239, 68, 68, 0.14) !important;
+    color: #dc2626 !important;
+}
+
+.btn,
+.btn-primary,
+.btn-create,
+.modal-actions .btn-primary,
+a.btn-primary {
+    background: linear-gradient(135deg, var(--home-primary), var(--home-accent)) !important;
+    color: #fff !important;
+    border: 1px solid transparent !important;
+    box-shadow: 0 12px 24px rgba(236, 72, 153, 0.18) !important;
+}
+
+.btn-secondary,
+.btn-outline,
+.modal-actions .btn-secondary,
+a.btn-secondary {
+    background: rgba(255, 255, 255, 0.82) !important;
+    color: var(--home-text) !important;
+    border: 1px solid var(--home-border) !important;
+    box-shadow: none !important;
+}
+
+.btn-edit {
+    background: rgba(245, 158, 11, 0.16) !important;
+    color: #d97706 !important;
+}
+
+.btn-delete,
+.btn-danger {
+    background: rgba(239, 68, 68, 0.16) !important;
+    color: #dc2626 !important;
+    border: 1px solid rgba(239, 68, 68, 0.18) !important;
+    box-shadow: none !important;
+}
+
+.btn-edit:hover,
+.btn-delete:hover,
+.btn-danger:hover {
+    transform: translateY(-1px) !important;
 }
 
 input,
 textarea,
 select,
 .input {
-    background: var(--input-bg) !important;
-    border: 1px solid var(--border) !important;
-    color: var(--text) !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid var(--home-border) !important;
+    color: var(--home-text) !important;
 }
 
 input:focus,
@@ -112,7 +257,7 @@ textarea:focus,
 select:focus,
 .input:focus {
     outline: none;
-    border-color: var(--primary) !important;
+    border-color: var(--home-primary) !important;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.16) !important;
 }
 
@@ -122,17 +267,54 @@ select:focus,
 }
 
 .modal-content {
-    background: var(--bg-elevated) !important;
-    border: 1px solid var(--border) !important;
+    background: var(--home-panel-strong) !important;
+    border: 1px solid var(--home-border) !important;
     border-radius: 20px !important;
-    box-shadow: var(--shadow-lg) !important;
+    box-shadow: var(--home-shadow) !important;
 }
 
 .mobile-topbar {
     background: rgba(255, 255, 255, 0.9) !important;
-    border-bottom: 1px solid var(--border) !important;
+    border-bottom: 1px solid var(--home-border) !important;
     backdrop-filter: blur(12px) !important;
-    color: var(--text) !important;
+    color: var(--home-text) !important;
+}
+
+.mobile-brand,
+.menu-toggle {
+    color: var(--home-text) !important;
+}
+
+.menu-toggle {
+    background: rgba(255, 255, 255, 0.78) !important;
+    border-color: var(--home-border) !important;
+}
+
+.posts-table th,
+.posts-table td {
+    border-bottom: 1px solid rgba(180, 115, 190, 0.14) !important;
+    color: var(--home-text) !important;
+}
+
+.posts-table th,
+.error-detail {
+    color: var(--home-muted) !important;
+}
+
+.posts-table tr:hover {
+    background: rgba(139, 92, 246, 0.06) !important;
+}
+
+.alert-success {
+    background: rgba(16, 185, 129, 0.12) !important;
+    border-left-color: #10b981 !important;
+    color: #059669 !important;
+}
+
+.alert-error {
+    background: rgba(239, 68, 68, 0.12) !important;
+    border-left-color: #ef4444 !important;
+    color: #dc2626 !important;
 }
 
 .menu-backdrop {
