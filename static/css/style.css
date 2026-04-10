@@ -1,61 +1,61 @@
 /* Unified Dashboard Theme */
 
 :root {
-    --bg: #070b16;
-    --bg-elevated: #111a2d;
-    --card-bg: rgba(20, 24, 40, 0.82);
-    --border: rgba(255, 255, 255, 0.1);
-    --text: #f8fafc;
-    --text-light: #cbd5e1;
-    --primary: #6366f1;
-    --primary-hover: #4f46e5;
-    --primary-light: #a78bfa;
+    --bg: #fbf1fa;
+    --bg-elevated: #fff8fe;
+    --card-bg: rgba(255, 255, 255, 0.84);
+    --border: rgba(180, 115, 190, 0.18);
+    --text: #241a33;
+    --text-light: #6f6285;
+    --primary: #8b5cf6;
+    --primary-hover: #7c3aed;
+    --primary-light: #ec4899;
     --success: #10b981;
     --danger: #ef4444;
     --warning: #f59e0b;
     --info: #38bdf8;
-    --input-bg: rgba(10, 14, 28, 0.72);
-    --badge-bg: rgba(255, 255, 255, 0.08);
-    --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.15);
-    --shadow-md: 0 10px 28px rgba(0, 0, 0, 0.28);
-    --shadow-lg: 0 16px 40px rgba(5, 8, 16, 0.45);
+    --input-bg: rgba(255, 255, 255, 0.86);
+    --badge-bg: rgba(139, 92, 246, 0.08);
+    --shadow-sm: 0 2px 6px rgba(133, 86, 166, 0.08);
+    --shadow-md: 0 10px 28px rgba(133, 86, 166, 0.14);
+    --shadow-lg: 0 16px 40px rgba(133, 86, 166, 0.18);
     --radius: 24px;
     --radius-sm: 16px;
 
     /* Backward-compatible aliases used in templates */
     --bg-card: var(--card-bg);
-    --bg-darker: rgba(5, 8, 16, 0.72);
+    --bg-darker: rgba(255, 255, 255, 0.7);
     --card-border: var(--border);
     --input-border: var(--border);
     --text-primary: var(--text);
     --text-secondary: var(--text-light);
-    --text-muted: #94a3b8;
-    --stat-bg: rgba(255, 255, 255, 0.04);
+    --text-muted: #7f7493;
+    --stat-bg: rgba(139, 92, 246, 0.08);
 }
 
 body.light {
-    --bg: #f8fafc;
+    --bg: #fff7fc;
     --bg-elevated: #ffffff;
-    --card-bg: rgba(255, 255, 255, 0.94);
-    --border: #dbe3ef;
-    --text: #0f172a;
-    --text-light: #475569;
-    --primary: #4f46e5;
-    --primary-hover: #4338ca;
-    --primary-light: #7c3aed;
+    --card-bg: rgba(255, 255, 255, 0.92);
+    --border: rgba(180, 115, 190, 0.2);
+    --text: #241a33;
+    --text-light: #6f6285;
+    --primary: #8b5cf6;
+    --primary-hover: #7c3aed;
+    --primary-light: #ec4899;
     --input-bg: #ffffff;
-    --badge-bg: #f1f5f9;
-    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.08);
-    --shadow-md: 0 6px 16px rgba(15, 23, 42, 0.1);
-    --shadow-lg: 0 16px 28px rgba(15, 23, 42, 0.16);
+    --badge-bg: rgba(139, 92, 246, 0.08);
+    --shadow-sm: 0 1px 2px rgba(133, 86, 166, 0.08);
+    --shadow-md: 0 6px 16px rgba(133, 86, 166, 0.12);
+    --shadow-lg: 0 16px 28px rgba(133, 86, 166, 0.16);
     --bg-card: var(--card-bg);
-    --bg-darker: rgba(226, 232, 240, 0.7);
+    --bg-darker: rgba(255, 255, 255, 0.7);
     --card-border: var(--border);
     --input-border: var(--border);
     --text-primary: var(--text);
     --text-secondary: var(--text-light);
-    --text-muted: #64748b;
-    --stat-bg: rgba(79, 70, 229, 0.08);
+    --text-muted: #7f7493;
+    --stat-bg: rgba(139, 92, 246, 0.08);
 }
 
 * {
@@ -71,13 +71,17 @@ body {
 
 body {
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: radial-gradient(circle at 20% 24%, #1a1a2e, #070b16 65%);
+    background:
+        radial-gradient(circle at 12% 12%, rgba(255,255,255,0.62), transparent 28%),
+        linear-gradient(168deg, #f8eefa 0%, #f0deef 48%, #e5cfe9 100%);
     color: var(--text);
     transition: background 0.3s ease, color 0.3s ease;
 }
 
 body.light {
-    background: radial-gradient(circle at 20% 24%, #eff6ff, #f8fafc 65%);
+    background:
+        radial-gradient(circle at 12% 12%, rgba(255,255,255,0.62), transparent 28%),
+        linear-gradient(168deg, #f8eefa 0%, #f0deef 48%, #e5cfe9 100%);
 }
 
 body::before {
@@ -85,8 +89,8 @@ body::before {
     position: fixed;
     inset: -35%;
     background:
-        radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.22), transparent 45%),
-        radial-gradient(circle at 78% 72%, rgba(236, 72, 153, 0.18), transparent 42%);
+        radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.18), transparent 45%),
+        radial-gradient(circle at 78% 72%, rgba(236, 72, 153, 0.14), transparent 42%);
     animation: rotateBackground 56s linear infinite;
     pointer-events: none;
     z-index: 0;
@@ -157,16 +161,16 @@ body::before {
 
 .btn-secondary {
     color: var(--text);
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.8);
     border: 1px solid var(--border);
 }
 
 body.light .btn-secondary {
-    background: #fff;
+    background: rgba(255, 255, 255, 0.84);
 }
 
 .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.94);
 }
 
 .btn-success {
@@ -262,7 +266,7 @@ h3 {
 .tab-btn {
     border: 1px solid var(--border);
     color: var(--text-light);
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.62);
     border-radius: 999px;
     padding: 8px 18px;
     font-size: 13px;
@@ -272,7 +276,7 @@ h3 {
 
 .tab-btn:hover {
     color: var(--text);
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.82);
 }
 
 .tab-btn.active {
