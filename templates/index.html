@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Автопостер Telegram Poster — Telegram, YouTube, Max, VK</title>
-    <meta name="description" content="Автопостер для Telegram, YouTube, Max и VK: отложенные и регулярные посты, медиа, кнопки, очередь, аналитика. Тарифы: 299 ₽ на 7 дней и 999 ₽ в месяц.">
-    <meta name="keywords" content="автопостер, автопостер телеграм, автопостер ютуб, автопостер мах, автопостинг telegram, отложенные посты, регулярные посты">
+    <title>Автопостер Telegram Poster — Telegram, YouTube, Max и VK</title>
+    <meta name="description" content="Автопостер для Telegram, YouTube, Max и VK: отложенные и регулярные посты, медиа, кнопки, очередь отправки и статистика. Тарифы: 299 ₽ на 7 дней и 999 ₽ в месяц.">
+    <meta name="keywords" content="автопостер, автопостер телеграм, автопостер ютуб, автопостер youtube, автопостер max, автопостер мах, автопостинг telegram, отложенные посты, регулярные посты">
     <meta property="og:title" content="Telegram Poster — автопостер публикаций">
-    <meta property="og:description" content="Публикация контента в Telegram, Max, VK и YouTube из одного кабинета.">
+    <meta property="og:description" content="Публикация контента в Telegram, YouTube, Max и VK из одного кабинета.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://tg.spinfacer.com/">
     <meta name="robots" content="index, follow">
@@ -16,204 +16,461 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #070b16;
-            --panel: rgba(20, 24, 40, 0.85);
-            --panel-soft: rgba(20, 24, 40, 0.62);
-            --border: rgba(255,255,255,0.12);
-            --text: #f8fafc;
-            --muted: #cbd5e1;
-            --primary: #6366f1;
+            --bg: #f7eef8;
+            --bg-soft: #fff7fd;
+            --panel: rgba(255, 255, 255, 0.82);
+            --panel-strong: rgba(255, 255, 255, 0.92);
+            --border: rgba(153, 119, 173, 0.18);
+            --text: #241b34;
+            --muted: #6f6283;
+            --primary: #8b5cf6;
+            --primary-strong: #7c3aed;
             --accent: #ec4899;
-            --accent-2: #a78bfa;
+            --accent-soft: #f472b6;
             --success: #10b981;
+            --shadow: 0 18px 48px rgba(112, 74, 145, 0.12);
+            --shadow-soft: 0 10px 24px rgba(112, 74, 145, 0.08);
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             font-family: "Inter", sans-serif;
             color: var(--text);
-            background: radial-gradient(circle at 14% 20%, #1a1a2e, #070b16 62%);
+            background:
+                radial-gradient(circle at 10% 15%, rgba(244, 114, 182, 0.18), transparent 28%),
+                radial-gradient(circle at 85% 12%, rgba(139, 92, 246, 0.18), transparent 30%),
+                linear-gradient(180deg, #fff8fe 0%, #f7eef8 52%, #f3ebfb 100%);
             min-height: 100vh;
         }
-        body::before {
-            content: "";
-            position: fixed;
-            inset: -30%;
-            background:
-                radial-gradient(circle at 18% 28%, rgba(99, 102, 241, 0.24), transparent 46%),
-                radial-gradient(circle at 80% 74%, rgba(236, 72, 153, 0.18), transparent 42%);
-            pointer-events: none;
-            animation: spin 56s linear infinite;
-            z-index: -1;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .wrap { max-width: 1160px; margin: 0 auto; padding: 14px 16px 42px; }
+        .page {
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 18px 0 48px;
+        }
 
         .topbar {
-            position: sticky; top: 10px; z-index: 20;
+            position: sticky;
+            top: 12px;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 14px 18px;
             background: var(--panel);
             border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 12px 14px;
-            display: flex; align-items: center; justify-content: space-between; gap: 12px;
-            backdrop-filter: blur(14px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.32);
+            border-radius: 22px;
+            backdrop-filter: blur(18px);
+            box-shadow: var(--shadow-soft);
         }
-        .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            font-size: 16px;
+            letter-spacing: -0.02em;
+        }
+
         .logo {
-            width: 34px; height: 34px; border-radius: 11px;
-            display: inline-flex; align-items: center; justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #fff;
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.24);
         }
-        .nav { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
         .btn {
-            display: inline-flex; align-items: center; justify-content: center;
-            text-decoration: none; border-radius: 999px;
-            padding: 10px 16px; font-size: 14px; font-weight: 700;
-            border: 1px solid transparent; white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            border-radius: 999px;
+            padding: 11px 18px;
+            font-size: 14px;
+            font-weight: 700;
+            border: 1px solid transparent;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
         }
-        .btn-primary { color: #fff; background: linear-gradient(135deg, var(--primary), var(--accent-2)); }
-        .btn-secondary { color: var(--text); background: rgba(255,255,255,0.08); border-color: var(--border); }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            color: #fff;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            box-shadow: 0 12px 24px rgba(236, 72, 153, 0.18);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 16px 30px rgba(236, 72, 153, 0.24);
+        }
+
+        .btn-secondary {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.78);
+            border-color: var(--border);
+        }
 
         .hero {
-            margin-top: 16px;
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 16px;
+            align-items: stretch;
+        }
+
+        .hero-main,
+        .hero-side,
+        .section,
+        .final-cta {
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 28px;
-            padding: 28px;
-            display: grid;
-            grid-template-columns: 1.1fr 0.9fr;
-            gap: 16px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(18px);
         }
-        .badge {
+
+        .hero-main {
+            padding: 34px;
+        }
+
+        .hero-side {
+            padding: 24px;
+        }
+
+        .eyebrow {
             display: inline-flex;
-            padding: 7px 11px;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
             border-radius: 999px;
-            border: 1px solid rgba(167, 139, 250, 0.5);
-            background: rgba(99, 102, 241, 0.2);
+            background: rgba(139, 92, 246, 0.08);
+            color: var(--primary-strong);
             font-size: 12px;
-            font-weight: 700;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: clamp(34px, 5vw, 56px);
+            line-height: 1.02;
+            letter-spacing: -0.04em;
+            margin-bottom: 14px;
+            max-width: 780px;
+        }
+
+        .hero-text {
+            color: var(--muted);
+            font-size: 17px;
+            line-height: 1.65;
+            max-width: 720px;
+        }
+
+        .hero-actions {
+            margin-top: 22px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .hero-points {
+            margin-top: 22px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .hero-point {
+            background: var(--panel-strong);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 14px;
+            font-size: 13px;
+            color: var(--muted);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .hero-point strong {
+            display: block;
+            color: var(--text);
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .side-title {
+            font-size: 20px;
             margin-bottom: 10px;
         }
-        h1 { font-size: clamp(30px, 4.8vw, 48px); line-height: 1.07; margin-bottom: 12px; }
-        .lead { color: var(--muted); font-size: 16px; line-height: 1.6; }
-        .hero-cta { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
-        .mini {
-            margin-top: 14px;
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
-        }
-        .mini > div {
-            background: var(--panel-soft);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 10px;
-            text-align: center;
-            font-size: 12px;
+
+        .side-text {
             color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 16px;
         }
-        .hero-side {
-            background: var(--panel-soft);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 16px;
-        }
-        .hero-side h3 { font-size: 18px; margin-bottom: 10px; }
-        .hero-side p { color: var(--muted); font-size: 14px; line-height: 1.55; margin-bottom: 10px; }
-        .hero-side ul { list-style: none; display: grid; gap: 8px; }
-        .hero-side li { color: var(--muted); font-size: 14px; }
 
-        .section {
-            margin-top: 14px;
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 22px;
+        .side-steps {
+            display: grid;
+            gap: 10px;
         }
-        .section h2 { font-size: 24px; margin-bottom: 10px; }
-        .section > p { color: var(--muted); line-height: 1.62; }
 
-        .grid-3 { margin-top: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .card {
-            background: var(--panel-soft);
+        .side-step {
+            background: var(--panel-strong);
             border: 1px solid var(--border);
-            border-radius: 16px;
+            border-radius: 18px;
             padding: 14px;
-        }
-        .card h3 { font-size: 16px; margin-bottom: 8px; }
-        .card p { color: var(--muted); font-size: 14px; line-height: 1.5; }
-
-        .steps { margin-top: 10px; display: grid; gap: 8px; }
-        .step {
-            background: var(--panel-soft);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 12px;
             color: var(--muted);
             font-size: 14px;
             line-height: 1.5;
         }
-        .step b { color: var(--text); }
 
-        .prices { margin-top: 12px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .price {
-            background: var(--panel-soft);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 16px;
+        .side-step b {
+            color: var(--text);
         }
-        .price .name { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
-        .price .value {
-            font-size: 30px; font-weight: 800; line-height: 1;
+
+        .section {
+            margin-top: 16px;
+            padding: 26px;
+        }
+
+        .section-header {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .section-title {
+            font-size: 28px;
+            letter-spacing: -0.03em;
+        }
+
+        .section-text {
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.7;
+            max-width: 820px;
+        }
+
+        .grid-3,
+        .grid-2 {
+            display: grid;
+            gap: 14px;
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .card {
+            background: var(--panel-strong);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 18px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .card h3 {
+            font-size: 17px;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.62;
+        }
+
+        .plain-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .plain-list p {
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.62;
+        }
+
+        .plain-list b {
+            color: var(--text);
+        }
+
+        .price-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .price-card::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto auto 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+        }
+
+        .price-name {
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .price-value {
+            font-size: 34px;
+            line-height: 1;
+            font-weight: 800;
+            letter-spacing: -0.04em;
             background: linear-gradient(135deg, var(--primary), var(--accent));
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
-        .price .meta { font-size: 13px; color: var(--muted); }
 
-        .faq { margin-top: 10px; display: grid; gap: 8px; }
+        .price-meta {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .faq {
+            display: grid;
+            gap: 12px;
+        }
+
         .faq-item {
-            background: var(--panel-soft);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 12px;
-        }
-        .faq-item h4 { font-size: 14px; margin-bottom: 6px; }
-        .faq-item p { color: var(--muted); font-size: 14px; line-height: 1.5; }
-
-        .final-cta {
-            margin-top: 14px;
-            background: linear-gradient(135deg, rgba(99,102,241,0.22), rgba(236,72,153,0.16));
+            background: var(--panel-strong);
             border: 1px solid var(--border);
             border-radius: 20px;
-            padding: 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
+            padding: 16px 18px;
         }
-        .final-cta p { color: var(--muted); }
-        .foot { margin-top: 12px; text-align: center; color: #94a3b8; font-size: 13px; }
 
-        @media (max-width: 980px) {
-            .hero { grid-template-columns: 1fr; }
-            .grid-3 { grid-template-columns: 1fr 1fr; }
-            .prices { grid-template-columns: 1fr; }
+        .faq-item h4 {
+            font-size: 15px;
+            margin-bottom: 6px;
         }
-        @media (max-width: 700px) {
-            .topbar { flex-direction: column; align-items: stretch; }
-            .brand { justify-content: center; }
-            .nav .btn, .hero-cta .btn { width: 100%; }
-            .mini { grid-template-columns: 1fr; }
-            .grid-3 { grid-template-columns: 1fr; }
-            .hero, .section { padding: 18px; }
+
+        .faq-item p {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.58;
+        }
+
+        .final-cta {
+            margin-top: 16px;
+            padding: 22px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            flex-wrap: wrap;
+            background:
+                linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(244, 114, 182, 0.1)),
+                var(--panel);
+        }
+
+        .final-cta h3 {
+            font-size: 24px;
+            margin-bottom: 6px;
+        }
+
+        .final-cta p {
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .footer {
+            margin-top: 14px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+            padding-bottom: 10px;
+        }
+
+        @media (max-width: 1020px) {
+            .hero {
+                grid-template-columns: 1fr;
+            }
+
+            .grid-3 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .page {
+                width: min(100% - 24px, 1160px);
+            }
+
+            .topbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .brand {
+                justify-content: center;
+            }
+
+            .nav {
+                width: 100%;
+            }
+
+            .nav .btn,
+            .hero-actions .btn {
+                width: 100%;
+            }
+
+            .hero-main,
+            .hero-side,
+            .section {
+                padding: 20px;
+            }
+
+            .hero-points,
+            .grid-3,
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 34px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="wrap">
+    <div class="page">
         <header class="topbar">
             <div class="brand">
                 <span class="logo">🤖</span>
@@ -226,123 +483,182 @@
         </header>
 
         <section class="hero">
-            <div>
-                <span class="badge">Автопостер Telegram / YouTube / Max / VK</span>
-                <h1>Сервис автопостинга, который публикует контент за вас</h1>
-                <p class="lead">
-                    Это автопостер для тех, кто устал публиковать вручную. Пишете пост один раз — сервис сам отправляет его
-                    в нужные каналы, по расписанию и без потери времени.
+            <div class="hero-main">
+                <span class="eyebrow">Автопостер Telegram / YouTube / Max / VK</span>
+                <h1>Автоматизируйте публикации без хаоса и ручной рутины</h1>
+                <p class="hero-text">
+                    Telegram Poster — это минималистичный автопостер для тех, кому нужен понятный кабинет,
+                    отложенные и регулярные посты, публикация медиа, кнопки, очередь отправки и статистика.
+                    Вы создаёте пост один раз, а сервис публикует его сам в нужные каналы.
                 </p>
-                <div class="hero-cta">
-                    <a class="btn btn-primary" href="/login">Начать работу</a>
-                    <a class="btn btn-secondary" href="/register">Создать аккаунт</a>
+                <div class="hero-actions">
+                    <a class="btn btn-primary" href="/register">Попробовать</a>
+                    <a class="btn btn-secondary" href="/login">У меня уже есть аккаунт</a>
                 </div>
-                <div class="mini">
-                    <div>Отложенные посты</div>
-                    <div>Регулярные публикации</div>
-                    <div>Очередь и ретраи</div>
+                <div class="hero-points">
+                    <div class="hero-point">
+                        <strong>Публикация по времени</strong>
+                        Отложенные посты на дату и час.
+                    </div>
+                    <div class="hero-point">
+                        <strong>Повторяющиеся посты</strong>
+                        Регулярный режим без ручных дублей.
+                    </div>
+                    <div class="hero-point">
+                        <strong>Медиа и кнопки</strong>
+                        Фото, видео и ссылки в одном посте.
+                    </div>
                 </div>
             </div>
+
             <aside class="hero-side">
-                <h3>Как для новичка</h3>
-                <p>Просто 4 шага:</p>
-                <ul>
-                    <li>1. Вводите текст поста</li>
-                    <li>2. Добавляете фото/видео и кнопку</li>
-                    <li>3. Выбираете каналы и время</li>
-                    <li>4. Нажимаете “Опубликовать”</li>
-                </ul>
+                <h2 class="side-title">Как это работает</h2>
+                <p class="side-text">
+                    Всё максимально просто, чтобы было понятно с первого захода.
+                </p>
+                <div class="side-steps">
+                    <div class="side-step"><b>1.</b> Регистрируетесь и добавляете каналы.</div>
+                    <div class="side-step"><b>2.</b> Пишете текст, прикрепляете медиа и кнопку.</div>
+                    <div class="side-step"><b>3.</b> Выбираете публикацию сейчас или по расписанию.</div>
+                    <div class="side-step"><b>4.</b> Смотрите статусы отправки и статистику.</div>
+                </div>
             </aside>
         </section>
 
         <section class="section">
-            <h2>Возможности сервиса</h2>
-            <p>Структура, которая нужна для нормальной работы SMM и контент-команд.</p>
+            <div class="section-header">
+                <h2 class="section-title">Что умеет сервис</h2>
+                <p class="section-text">
+                    Главная страница теперь собрана более структурно: сначала коротко объясняем, что это за продукт,
+                    потом показываем функции, сценарии использования и только после этого тарифы.
+                </p>
+            </div>
             <div class="grid-3">
                 <article class="card">
                     <h3>Автопостер Телеграм</h3>
-                    <p>Публикации в Telegram-каналы из одного кабинета с контролем по каждому каналу.</p>
+                    <p>Публикация постов сразу в несколько Telegram-каналов из одного кабинета.</p>
                 </article>
                 <article class="card">
                     <h3>Автопостер Ютуб</h3>
-                    <p>Автоматические уведомления о видео и контент по YouTube-направлению.</p>
+                    <p>Автоматические уведомления и работа с контентом вокруг YouTube-каналов.</p>
                 </article>
                 <article class="card">
-                    <h3>Автопостер Мах (MAX)</h3>
-                    <p>Кросс-постинг в Max параллельно с Telegram и VK.</p>
+                    <h3>Автопостер Max</h3>
+                    <p>Параллельная публикация в Max без лишнего ручного копирования.</p>
                 </article>
                 <article class="card">
-                    <h3>Медиа и кнопки</h3>
-                    <p>Поддержка изображений/видео и кнопок с ссылками для роста кликов.</p>
+                    <h3>Отложенные посты</h3>
+                    <p>Контент выходит в нужное время, даже если вы не у компьютера.</p>
                 </article>
                 <article class="card">
-                    <h3>Отложенные и регулярные посты</h3>
-                    <p>Публикация по времени и по интервалу без ручных повторов.</p>
+                    <h3>Регулярные публикации</h3>
+                    <p>Можно запускать посты по интервалу: каждый день, каждые N часов и так далее.</p>
                 </article>
                 <article class="card">
-                    <h3>Статистика и ошибки</h3>
-                    <p>Отчёты по успешным отправкам, ошибкам и активности контента.</p>
+                    <h3>Очередь и ретраи</h3>
+                    <p>Если отправка дала сбой, система умеет повторять попытки и вести учёт ошибок.</p>
                 </article>
             </div>
         </section>
 
         <section class="section">
-            <h2>Как это работает</h2>
-            <div class="steps">
-                <div class="step"><b>Шаг 1.</b> Регистрируетесь и добавляете каналы.</div>
-                <div class="step"><b>Шаг 2.</b> Создаёте пост, прикрепляете медиа и кнопку.</div>
-                <div class="step"><b>Шаг 3.</b> Выбираете: отправить сейчас или по расписанию.</div>
-                <div class="step"><b>Шаг 4.</b> Смотрите статус отправки и статистику в кабинете.</div>
+            <div class="section-header">
+                <h2 class="section-title">Кому подходит Telegram Poster</h2>
+                <p class="section-text">
+                    Страница должна говорить не только о функциях, но и о том, кому этот продукт реально полезен.
+                </p>
             </div>
-        </section>
-
-        <section class="section">
-            <h2>Тарифы</h2>
-            <p>Цены после знакомства с сервисом, как просили.</p>
-            <div class="prices">
-                <div class="price">
-                    <div class="name">Пробный доступ</div>
-                    <div class="value">299 ₽</div>
-                    <div class="meta">на 7 дней</div>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Бизнесу и владельцам проектов</h3>
+                    <p>Чтобы публиковать новости, акции и обновления без ручной рутины каждый день.</p>
                 </div>
-                <div class="price">
-                    <div class="name">Месячная подписка</div>
-                    <div class="value">999 ₽</div>
-                    <div class="meta">на 30 дней</div>
+                <div class="card">
+                    <h3>Блогерам и авторам</h3>
+                    <p>Чтобы заранее подготовить контент и выпускать его стабильно по расписанию.</p>
+                </div>
+                <div class="card">
+                    <h3>SMM-специалистам</h3>
+                    <p>Чтобы вести несколько площадок сразу и видеть, что реально ушло, а что упало с ошибкой.</p>
+                </div>
+                <div class="card">
+                    <h3>Небольшим командам</h3>
+                    <p>Чтобы работать в одном понятном кабинете и не терять время на ручные действия.</p>
                 </div>
             </div>
         </section>
 
         <section class="section">
-            <h2>FAQ</h2>
+            <div class="section-header">
+                <h2 class="section-title">Преимущества сервиса</h2>
+                <p class="section-text">
+                    Здесь более спокойная и понятная подача без каши: не всё сразу, а блоками.
+                </p>
+            </div>
+            <div class="plain-list">
+                <p><b>Простая работа:</b> вошли, создали пост, выбрали каналы, запланировали или отправили.</p>
+                <p><b>Минималистичный интерфейс:</b> ничего лишнего, акцент на действиях и статусах.</p>
+                <p><b>Экономия времени:</b> один пост можно подготовить и отправить сразу в несколько направлений.</p>
+                <p><b>Контроль результата:</b> есть очередь, статистика, ошибки и понимание, что произошло с публикацией.</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">Тарифы</h2>
+                <p class="section-text">
+                    Тарифы идут после полного рассказа о сервисе, как ты и просил.
+                </p>
+            </div>
+            <div class="grid-2">
+                <div class="card price-card">
+                    <div class="price-name">Тестовый доступ</div>
+                    <div class="price-value">299 ₽</div>
+                    <div class="price-meta">7 дней, чтобы спокойно посмотреть, как работает автопостер.</div>
+                </div>
+                <div class="card price-card">
+                    <div class="price-name">Основной тариф</div>
+                    <div class="price-value">999 ₽</div>
+                    <div class="price-meta">1 месяц полного доступа к публикациям, расписанию и статистике.</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">FAQ</h2>
+                <p class="section-text">
+                    Короткие ответы на самые частые вопросы.
+                </p>
+            </div>
             <div class="faq">
                 <div class="faq-item">
                     <h4>Это подходит новичкам?</h4>
-                    <p>Да. Интерфейс сделан так, чтобы можно было начать без сложной настройки.</p>
+                    <p>Да. Интерфейс упрощён, чтобы даже без опыта можно было быстро понять логику работы.</p>
                 </div>
                 <div class="faq-item">
-                    <h4>Можно ли вести несколько каналов сразу?</h4>
-                    <p>Да, сервис рассчитан на мультиканальную публикацию.</p>
+                    <h4>Можно вести сразу несколько каналов?</h4>
+                    <p>Да, сервис рассчитан именно на мультиканальную публикацию из одного кабинета.</p>
                 </div>
                 <div class="faq-item">
-                    <h4>Если отправка не удалась?</h4>
-                    <p>Есть очередь и повторные попытки, плюс логирование ошибок в статистике.</p>
+                    <h4>Что если отправка не удалась?</h4>
+                    <p>Есть очередь, повторные попытки и журнал ошибок, чтобы вы видели реальную картину.</p>
                 </div>
             </div>
         </section>
 
         <section class="final-cta">
             <div>
-                <h3>Готовы автоматизировать публикации?</h3>
-                <p>Вход и регистрация доступны сразу на сайте.</p>
+                <h3>Готовы попробовать сервис в работе?</h3>
+                <p>Регистрация и вход доступны сразу, а тестовый тариф помогает быстро оценить продукт.</p>
             </div>
-            <div class="nav">
+            <nav class="nav">
                 <a class="btn btn-secondary" href="/login">Войти</a>
                 <a class="btn btn-primary" href="/register">Зарегистрироваться</a>
-            </div>
+            </nav>
         </section>
 
-        <p class="foot">© Telegram Poster — автопостер для Telegram, YouTube, Max и VK</p>
+        <p class="footer">© Telegram Poster — автопостер для Telegram, YouTube, Max и VK</p>
     </div>
 </body>
 </html>
