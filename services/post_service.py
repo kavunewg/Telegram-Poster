@@ -10,6 +10,8 @@ import os
 
 import aiohttp
 
+from typing import Dict, Any, Optional, List
+from datetime import datetime
 from repositories.bot_repo import bot_repo
 from repositories.channel_repo import channel_repo
 from repositories.post_stats_repo import post_stats_repo
@@ -144,77 +146,257 @@ async def send_to_telegram(channel_session: dict, session_id: str) -> dict:
         return {"success": False, "error": error_msg}
 
 
+
 async def send_to_max(channel_session: dict, session_id: str) -> dict:
-    log = setup_logger(__name__)
-    await asyncio.sleep(0.1)
-    caption = channel_session.get("post_text", "")
-    media_type = channel_session.get("media_type", "text")
-
-    post_stats_repo.add_stat(
-        channel_session.get("user_id"),
-        channel_session.get("channel_db_id"),
-        "max",
-        caption,
-        media_type,
-        "success",
-    )
-
-    log.info("MAX send is still mocked")
-    return {"success": True, "message": "MAX post sent (mock)"}
-
-
-async def send_to_vk(channel_session: dict, session_id: str) -> dict:
-    log = setup_logger(__name__)
-
+    """
+    Отправка сообщения в MAX с поддержкой:
+    - текста
+    - фото (image)
+    - видео (video)
+    - кнопки (inline_keyboard)
+    """
+    log = logging.getLogger(__name__)
+    
+    # Нормализация ключей
+    if 'text' in channel_session and 'post_text' not in channel_session:
+        channel_session['post_text'] = channel_session['text']
+        log.info("🔧 Перенесён ключ 'text' в 'post_text'")
+    
+    # 1. Получение токена бота
     bot_token = channel_session.get("bot_token")
+    
     if not bot_token and channel_session.get("user_id"):
-        for bot in bot_repo.get_user_bots(channel_session["user_id"]):
-            if bot.get("platform") == "vk":
-                bot_token = bot.get("token")
-                break
-
-    group_id = channel_session.get("channel_id")
-    post_text = channel_session.get("post_text", "")
+        user_bots = bot_repo.get_user_bots(channel_session["user_id"])
+        max_bot = next((bot for bot in user_bots if bot.get("platform") == "max"), None)
+        if max_bot:
+            bot_token = max_bot.get("token")
+    
     if not bot_token:
-        return {"success": False, "error": "VK token not found"}
-    if not group_id:
-        return {"success": False, "error": "VK group ID not found"}
-    if not post_text:
+        return {"success": False, "error": "Bot token not found"}
+
+    # 2. Получение ID чата
+    channel_id = channel_session.get("channel_id")
+    if not channel_id:
+        return {"success": False, "error": "Channel ID not found"}
+
+    # 3. Получение текста
+    caption = channel_session.get("post_text", "")
+    if not caption:
         return {"success": False, "error": "Post text is empty"}
 
+    # ========== 4. ОБРАБОТКА МЕДИА ==========
+    media_path = channel_session.get("media_path")
+    media_attachment = None
+    
+    if media_path and os.path.exists(media_path):
+        ext = os.path.splitext(media_path)[1].lower()
+        
+        # 4.1 ВИДЕО
+        if ext in ['.mp4', '.mov', '.mkv', '.webm']:
+            log.info(f"📤 Загрузка видео: {media_path}")
+            
+            try:
+                async with aiohttp.ClientSession() as session:
+                    # Шаг 1: Получаем URL и токен для видео
+                    upload_url_req = "https://platform-api.max.ru/uploads?type=video"
+                    headers = {"Authorization": bot_token}
+                    
+                    async with session.post(upload_url_req, headers=headers) as resp:
+                        if resp.status != 200:
+                            error_text = await resp.text()
+                            raise Exception(f"Failed to get upload URL: {error_text}")
+                        
+                        upload_data = await resp.json()
+                        upload_url = upload_data.get("url")
+                        video_token = upload_data.get("token")
+                        
+                        if not upload_url or not video_token:
+                            raise Exception(f"Missing url or token: {upload_data}")
+                        
+                        log.info(f"📥 Получен токен для видео")
+                    
+                    # Шаг 2: Загружаем видео
+                    with open(media_path, 'rb') as f:
+                        form_data = aiohttp.FormData()
+                        form_data.add_field('data', f, filename=os.path.basename(media_path))
+                        
+                        async with session.post(upload_url, headers=headers, data=form_data) as upload_resp:
+                            if upload_resp.status != 200:
+                                error_text = await upload_resp.text()
+                                raise Exception(f"Failed to upload video: {error_text}")
+                            
+                            log.info(f"📥 Видео загружено")
+                    
+                    # Шаг 3: Формируем attachment
+                    media_attachment = {
+                        "type": "video",
+                        "payload": {"token": video_token}
+                    }
+                    log.info("✅ Видео готово к отправке")
+                    await asyncio.sleep(1)
+                    
+            except Exception as e:
+                log.error(f"❌ Ошибка при загрузке видео: {e}")
+                media_attachment = None
+        
+        # 4.2 ИЗОБРАЖЕНИЕ
+        elif ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']:
+            log.info(f"📤 Загрузка изображения: {media_path}")
+            
+            try:
+                async with aiohttp.ClientSession() as session:
+                    # Шаг 1: Получаем URL для загрузки изображения
+                    upload_url_req = "https://platform-api.max.ru/uploads?type=image"
+                    headers = {"Authorization": bot_token}
+                    
+                    async with session.post(upload_url_req, headers=headers) as resp:
+                        if resp.status != 200:
+                            error_text = await resp.text()
+                            raise Exception(f"Failed to get upload URL: {error_text}")
+                        
+                        upload_data = await resp.json()
+                        upload_url = upload_data.get("url")
+                        
+                        if not upload_url:
+                            raise Exception(f"No upload URL: {upload_data}")
+                        
+                        log.info(f"📥 Получен URL для изображения")
+                    
+                    # Шаг 2: Загружаем изображение
+                    with open(media_path, 'rb') as f:
+                        form_data = aiohttp.FormData()
+                        form_data.add_field('data', f, filename=os.path.basename(media_path))
+                        
+                        async with session.post(upload_url, headers=headers, data=form_data) as upload_resp:
+                            if upload_resp.status != 200:
+                                error_text = await upload_resp.text()
+                                raise Exception(f"Failed to upload image: {error_text}")
+                            
+                            upload_result = await upload_resp.json()
+                            log.info(f"📥 Изображение загружено")
+                    
+                    # Шаг 3: Формируем attachment
+                    media_attachment = {
+                        "type": "image",
+                        "payload": upload_result
+                    }
+                    log.info("✅ Изображение готово к отправке")
+                    await asyncio.sleep(0.5)
+                    
+            except Exception as e:
+                log.error(f"❌ Ошибка при загрузке изображения: {e}")
+                media_attachment = None
+        
+        else:
+            log.warning(f"⚠️ Неподдерживаемый тип файла: {ext}")
+
+       # ========== 5. ФОРМИРОВАНИЕ КНОПКИ (ИСПРАВЛЕННЫЙ ФОРМАТ) ==========
+    button_attachment = None
     button = channel_session.get("button")
     if button and button.get("text") and button.get("url"):
-        post_text += f"\n\n{button['text']}: {button['url']}"
+        # ВАЖНО: MAX Bot API НЕ поддерживает цвет кнопки в сообщениях бота.
+        # Убираем поле "color", оставляем только обязательные "type", "text", "url".
+        button_attachment = {
+            "type": "inline_keyboard",
+            "payload": {
+                "buttons": [
+                    [
+                        {
+                            "type": "link",
+                            "text": button["text"],
+                            "url": button["url"]
+                        }
+                    ]
+                ]
+            }
+        }
+        
+        log.info(f"🔘 Добавлена кнопка: {button['text']}")
 
+    # ========== 6. ОТПРАВКА СООБЩЕНИЯ ==========
+    url = f"https://platform-api.max.ru/messages?chat_id={channel_id}"
+    headers = {
+        "Authorization": bot_token,
+        "Content-Type": "application/json"
+    }
+    
+    # Собираем attachments
+    attachments = []
+    if media_attachment:
+        attachments.append(media_attachment)
+    if button_attachment:
+        attachments.append(button_attachment)
+    
+    payload = {"text": caption}
+    if attachments:
+        payload["attachments"] = attachments
+    
+    # Ограничение длины текста (MAX: 4000 символов)
+    if len(payload["text"]) > 4000:
+        payload["text"] = payload["text"][:3997] + "..."
+    
+    # Логируем payload для отладки
+    import json
+    log.info(f"📤 Отправка в MAX:")
+    log.info(f"   Chat ID: {channel_id}")
+    log.info(f"   Текст: {caption[:100]}...")
+    log.info(f"   Attachments: {len(attachments)}")
+    
     try:
-        from services.vk_service import VKService
-
-        vk = VKService(bot_token)
-        result = await vk.post_to_wall(owner_id=-abs(int(group_id)), message=post_text, from_group=True)
-
-        post_stats_repo.add_stat(
-            channel_session.get("user_id"),
-            channel_session.get("channel_db_id"),
-            "vk",
-            post_text,
-            channel_session.get("media_type", "text"),
-            "success",
-        )
-
-        return {"success": True, "post_id": result.get("post_id")}
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=headers, json=payload) as response:
+                response_text = await response.text()
+                log.info(f"📥 Ответ MAX API: статус {response.status}")
+                
+                if response.status == 200:
+                    # Успешная отправка
+                    post_stats_repo.add_stat(
+                        user_id=channel_session.get("user_id"),
+                        channel_db_id=channel_session.get("channel_db_id"),
+                        platform="max",
+                        post_text=caption,
+                        media_type=channel_session.get("media_type", "text"),
+                        status="success",
+                    )
+                    
+                    # Удаляем временный медиафайл
+                    if media_path and os.path.exists(media_path):
+                        try:
+                            os.remove(media_path)
+                            log.info(f"🗑️ Удалён медиафайл: {media_path}")
+                        except Exception as e:
+                            log.warning(f"Не удалось удалить файл: {e}")
+                    
+                    return {"success": True, "message": "Post sent successfully"}
+                else:
+                    error_msg = f"MAX API error {response.status}: {response_text[:200]}"
+                    raise Exception(error_msg)
+                    
     except Exception as exc:
         error_msg = str(exc)
-        log.error("VK send failed: %s", error_msg)
+        log.error(f"❌ MAX send failed: {error_msg}")
+        
         post_stats_repo.add_stat(
-            channel_session.get("user_id"),
-            channel_session.get("channel_db_id"),
-            "vk",
-            post_text,
-            channel_session.get("media_type", "text"),
-            "error",
-            error_msg,
+            user_id=channel_session.get("user_id"),
+            channel_db_id=channel_session.get("channel_db_id"),
+            platform="max",
+            post_text=caption,
+            media_type=channel_session.get("media_type", "text"),
+            status="error",
+            error=error_msg,
         )
+        
+        # Удаляем временный медиафайл даже при ошибке
+        if media_path and os.path.exists(media_path):
+            try:
+                os.remove(media_path)
+                log.info(f"🗑️ Удалён медиафайл после ошибки: {media_path}")
+            except Exception:
+                pass
+        
         return {"success": False, "error": error_msg}
+
+
 
 
 async def send_post_async(

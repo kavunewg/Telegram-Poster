@@ -40,13 +40,19 @@ async def scheduled_posts(request: Request):
     if not user:
         return RedirectResponse("/login", status_code=303)
 
-    posts = schedule_repo.get_user_scheduled_posts(user["id"])
+    # Получаем ВСЕ посты пользователя
+    all_posts = schedule_repo.get_user_scheduled_posts(user["id"])
+    
+    # Фильтруем: оставляем ТОЛЬКО посты со статусом 'pending'
+    posts = [post for post in all_posts if post.get('status') == 'pending']
+    
+    # Статистика по ВСЕМ постам (для верхних карточек)
     stats = schedule_repo.get_stats(user["id"])
 
     return templates.TemplateResponse("scheduled_posts.html", {
         "request": request,
         "user": user,
-        "scheduled_posts": posts,
+        "scheduled_posts": posts,  # ← ТОЛЬКО PENDING
         "stats": stats,
         "pending_count": stats.get("pending", 0),
         "processing_count": stats.get("processing", 0),
@@ -54,5 +60,3 @@ async def scheduled_posts(request: Request):
         "error_count": stats.get("error", 0),
         "project_name": user["project_name"]
     })
-
-
