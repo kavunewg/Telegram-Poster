@@ -115,11 +115,11 @@ app.include_router(language_router)
 
 @app.get("/")
 async def root(request: Request):
-    """Redirect authenticated users to dashboard and guests to login."""
+    """Render public index page for guests and dashboard for authenticated users."""
     user = getattr(request.state, "user", None)
     if user:
         return RedirectResponse(url="/dashboard", status_code=303)
-    return RedirectResponse(url="/login", status_code=303)
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.get("/health")
