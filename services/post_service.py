@@ -3,6 +3,7 @@ Services for sending posts to external platforms.
 """
 
 import asyncio
+import io
 import json
 import logging
 import os
@@ -42,6 +43,8 @@ async def send_to_telegram(channel_session: dict, session_id: str) -> dict:
         return {"success": False, "error": "Post text is empty"}
 
     media_path = channel_session.get("media_path")
+    media_bytes = channel_session.get("media_bytes")
+    media_filename = channel_session.get("media_filename")
     media_type = channel_session.get("media_type", "text")
     button = channel_session.get("button")
     reply_markup = None
@@ -55,7 +58,33 @@ async def send_to_telegram(channel_session: dict, session_id: str) -> dict:
 
     try:
         async with aiohttp.ClientSession() as session:
-            if media_path and os.path.exists(media_path):
+            if media_bytes:
+                ext_source = media_filename or media_path or ""
+                ext = os.path.splitext(ext_source)[1].lower()
+                if ext in [".jpg", ".jpeg", ".png", ".gif", ".webp"]:
+                    method = "sendPhoto"
+                    field_name = "photo"
+                elif ext in [".mp4", ".mov", ".avi", ".mkv", ".webm"]:
+                    method = "sendVideo"
+                    field_name = "video"
+                else:
+                    method = "sendDocument"
+                    field_name = "document"
+
+                with io.BytesIO(media_bytes) as file_obj:
+                    file_obj.name = media_filename or os.path.basename(media_path or "upload.bin")
+                    data = aiohttp.FormData()
+                    data.add_field("chat_id", str(channel_id))
+                    data.add_field("caption", caption)
+                    data.add_field("parse_mode", "HTML")
+                    if reply_markup:
+                        data.add_field("reply_markup", json.dumps(reply_markup))
+                    data.add_field(field_name, file_obj, filename=file_obj.name)
+
+                    url = f"https://api.telegram.org/bot{bot_token}/{method}"
+                    async with session.post(url, data=data) as response:
+                        result = await response.json()
+            elif media_path and os.path.exists(media_path):
                 ext = os.path.splitext(media_path)[1].lower()
                 if ext in [".jpg", ".jpeg", ".png", ".gif", ".webp"]:
                     method = "sendPhoto"
@@ -200,6 +229,19 @@ async def send_post_async(
         session_id = str(user_id_or_session_id)
         session = channel_id_or_session
         results = {"success": 0, "failed": 0}
+        media_path = session.get("media_path")
+        media_bytes = None
+        media_filename = None
+
+        # Read media once per send session to avoid race/file lifecycle issues
+        # when posting to multiple channels.
+        if media_path and os.path.exists(media_path):
+            try:
+                with open(media_path, "rb") as media_file_obj:
+                    media_bytes = media_file_obj.read()
+                media_filename = os.path.basename(media_path)
+            except Exception as exc:
+                logger.warning("Failed to preload media file %s: %s", media_path, exc)
 
         for channel in session.get("channels", []):
             channel_session = {
@@ -209,7 +251,9 @@ async def send_post_async(
                 "channel_name": channel.get("channel_name") or channel.get("name"),
                 "platform": channel.get("platform", "telegram"),
                 "post_text": session.get("post_text", ""),
-                "media_path": session.get("media_path"),
+                "media_path": media_path,
+                "media_bytes": media_bytes,
+                "media_filename": media_filename,
                 "media_name": session.get("media_name"),
                 "media_size": session.get("media_size"),
                 "media_type": session.get("media_type", "text"),

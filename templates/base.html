@@ -99,18 +99,23 @@
         // Тема
         function toggleTheme() {
             const body = document.body;
-            const isLight = body.classList.contains('dark');
+            const isLight = body.classList.contains('light');
             if (isLight) {
-                body.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-            } else {
+                body.classList.remove('light');
                 body.classList.add('dark');
                 localStorage.setItem('theme', 'dark');
+            } else {
+                body.classList.add('light');
+                body.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
             }
         }
 
         const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
+        if (savedTheme === 'light') {
+            document.body.classList.add('light');
+            document.body.classList.remove('dark');
+        } else {
             document.body.classList.add('dark');
         }
         
