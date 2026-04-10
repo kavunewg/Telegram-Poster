@@ -49,7 +49,7 @@ async def logout(request: Request):
     if session_id:
         user_repo.delete_session(session_id)
     
-    response = RedirectResponse(url="/login", status_code=303)
+    response = RedirectResponse(url="/", status_code=303)
     response.delete_cookie("session_id")
     return response
 
