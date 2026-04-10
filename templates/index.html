@@ -147,95 +147,6 @@
             padding: 34px;
         }
 
-        .hero-shell {
-            display: grid;
-            grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
-            gap: 22px;
-            align-items: stretch;
-        }
-
-        .hero-copy {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .hero-visual {
-            display: grid;
-            gap: 14px;
-        }
-
-        .hero-visual-card {
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.82));
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 20px;
-            box-shadow: var(--shadow-soft);
-        }
-
-        .hero-visual-card.primary {
-            background:
-                radial-gradient(circle at top right, rgba(244, 114, 182, 0.12), transparent 35%),
-                radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.12), transparent 30%),
-                linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.84));
-        }
-
-        .hero-visual-label {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 7px 11px;
-            margin-bottom: 12px;
-            border-radius: 999px;
-            background: rgba(139, 92, 246, 0.08);
-            color: var(--primary-strong);
-            font-size: 12px;
-            font-weight: 800;
-        }
-
-        .hero-visual-card h3 {
-            font-size: 20px;
-            margin-bottom: 10px;
-            letter-spacing: -0.02em;
-        }
-
-        .hero-visual-card p {
-            color: var(--muted);
-            font-size: 14px;
-            line-height: 1.65;
-            text-align: justify;
-            text-wrap: pretty;
-        }
-
-        .hero-mini-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
-        }
-
-        .hero-mini {
-            background: rgba(255, 255, 255, 0.82);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 16px;
-            box-shadow: var(--shadow-soft);
-        }
-
-        .hero-mini strong {
-            display: block;
-            font-size: 15px;
-            margin-bottom: 6px;
-            color: var(--text);
-        }
-
-        .hero-mini span {
-            display: block;
-            color: var(--muted);
-            font-size: 13px;
-            line-height: 1.55;
-            text-align: justify;
-        }
-
         .eyebrow {
             display: inline-flex;
             align-items: center;
@@ -500,10 +411,6 @@
         }
 
         @media (max-width: 1020px) {
-            .hero-shell {
-                grid-template-columns: 1fr;
-            }
-
             .grid-3,
             .grid-2 {
                 grid-template-columns: 1fr 1fr;
@@ -549,10 +456,6 @@
                 grid-template-columns: 1fr;
             }
 
-            .hero-mini-grid {
-                grid-template-columns: 1fr;
-            }
-
             h1 {
                 font-size: 34px;
             }
@@ -573,54 +476,21 @@
         </header>
 
         <section class="hero">
-            <div class="hero-shell">
-                <div class="hero-copy">
-                    <span class="eyebrow">Автопостер Telegram / YouTube / Max / VK</span>
-                    <h1>Автопостинг без хаоса: один кабинет для публикаций, расписания и контроля отправки</h1>
-                    <p class="hero-text">
-                        Telegram Poster — это простой и понятный автопостер для тех, кто хочет публиковать контент в несколько каналов и площадок
-                        без ручной рутины. Вы создаёте пост один раз, добавляете медиа и кнопку, выбираете каналы, а сервис публикует всё сам:
-                        сразу, по времени или регулярно по расписанию.
-                    </p>
-                    <div class="hero-actions">
-                        <a class="btn btn-primary" href="/register">Попробовать</a>
-                        <a class="btn btn-secondary" href="/login">У меня уже есть аккаунт</a>
-                    </div>
-                    <p class="hero-note">
-                        Подходит для Telegram-каналов, уведомлений по YouTube, публикаций в Max и VK. Внутри есть очередь, повторные попытки,
-                        статусы отправки и статистика по публикациям.
-                    </p>
-                </div>
-
-                <div class="hero-visual">
-                    <article class="hero-visual-card primary">
-                        <span class="hero-visual-label">Что вы получаете</span>
-                        <h3>Понятный автопостер без перегруза</h3>
-                        <p>
-                            Вместо хаотичной ручной работы по разным каналам вы получаете один чистый кабинет, где удобно создавать посты,
-                            прикреплять медиа, добавлять кнопки и запускать публикации по нужному сценарию.
-                        </p>
-                    </article>
-                    <div class="hero-mini-grid">
-                        <article class="hero-mini">
-                            <strong>Отложенные посты</strong>
-                            <span>Публикация на дату и точное время без ручного контроля.</span>
-                        </article>
-                        <article class="hero-mini">
-                            <strong>Регулярный режим</strong>
-                            <span>Повторяющиеся посты для рубрик, акций и напоминаний.</span>
-                        </article>
-                        <article class="hero-mini">
-                            <strong>Медиа и кнопки</strong>
-                            <span>Фото, видео, ссылка и CTA в одной аккуратной публикации.</span>
-                        </article>
-                        <article class="hero-mini">
-                            <strong>Статусы и ошибки</strong>
-                            <span>Видно, что ушло успешно, а что потребовало внимания.</span>
-                        </article>
-                    </div>
-                </div>
+            <span class="eyebrow">Автопостер Telegram / YouTube / Max / VK</span>
+            <h1>Автопостинг без хаоса: один кабинет для публикаций, расписания и контроля отправки</h1>
+            <p class="hero-text">
+                Telegram Poster — это простой и понятный автопостер для тех, кто хочет публиковать контент в несколько каналов и площадок
+                без ручной рутины. Вы создаёте пост один раз, добавляете медиа и кнопку, выбираете каналы, а сервис публикует всё сам:
+                сразу, по времени или регулярно по расписанию.
+            </p>
+            <div class="hero-actions">
+                <a class="btn btn-primary" href="/register">Попробовать</a>
+                <a class="btn btn-secondary" href="/login">У меня уже есть аккаунт</a>
             </div>
+            <p class="hero-note">
+                Подходит для Telegram-каналов, уведомлений по YouTube, публикаций в Max и VK. Внутри есть очередь, повторные попытки,
+                статусы отправки и статистика по публикациям.
+            </p>
         </section>
 
         <section class="section">
