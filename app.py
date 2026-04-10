@@ -122,6 +122,13 @@ async def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
+@app.get("/index")
+@app.get("/index.html")
+async def index_alias(request: Request):
+    """Alias routes for index page."""
+    return await root(request)
+
+
 @app.get("/health")
 async def health():
     """Health check endpoint."""

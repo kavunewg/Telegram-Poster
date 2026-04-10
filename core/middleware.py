@@ -45,6 +45,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
             "/login",
             "/register",
             "/logout",
+            "/index",
+            "/index.html",
             "/static",
             "/media",
             "/translations",

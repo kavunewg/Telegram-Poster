@@ -67,6 +67,11 @@
                 Нет аккаунта? <a href="/register">Зарегистрироваться</a>
                 {% endif %}
             </p>
+            <p class="back-home-row">
+                <a href="/" class="back-home-link">
+                    {% if get_lang(request) == 'en' %}← Back to Home{% else %}← На главную{% endif %}
+                </a>
+            </p>
         </div>
 
         <div class="theme-switch">
@@ -250,6 +255,14 @@
 
     .login-footer a:hover {
         text-decoration: underline;
+    }
+
+    .back-home-row {
+        margin-top: 10px;
+    }
+
+    .back-home-link {
+        font-weight: 600;
     }
 
     .theme-switch {
