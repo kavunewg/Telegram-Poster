@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Автопостер Telegram Poster — Telegram, YouTube, Max и VK</title>
     <meta name="description" content="Автопостер для Telegram, YouTube, Max и VK: отложенные и регулярные посты, медиа, кнопки, очередь отправки и статистика. Тарифы: 299 ₽ на 7 дней и 999 ₽ в месяц.">
-    <meta name="keywords" content="автопостер, автопостер телеграм, автопостер ютуб, автопостер youtube, автопостер max, автопостер мах, автопостинг telegram, отложенные посты, регулярные посты">
+    <meta name="keywords" content="автопостер, автопостер телеграм, автопостер telegram, автопостер ютуб, автопостер youtube, автопостер max, автопостер мах, автопостинг telegram, отложенные посты, регулярные посты">
     <meta property="og:title" content="Telegram Poster — автопостер публикаций">
     <meta property="og:description" content="Публикация контента в Telegram, YouTube, Max и VK из одного кабинета.">
     <meta property="og:type" content="website">
@@ -16,20 +16,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #f7eef8;
-            --bg-soft: #fff7fd;
-            --panel: rgba(255, 255, 255, 0.82);
+            --bg: #fbf1fa;
+            --bg-soft: #fff8fe;
+            --panel: rgba(255, 255, 255, 0.84);
             --panel-strong: rgba(255, 255, 255, 0.92);
-            --border: rgba(153, 119, 173, 0.18);
-            --text: #241b34;
-            --muted: #6f6283;
+            --border: rgba(180, 115, 190, 0.18);
+            --text: #241a33;
+            --muted: #6f6285;
             --primary: #8b5cf6;
             --primary-strong: #7c3aed;
             --accent: #ec4899;
             --accent-soft: #f472b6;
-            --success: #10b981;
-            --shadow: 0 18px 48px rgba(112, 74, 145, 0.12);
-            --shadow-soft: 0 10px 24px rgba(112, 74, 145, 0.08);
+            --shadow: 0 18px 48px rgba(133, 86, 166, 0.12);
+            --shadow-soft: 0 10px 24px rgba(133, 86, 166, 0.08);
         }
 
         * {
@@ -46,9 +45,9 @@
             font-family: "Inter", sans-serif;
             color: var(--text);
             background:
-                radial-gradient(circle at 10% 15%, rgba(244, 114, 182, 0.18), transparent 28%),
-                radial-gradient(circle at 85% 12%, rgba(139, 92, 246, 0.18), transparent 30%),
-                linear-gradient(180deg, #fff8fe 0%, #f7eef8 52%, #f3ebfb 100%);
+                radial-gradient(circle at 10% 10%, rgba(244, 114, 182, 0.16), transparent 26%),
+                radial-gradient(circle at 85% 12%, rgba(139, 92, 246, 0.16), transparent 28%),
+                linear-gradient(180deg, #fffafe 0%, #fbf1fa 48%, #f7ecfb 100%);
             min-height: 100vh;
         }
 
@@ -92,10 +91,11 @@
             justify-content: center;
             background: linear-gradient(135deg, var(--primary), var(--accent));
             color: #fff;
-            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.24);
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.22);
         }
 
-        .nav {
+        .nav,
+        .hero-actions {
             display: flex;
             align-items: center;
             gap: 10px;
@@ -126,26 +126,13 @@
             box-shadow: 0 12px 24px rgba(236, 72, 153, 0.18);
         }
 
-        .btn-primary:hover {
-            box-shadow: 0 16px 30px rgba(236, 72, 153, 0.24);
-        }
-
         .btn-secondary {
             color: var(--text);
-            background: rgba(255, 255, 255, 0.78);
+            background: rgba(255, 255, 255, 0.8);
             border-color: var(--border);
         }
 
-        .hero {
-            margin-top: 18px;
-            display: grid;
-            grid-template-columns: 1.15fr 0.85fr;
-            gap: 16px;
-            align-items: stretch;
-        }
-
-        .hero-main,
-        .hero-side,
+        .hero,
         .section,
         .final-cta {
             background: var(--panel);
@@ -155,12 +142,9 @@
             backdrop-filter: blur(18px);
         }
 
-        .hero-main {
+        .hero {
+            margin-top: 18px;
             padding: 34px;
-        }
-
-        .hero-side {
-            padding: 24px;
         }
 
         .eyebrow {
@@ -181,76 +165,26 @@
             line-height: 1.02;
             letter-spacing: -0.04em;
             margin-bottom: 14px;
-            max-width: 780px;
+            max-width: 860px;
         }
 
         .hero-text {
             color: var(--muted);
             font-size: 17px;
-            line-height: 1.65;
-            max-width: 720px;
+            line-height: 1.68;
+            max-width: 760px;
         }
 
         .hero-actions {
             margin-top: 22px;
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
         }
 
-        .hero-points {
-            margin-top: 22px;
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 10px;
-        }
-
-        .hero-point {
-            background: var(--panel-strong);
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 14px;
-            font-size: 13px;
-            color: var(--muted);
-            box-shadow: var(--shadow-soft);
-        }
-
-        .hero-point strong {
-            display: block;
-            color: var(--text);
-            font-size: 14px;
-            margin-bottom: 4px;
-        }
-
-        .side-title {
-            font-size: 20px;
-            margin-bottom: 10px;
-        }
-
-        .side-text {
+        .hero-note {
+            margin-top: 18px;
             color: var(--muted);
             font-size: 14px;
             line-height: 1.6;
-            margin-bottom: 16px;
-        }
-
-        .side-steps {
-            display: grid;
-            gap: 10px;
-        }
-
-        .side-step {
-            background: var(--panel-strong);
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 14px;
-            color: var(--muted);
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .side-step b {
-            color: var(--text);
+            max-width: 760px;
         }
 
         .section {
@@ -274,11 +208,12 @@
             color: var(--muted);
             font-size: 15px;
             line-height: 1.7;
-            max-width: 820px;
+            max-width: 860px;
         }
 
         .grid-3,
-        .grid-2 {
+        .grid-2,
+        .visual-steps {
             display: grid;
             gap: 14px;
         }
@@ -291,7 +226,13 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
-        .card {
+        .visual-steps {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .card,
+        .visual-step,
+        .faq-item {
             background: var(--panel-strong);
             border: 1px solid var(--border);
             border-radius: 22px;
@@ -299,12 +240,14 @@
             box-shadow: var(--shadow-soft);
         }
 
-        .card h3 {
+        .card h3,
+        .visual-step h3 {
             font-size: 17px;
             margin-bottom: 10px;
         }
 
-        .card p {
+        .card p,
+        .visual-step p {
             color: var(--muted);
             font-size: 14px;
             line-height: 1.62;
@@ -321,8 +264,23 @@
             line-height: 1.62;
         }
 
-        .plain-list b {
+        .plain-list b,
+        .visual-step b {
             color: var(--text);
+        }
+
+        .step-icon {
+            width: 46px;
+            height: 46px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            margin-bottom: 14px;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--primary-strong);
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.14), rgba(244, 114, 182, 0.18));
         }
 
         .price-card {
@@ -360,19 +318,12 @@
         .price-meta {
             color: var(--muted);
             font-size: 14px;
-            line-height: 1.5;
+            line-height: 1.58;
         }
 
         .faq {
             display: grid;
             gap: 12px;
-        }
-
-        .faq-item {
-            background: var(--panel-strong);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 16px 18px;
         }
 
         .faq-item h4 {
@@ -419,11 +370,12 @@
         }
 
         @media (max-width: 1020px) {
-            .hero {
-                grid-template-columns: 1fr;
+            .grid-3,
+            .grid-2 {
+                grid-template-columns: 1fr 1fr;
             }
 
-            .grid-3 {
+            .visual-steps {
                 grid-template-columns: 1fr 1fr;
             }
         }
@@ -442,7 +394,8 @@
                 justify-content: center;
             }
 
-            .nav {
+            .nav,
+            .hero-actions {
                 width: 100%;
             }
 
@@ -451,15 +404,14 @@
                 width: 100%;
             }
 
-            .hero-main,
-            .hero-side,
+            .hero,
             .section {
                 padding: 20px;
             }
 
-            .hero-points,
             .grid-3,
-            .grid-2 {
+            .grid-2,
+            .visual-steps {
                 grid-template-columns: 1fr;
             }
 
@@ -483,80 +435,78 @@
         </header>
 
         <section class="hero">
-            <div class="hero-main">
-                <span class="eyebrow">Автопостер Telegram / YouTube / Max / VK</span>
-                <h1>Автоматизируйте публикации без хаоса и ручной рутины</h1>
-                <p class="hero-text">
-                    Telegram Poster — это минималистичный автопостер для тех, кому нужен понятный кабинет,
-                    отложенные и регулярные посты, публикация медиа, кнопки, очередь отправки и статистика.
-                    Вы создаёте пост один раз, а сервис публикует его сам в нужные каналы.
-                </p>
-                <div class="hero-actions">
-                    <a class="btn btn-primary" href="/register">Попробовать</a>
-                    <a class="btn btn-secondary" href="/login">У меня уже есть аккаунт</a>
-                </div>
-                <div class="hero-points">
-                    <div class="hero-point">
-                        <strong>Публикация по времени</strong>
-                        Отложенные посты на дату и час.
-                    </div>
-                    <div class="hero-point">
-                        <strong>Повторяющиеся посты</strong>
-                        Регулярный режим без ручных дублей.
-                    </div>
-                    <div class="hero-point">
-                        <strong>Медиа и кнопки</strong>
-                        Фото, видео и ссылки в одном посте.
-                    </div>
-                </div>
+            <span class="eyebrow">Автопостер Telegram / YouTube / Max / VK</span>
+            <h1>Автопостинг без хаоса: один кабинет для публикаций, расписания и контроля отправки</h1>
+            <p class="hero-text">
+                Telegram Poster — это простой и понятный автопостер для тех, кто хочет публиковать контент в несколько каналов и площадок
+                без ручной рутины. Вы создаёте пост один раз, добавляете медиа и кнопку, выбираете каналы, а сервис публикует всё сам:
+                сразу, по времени или регулярно по расписанию.
+            </p>
+            <div class="hero-actions">
+                <a class="btn btn-primary" href="/register">Попробовать</a>
+                <a class="btn btn-secondary" href="/login">У меня уже есть аккаунт</a>
             </div>
-
-            <aside class="hero-side">
-                <h2 class="side-title">Как это работает</h2>
-                <p class="side-text">
-                    Всё максимально просто, чтобы было понятно с первого захода.
-                </p>
-                <div class="side-steps">
-                    <div class="side-step"><b>1.</b> Регистрируетесь и добавляете каналы.</div>
-                    <div class="side-step"><b>2.</b> Пишете текст, прикрепляете медиа и кнопку.</div>
-                    <div class="side-step"><b>3.</b> Выбираете публикацию сейчас или по расписанию.</div>
-                    <div class="side-step"><b>4.</b> Смотрите статусы отправки и статистику.</div>
-                </div>
-            </aside>
+            <p class="hero-note">
+                Подходит для Telegram-каналов, уведомлений по YouTube, публикаций в Max и VK. Внутри есть очередь, повторные попытки,
+                статусы отправки и статистика по публикациям.
+            </p>
         </section>
 
         <section class="section">
             <div class="section-header">
                 <h2 class="section-title">Что умеет сервис</h2>
                 <p class="section-text">
-                    Главная страница теперь собрана более структурно: сначала коротко объясняем, что это за продукт,
-                    потом показываем функции, сценарии использования и только после этого тарифы.
+                    Сначала коротко и по делу: это автопостер, который помогает не вручную переносить один и тот же контент по разным
+                    каналам, а управлять публикацией из одного кабинета.
                 </p>
             </div>
             <div class="grid-3">
                 <article class="card">
                     <h3>Автопостер Телеграм</h3>
-                    <p>Публикация постов сразу в несколько Telegram-каналов из одного кабинета.</p>
+                    <p>Публикация одного поста сразу в несколько Telegram-каналов без постоянного копирования текста, фото и ссылок вручную.</p>
                 </article>
                 <article class="card">
                     <h3>Автопостер Ютуб</h3>
-                    <p>Автоматические уведомления и работа с контентом вокруг YouTube-каналов.</p>
+                    <p>Работа с YouTube-каналами и уведомлениями о новых видео из того же кабинета, где вы ведёте остальные публикации.</p>
                 </article>
                 <article class="card">
                     <h3>Автопостер Max</h3>
-                    <p>Параллельная публикация в Max без лишнего ручного копирования.</p>
+                    <p>Параллельная публикация в Max, чтобы не дублировать одни и те же действия вручную на каждой площадке.</p>
                 </article>
                 <article class="card">
                     <h3>Отложенные посты</h3>
-                    <p>Контент выходит в нужное время, даже если вы не у компьютера.</p>
+                    <p>Пост можно подготовить заранее и выпустить точно в нужную дату и час, даже если вас нет у компьютера.</p>
                 </article>
                 <article class="card">
                     <h3>Регулярные публикации</h3>
-                    <p>Можно запускать посты по интервалу: каждый день, каждые N часов и так далее.</p>
+                    <p>Подходит для рубрик, анонсов и повторяющихся задач: сервис умеет отправлять посты по заданному интервалу.</p>
                 </article>
                 <article class="card">
-                    <h3>Очередь и ретраи</h3>
-                    <p>Если отправка дала сбой, система умеет повторять попытки и вести учёт ошибок.</p>
+                    <h3>Очередь и контроль</h3>
+                    <p>Если отправка не удалась, вы увидите статус, ошибку и результат по каждому каналу, а не просто “что-то не сработало”.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">Основные сценарии</h2>
+                <p class="section-text">
+                    Эти три вещи важны почти всем, поэтому они вынесены отдельно ниже, а не забивают первый экран.
+                </p>
+            </div>
+            <div class="grid-3">
+                <article class="card">
+                    <h3>Публикация по времени</h3>
+                    <p>Запланируйте пост на точную дату и час. Это удобно для акций, анонсов, новостей, напоминаний и ночных публикаций.</p>
+                </article>
+                <article class="card">
+                    <h3>Повторяющиеся посты</h3>
+                    <p>Нужны ежедневные, еженедельные или циклические публикации? Вы настраиваете шаблон один раз, дальше сервис работает сам.</p>
+                </article>
+                <article class="card">
+                    <h3>Медиа и кнопки</h3>
+                    <p>К посту можно добавить фото, видео, ссылку и кнопку, чтобы публикация сразу выглядела законченной и готовой к запуску.</p>
                 </article>
             </div>
         </section>
@@ -565,25 +515,25 @@
             <div class="section-header">
                 <h2 class="section-title">Кому подходит Telegram Poster</h2>
                 <p class="section-text">
-                    Страница должна говорить не только о функциях, но и о том, кому этот продукт реально полезен.
+                    Сервис нужен не только “большим SMM-командам”. Он полезен всем, кто регулярно публикует контент и устал делать одно и то же руками.
                 </p>
             </div>
             <div class="grid-2">
                 <div class="card">
                     <h3>Бизнесу и владельцам проектов</h3>
-                    <p>Чтобы публиковать новости, акции и обновления без ручной рутины каждый день.</p>
+                    <p>Чтобы публиковать акции, новости, обновления и важные сообщения стабильно, без привязки к одному человеку у компьютера.</p>
                 </div>
                 <div class="card">
                     <h3>Блогерам и авторам</h3>
-                    <p>Чтобы заранее подготовить контент и выпускать его стабильно по расписанию.</p>
+                    <p>Чтобы заранее готовить контент, поддерживать ритм публикаций и не забывать вручную выкладывать анонсы на разные площадки.</p>
                 </div>
                 <div class="card">
                     <h3>SMM-специалистам</h3>
-                    <p>Чтобы вести несколько площадок сразу и видеть, что реально ушло, а что упало с ошибкой.</p>
+                    <p>Чтобы вести несколько каналов сразу, видеть реальные статусы отправки и не тратить рабочее время на однообразные действия.</p>
                 </div>
                 <div class="card">
                     <h3>Небольшим командам</h3>
-                    <p>Чтобы работать в одном понятном кабинете и не терять время на ручные действия.</p>
+                    <p>Чтобы работать в одном понятном кабинете, быстрее запускать публикации и не путаться между разными каналами и задачами.</p>
                 </div>
             </div>
         </section>
@@ -592,14 +542,45 @@
             <div class="section-header">
                 <h2 class="section-title">Преимущества сервиса</h2>
                 <p class="section-text">
-                    Здесь более спокойная и понятная подача без каши: не всё сразу, а блоками.
+                    Без перегруза и маркетинговой воды: только то, что реально важно в повседневной работе с постами.
                 </p>
             </div>
             <div class="plain-list">
-                <p><b>Простая работа:</b> вошли, создали пост, выбрали каналы, запланировали или отправили.</p>
-                <p><b>Минималистичный интерфейс:</b> ничего лишнего, акцент на действиях и статусах.</p>
-                <p><b>Экономия времени:</b> один пост можно подготовить и отправить сразу в несколько направлений.</p>
-                <p><b>Контроль результата:</b> есть очередь, статистика, ошибки и понимание, что произошло с публикацией.</p>
+                <p><b>Простая логика:</b> зарегистрировались, добавили каналы, создали пост, выбрали способ публикации и получили результат.</p>
+                <p><b>Минималистичный интерфейс:</b> ничего лишнего, акцент на действиях, статусах отправки и понятных формах.</p>
+                <p><b>Экономия времени:</b> один пост можно подготовить один раз и отправить сразу в несколько направлений.</p>
+                <p><b>Контроль результата:</b> есть очередь, статистика, ошибки и понимание, что произошло с каждой публикацией.</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">Как это работает</h2>
+                <p class="section-text">
+                    Всё максимально просто и разложено по шагам, чтобы было понятно с первого захода, даже если вы раньше не пользовались автопостерами.
+                </p>
+            </div>
+            <div class="visual-steps">
+                <article class="visual-step">
+                    <div class="step-icon">1</div>
+                    <h3>Регистрация и подключение</h3>
+                    <p><b>Создаёте аккаунт</b> и добавляете нужные Telegram, YouTube, Max или VK-каналы в одном кабинете.</p>
+                </article>
+                <article class="visual-step">
+                    <div class="step-icon">2</div>
+                    <h3>Создание поста</h3>
+                    <p><b>Пишете текст</b>, прикрепляете медиа, ссылку и кнопку, а затем выбираете каналы для отправки.</p>
+                </article>
+                <article class="visual-step">
+                    <div class="step-icon">3</div>
+                    <h3>Выбор режима</h3>
+                    <p><b>Отправляете сразу</b>, планируете на дату и час или включаете регулярный режим для повторяющихся публикаций.</p>
+                </article>
+                <article class="visual-step">
+                    <div class="step-icon">4</div>
+                    <h3>Проверка результата</h3>
+                    <p><b>Смотрите статусы</b>, статистику и ошибки, чтобы понимать, что ушло успешно, а где нужно вмешаться.</p>
+                </article>
             </div>
         </section>
 
@@ -607,19 +588,19 @@
             <div class="section-header">
                 <h2 class="section-title">Тарифы</h2>
                 <p class="section-text">
-                    Тарифы идут после полного рассказа о сервисе, как ты и просил.
+                    Сначала вы понимаете, как работает сервис и что он умеет, и только потом выбираете подходящий тариф.
                 </p>
             </div>
             <div class="grid-2">
                 <div class="card price-card">
                     <div class="price-name">Тестовый доступ</div>
                     <div class="price-value">299 ₽</div>
-                    <div class="price-meta">7 дней, чтобы спокойно посмотреть, как работает автопостер.</div>
+                    <div class="price-meta">7 дней, чтобы спокойно оценить интерфейс, публикации, расписание и работу автопостера в реальных задачах.</div>
                 </div>
                 <div class="card price-card">
                     <div class="price-name">Основной тариф</div>
                     <div class="price-value">999 ₽</div>
-                    <div class="price-meta">1 месяц полного доступа к публикациям, расписанию и статистике.</div>
+                    <div class="price-meta">1 месяц полного доступа к публикациям, отложенным постам, регулярным отправкам и статистике.</div>
                 </div>
             </div>
         </section>
@@ -628,21 +609,21 @@
             <div class="section-header">
                 <h2 class="section-title">FAQ</h2>
                 <p class="section-text">
-                    Короткие ответы на самые частые вопросы.
+                    Короткие ответы на частые вопросы перед регистрацией.
                 </p>
             </div>
             <div class="faq">
                 <div class="faq-item">
                     <h4>Это подходит новичкам?</h4>
-                    <p>Да. Интерфейс упрощён, чтобы даже без опыта можно было быстро понять логику работы.</p>
+                    <p>Да. Интерфейс сделан максимально просто: без сложной перегрузки, с понятной логикой шаг за шагом.</p>
                 </div>
                 <div class="faq-item">
                     <h4>Можно вести сразу несколько каналов?</h4>
-                    <p>Да, сервис рассчитан именно на мультиканальную публикацию из одного кабинета.</p>
+                    <p>Да, именно в этом и смысл сервиса: создать публикацию один раз и управлять несколькими каналами из одного кабинета.</p>
                 </div>
                 <div class="faq-item">
                     <h4>Что если отправка не удалась?</h4>
-                    <p>Есть очередь, повторные попытки и журнал ошибок, чтобы вы видели реальную картину.</p>
+                    <p>Вы увидите ошибку, статус и результат по отправке. Это лучше, чем ручной постинг, где часто вообще неясно, что пошло не так.</p>
                 </div>
             </div>
         </section>
@@ -650,7 +631,7 @@
         <section class="final-cta">
             <div>
                 <h3>Готовы попробовать сервис в работе?</h3>
-                <p>Регистрация и вход доступны сразу, а тестовый тариф помогает быстро оценить продукт.</p>
+                <p>Регистрация и вход доступны сразу, а короткий тестовый тариф помогает быстро проверить автопостер на своих задачах.</p>
             </div>
             <nav class="nav">
                 <a class="btn btn-secondary" href="/login">Войти</a>

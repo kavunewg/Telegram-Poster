@@ -4,6 +4,11 @@
 {% block title %}Админ-панель | Telegram Постер{% endblock %}
 
 {% block content %}
+<style>
+    .card > .header-actions a[href="/logout"] {
+        display: none;
+    }
+</style>
 <div class="card">
     <div class="header-actions">
         <button onclick="toggleTheme()" class="btn btn-secondary btn-sm">🌓 Сменить тему</button>

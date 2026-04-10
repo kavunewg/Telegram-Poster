@@ -42,6 +42,8 @@ body::before{
     backdrop-filter:blur(20px);
     border-right:1px solid rgba(255,255,255,0.05);
     padding:24px 16px;
+    display:flex;
+    flex-direction:column;
     z-index:2;
     height:100vh;
     position:sticky;
@@ -50,6 +52,10 @@ body::before{
 
 .sidebar a{
     text-decoration:none;
+}
+
+.sidebar a[href="/logout"]{
+    margin-top:auto;
 }
 
 .nav-btn{

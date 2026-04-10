@@ -213,6 +213,9 @@
             </div>
 
             <div class="edit-actions">
+                <a href="/logout" class="btn btn-secondary" style="order:99;">
+                    🚪 {% if get_lang(request) == 'en' %}Logout{% else %}Выйти{% endif %}
+                </a>
                 <a href="/scheduled_posts" class="btn btn-secondary">
                     ❌ {% if get_lang(request) == 'en' %}Cancel{% else %}Отмена{% endif %}
                 </a>

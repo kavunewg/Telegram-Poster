@@ -41,6 +41,8 @@ body::before{
     backdrop-filter:blur(20px);
     border-right:1px solid rgba(255,255,255,0.05);
     padding:24px 16px;
+    display:flex;
+    flex-direction:column;
     z-index:2;
     height:100vh;
     position:sticky;
@@ -49,6 +51,10 @@ body::before{
 
 .sidebar a{
     text-decoration:none;
+}
+
+.sidebar a[href="/logout"]{
+    margin-top:auto;
 }
 
 .nav-btn{
@@ -535,6 +541,8 @@ select.input{
     <div class="menu-item" data-platform="max">🏢 MAX</div>
     <div class="menu-item" data-platform="vk">📘 VK</div>
     <div class="menu-item" data-platform="youtube">🎬 YouTube</div>
+    <div class="divider"></div>
+    <a href="/logout" class="nav-btn nav-btn-secondary" style="margin-top:auto; background:rgba(239,68,68,0.2); border-color:rgba(239,68,68,0.3);">🚪 Выйти</a>
 </div>
 
 <div class="main">
