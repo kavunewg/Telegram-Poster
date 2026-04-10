@@ -48,6 +48,10 @@ async def scheduled_posts(request: Request):
         "user": user,
         "scheduled_posts": posts,
         "stats": stats,
+        "pending_count": stats.get("pending", 0),
+        "processing_count": stats.get("processing", 0),
+        "success_count": stats.get("success", 0),
+        "error_count": stats.get("error", 0),
         "project_name": user["project_name"]
     })
 

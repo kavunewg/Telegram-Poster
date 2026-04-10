@@ -10,6 +10,7 @@ from typing import Dict, Any, Optional, List
 
 from repositories.queue_repo import queue_repo
 from core.config import POST_SESSIONS
+from services.media_service import delete_media_file
 
 logger = logging.getLogger(__name__)
 
@@ -380,6 +381,12 @@ class QueueWorker:
 
         if completed >= total:
             target_session['publishing'] = False
+            media_path = target_session.get('media_path')
+            if media_path:
+                try:
+                    delete_media_file(media_path)
+                except Exception as exc:
+                    logger.warning(f"Не удалось удалить media после завершения сессии {target_session_id}: {exc}")
             logger.info(
                 f"📊 Сессия {target_session_id} завершена: "
                 f"успешно {target_session['results']['success']}, "

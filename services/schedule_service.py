@@ -12,7 +12,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 
-from core.config import TIMEZONE, YOUTUBE_API_KEY, YOUTUBE_AVAILABLE, POST_SESSIONS
+from core.config import TIMEZONE, YOUTUBE_AVAILABLE, POST_SESSIONS
 from repositories.schedule_repo import schedule_repo
 from services.media_service import delete_media_file
 from services.post_service import send_post_async
@@ -40,7 +40,8 @@ async def init_scheduler() -> None:
 
     await restore_pending_posts()
 
-    if YOUTUBE_AVAILABLE and YOUTUBE_API_KEY:
+    # YouTube monitoring uses per-user API keys from DB, global key is optional.
+    if YOUTUBE_AVAILABLE:
         from services.youtube_service import check_youtube_channels
 
         scheduler.add_job(

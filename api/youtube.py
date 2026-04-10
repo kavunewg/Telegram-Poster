@@ -36,7 +36,7 @@ def get_current_user(request: Request):
 async def add_youtube_channel_endpoint(
     request: Request,
     youtube_url: str = Form(...),
-    target_channels: str = Form(...),
+    target_channels: str = Form(None),
     post_template: str = Form(None),
     include_description: int = Form(0),
     button_url: str = Form(None),
@@ -62,10 +62,31 @@ async def add_youtube_channel_endpoint(
         return RedirectResponse(url=f"/my_channels?error={channel_info['error']}", status_code=303)
     
     try:
-        target_list = json.loads(target_channels)
+        target_list = json.loads(target_channels) if target_channels else []
     except json.JSONDecodeError:
         return RedirectResponse(url="/my_channels?error=Неверный список целевых каналов", status_code=303)
     
+    if not target_list:
+        user_channels = channel_repo.get_user_channels(user["id"])
+        target_list = [
+            {
+                "id": ch.get("id"),
+                "name": ch.get("channel_name"),
+                "channel_name": ch.get("channel_name"),
+                "channel_id": ch.get("channel_id"),
+                "platform": ch.get("platform", "telegram"),
+                "bot_token": ch.get("bot_token"),
+            }
+            for ch in user_channels
+            if ch.get("platform") == "telegram"
+        ]
+
+    if not target_list:
+        return RedirectResponse(
+            url="/my_channels?error=Р”РѕР±Р°РІСЊС‚Рµ С…РѕС‚СЏ Р±С‹ РѕРґРёРЅ Telegram РєР°РЅР°Р» РґР»СЏ YouTube-СѓРІРµРґРѕРјР»РµРЅРёР№",
+            status_code=303
+        )
+
     youtube_repo.add_channel(
         user["id"],
         channel_info['id'],

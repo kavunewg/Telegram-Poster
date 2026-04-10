@@ -307,7 +307,7 @@ async def _schedule_post_internal(
     try:
         media_info = await _save_uploaded_media(user["id"], media_file)
     except Exception:
-        POST_SESSIONS.pop(post_session_id, None)
+        # scheduled flow has no post session yet
         raise
     is_regular_flag = is_regular == "1"
     regular_settings = None

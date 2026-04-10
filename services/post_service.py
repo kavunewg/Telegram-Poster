@@ -12,7 +12,6 @@ import aiohttp
 from repositories.bot_repo import bot_repo
 from repositories.channel_repo import channel_repo
 from repositories.post_stats_repo import post_stats_repo
-from services.media_service import delete_media_file
 
 logger = logging.getLogger(__name__)
 
@@ -100,9 +99,6 @@ async def send_to_telegram(channel_session: dict, session_id: str) -> dict:
             "success",
         )
 
-        if media_path and os.path.exists(media_path):
-            delete_media_file(media_path)
-
         return {"success": True, "message": "Post sent successfully"}
     except Exception as exc:
         error_msg = str(exc)
@@ -133,10 +129,6 @@ async def send_to_max(channel_session: dict, session_id: str) -> dict:
         media_type,
         "success",
     )
-
-    media_path = channel_session.get("media_path")
-    if media_path and os.path.exists(media_path):
-        delete_media_file(media_path)
 
     log.info("MAX send is still mocked")
     return {"success": True, "message": "MAX post sent (mock)"}
@@ -179,10 +171,6 @@ async def send_to_vk(channel_session: dict, session_id: str) -> dict:
             channel_session.get("media_type", "text"),
             "success",
         )
-
-        media_path = channel_session.get("media_path")
-        if media_path and os.path.exists(media_path):
-            delete_media_file(media_path)
 
         return {"success": True, "post_id": result.get("post_id")}
     except Exception as exc:

@@ -12,8 +12,16 @@ from core.database import get_db_connection
 from repositories.bot_repo import bot_repo
 from repositories.channel_repo import channel_repo
 from repositories.post_stats_repo import post_stats_repo
+from repositories.youtube_repo import youtube_repo
 from repositories.user_repo import user_repo
 from utils.helpers import clean_email
+
+try:
+    from repositories.vk_repo import vk_repo
+    VK_AVAILABLE = True
+except ImportError:
+    vk_repo = None
+    VK_AVAILABLE = False
 
 router = APIRouter(tags=["dashboard"])
 templates: Jinja2Templates = None
@@ -99,6 +107,9 @@ async def user_dashboard(request: Request, user: dict):
 
     telegram_channels = [ch for ch in channels if ch.get("platform") == "telegram"]
     max_channels = [ch for ch in channels if ch.get("platform") == "max"]
+    youtube_channels = youtube_repo.get_user_channels(user["id"])
+    vk_channels = vk_repo.get_user_channels(user["id"]) if VK_AVAILABLE and vk_repo else []
+    total_channels = len(telegram_channels) + len(max_channels) + len(youtube_channels) + len(vk_channels)
 
     return templates.TemplateResponse(
         "user_dashboard.html",
@@ -110,6 +121,9 @@ async def user_dashboard(request: Request, user: dict):
             "max_channels": max_channels,
             "telegram_count": len(telegram_channels),
             "max_count": len(max_channels),
+            "youtube_count": len(youtube_channels),
+            "vk_count": len(vk_channels),
+            "total_channels": total_channels,
             "stats": stats_list,
             "recent_posts": recent_posts,
             "project_name": user.get("project_name"),
