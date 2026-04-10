@@ -31,6 +31,19 @@ def get_current_user(request: Request):
     return getattr(request.state, "user", None) or user_repo.get_by_session(request.cookies.get("session_id"))
 
 
+def resolve_youtube_api_key(user_id: int) -> str | None:
+    user_data = user_repo.get_by_id(user_id)
+    profile_key = (user_data or {}).get("youtube_api_key")
+    if profile_key and str(profile_key).strip():
+        return str(profile_key).strip()
+
+    bot_key = bot_repo.get_user_youtube_api_key(user_id)
+    if bot_key and str(bot_key).strip():
+        return str(bot_key).strip()
+
+    return None
+
+
 @router.get("/debug", response_class=HTMLResponse)
 async def debug_page(request: Request):
     user = get_current_user(request)
@@ -146,8 +159,7 @@ async def debug_force_youtube_notification(request: Request, youtube_channel_id:
     if not channel:
         return JSONResponse({"error": "YouTube канал не найден"}, status_code=404)
 
-    user_data = user_repo.get_by_id(user["id"])
-    user_api_key = user_data.get("youtube_api_key") if user_data else None
+    user_api_key = resolve_youtube_api_key(user["id"])
     if not user_api_key:
         return JSONResponse({"error": "YouTube API ключ не настроен"}, status_code=400)
 
@@ -238,8 +250,7 @@ async def debug_test_youtube_post(request: Request):
         return JSONResponse({"error": "Нет добавленных YouTube каналов"}, status_code=404)
 
     yt_channel = youtube_channels[0]
-    user_data = user_repo.get_by_id(user["id"])
-    user_api_key = user_data.get("youtube_api_key") if user_data else None
+    user_api_key = resolve_youtube_api_key(user["id"])
     if not user_api_key:
         return JSONResponse({"error": "YouTube API ключ не настроен"}, status_code=400)
 

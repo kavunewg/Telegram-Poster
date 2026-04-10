@@ -172,12 +172,9 @@ class QueueWorker:
                 from repositories.bot_repo import bot_repo
                 user_id = payload.get('user_id')
                 if user_id:
-                    bots = bot_repo.get_user_bots(user_id)
-                    for bot in bots:
-                        if bot.get('platform') == 'vk':
-                            bot_token = bot.get('token')
-                            logger.info(f"🔍 Найден VK бот в БД: {bot_token[:20] if bot_token else 'None'}...")
-                            break
+                    bot_token = bot_repo.get_user_platform_token(user_id, 'vk')
+                    if bot_token:
+                        logger.info(f"🔍 Найден VK бот в БД: {bot_token[:20] if bot_token else 'None'}...")
             
             if not bot_token:
                 error_msg = 'VK token not found. Please add a VK bot in "My Bots" page.'
@@ -288,12 +285,9 @@ class QueueWorker:
                 user_id = payload.get('user_id')
                 
                 if user_id:
-                    bots = bot_repo.get_user_bots(user_id)
-                    for bot in bots:
-                        if bot.get('platform') == 'telegram':
-                            bot_token = bot.get('token')
-                            logger.info(f"🔍 Найден бот в БД: {bot_token[:20] if bot_token else 'None'}...")
-                            break
+                    bot_token = bot_repo.get_user_platform_token(user_id, 'telegram')
+                    if bot_token:
+                        logger.info(f"🔍 Найден бот в БД: {bot_token[:20] if bot_token else 'None'}...")
                 
                 if not bot_token:
                     return {'success': False, 'error': 'Bot token not found. Please add a Telegram bot in "My Bots" page.'}

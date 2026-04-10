@@ -777,9 +777,37 @@ document.querySelectorAll('.platform-card').forEach(card => {
 // Показ поля ИНН для MAX
 const platformSelect = document.getElementById('platformSelect');
 const innInput = document.getElementById('innInput');
+const botTokenInput = document.getElementById('botToken');
 const menuToggleBtn = document.getElementById('menuToggleBtn');
 const menuBackdrop = document.getElementById('menuBackdrop');
 const sidebar = document.querySelector('.sidebar');
+
+let botAccessHint = document.getElementById('botAccessHint');
+if(!botAccessHint && botTokenInput){
+    botAccessHint = document.createElement('div');
+    botAccessHint.id = 'botAccessHint';
+    botAccessHint.style.fontSize = '12px';
+    botAccessHint.style.color = '#9ca3af';
+    botAccessHint.style.marginTop = '-4px';
+    botTokenInput.insertAdjacentElement('afterend', botAccessHint);
+}
+
+function updateBotAccessHint(platform){
+    if(!botAccessHint || !botTokenInput) return;
+    if(platform === 'telegram'){
+        botTokenInput.placeholder = 'Telegram bot token';
+        botAccessHint.textContent = 'Telegram использует токен Telegram-бота. Этот бот потом привязывается к Telegram-каналам.';
+    } else if(platform === 'max'){
+        botTokenInput.placeholder = 'MAX bot token';
+        botAccessHint.textContent = 'MAX использует токен MAX-бота. Для него дополнительно нужен ИНН.';
+    } else if(platform === 'vk'){
+        botTokenInput.placeholder = 'VK access token';
+        botAccessHint.textContent = 'VK использует отдельный VK token/API-доступ. Не вставляйте сюда Telegram или YouTube ключ.';
+    } else if(platform === 'youtube'){
+        botTokenInput.placeholder = 'YouTube API key';
+        botAccessHint.textContent = 'Для YouTube сюда указывается YouTube Data API key вида AIza...';
+    }
+}
 
 function closeMobileMenu(){
     sidebar?.classList.remove('open');
@@ -815,7 +843,9 @@ if(platformSelect){
             innInput.style.display = 'none';
             innInput.required = false;
         }
+        updateBotAccessHint(platformSelect.value);
     });
+    updateBotAccessHint(platformSelect.value);
 }
 
 // Сайдбар фильтрация

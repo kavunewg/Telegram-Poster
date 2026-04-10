@@ -49,6 +49,8 @@ body::before{
     height:100vh;
     position:sticky;
     top:0;
+    filterBotOptions(addBotSelect, ps.value);
+    updateChannelAccessHint(ps.value, 'add');
 }
 
 .sidebar a[href="/logout"]{
@@ -713,11 +715,12 @@ textarea.input{
                 <option value="max">🏢 MAX</option>
                 <option value="vk">📘 VK</option>
             </select>
+            <div id="channelAccessHint" style="font-size:12px; color:#9ca3af; margin-top:-4px;">Telegram и MAX используют бота той же платформы. YouTube добавляется отдельно кнопкой ниже.</div>
             <input type="text" name="channel_id" id="channelIdInput" class="input" placeholder="@username или ID" required>
-            <select name="bot_id" class="input">
+            <select name="bot_id" id="addBotSelect" class="input">
                 <option value="">— Без бота —</option>
                 {% for bot in bots %}
-                <option value="{{ bot.id }}">{{ bot.name }} ({{ bot.platform }})</option>
+                <option value="{{ bot.id }}" data-platform="{{ bot.platform }}">{{ bot.name }} ({{ bot.platform }})</option>
                 {% endfor %}
             </select>
             <button type="submit" class="btn">+ Добавить</button>
@@ -774,9 +777,10 @@ textarea.input{
                 <select name="bot_id" id="editBotSelect" class="input" style="width:100%;">
                     <option value="">— Нет —</option>
                     {% for bot in bots %}
-                    <option value="{{ bot.id }}">{{ bot.name }} ({{ bot.platform }})</option>
+                    <option value="{{ bot.id }}" data-platform="{{ bot.platform }}">{{ bot.name }} ({{ bot.platform }})</option>
                     {% endfor %}
                 </select>
+                <div id="editChannelAccessHint" style="font-size:12px; color:#9ca3af; margin-top:6px;">Привязывайте канал только к боту той же платформы.</div>
             </div>
             <div class="modal-actions" style="display:flex; gap:12px; margin-top:24px; justify-content:flex-end;">
                 <button type="button" class="btn-secondary" onclick="closeEditModal()" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:10px 20px; border-radius:12px; cursor:pointer; font-weight:600;">Отмена</button>
@@ -829,9 +833,44 @@ document.querySelectorAll('.platform-card').forEach(card => {
 const ps = document.getElementById('platformSelect');
 const addPlatform = document.getElementById('addPlatform');
 const channelIdInput = document.getElementById('channelIdInput');
+const addBotSelect = document.getElementById('addBotSelect');
+const editBotSelect = document.getElementById('editBotSelect');
+const channelAccessHint = document.getElementById('channelAccessHint');
+const editChannelAccessHint = document.getElementById('editChannelAccessHint');
 const menuToggleBtn = document.getElementById('menuToggleBtn');
 const menuBackdrop = document.getElementById('menuBackdrop');
 const sidebar = document.querySelector('.sidebar');
+
+function filterBotOptions(selectNode, platform){
+    if(!selectNode) return;
+    Array.from(selectNode.options).forEach((option, index) => {
+        if(index === 0){
+            option.hidden = false;
+            return;
+        }
+        const optionPlatform = option.dataset.platform || '';
+        option.hidden = optionPlatform !== platform;
+    });
+    const selectedOption = selectNode.options[selectNode.selectedIndex];
+    if(selectedOption && selectedOption.hidden){
+        selectNode.value = '';
+    }
+}
+
+function updateChannelAccessHint(platform, target){
+    const hintNode = target === 'edit' ? editChannelAccessHint : channelAccessHint;
+    if(!hintNode) return;
+
+    if(platform === 'telegram'){
+        hintNode.textContent = 'Для Telegram нужен Telegram-бот. Если бот не выбран, система попробует взять первый Telegram-бот пользователя.';
+    } else if(platform === 'max'){
+        hintNode.textContent = 'Для MAX нужен MAX-бот. Не привязывайте к MAX каналу Telegram- или VK-ботов.';
+    } else if(platform === 'vk'){
+        hintNode.textContent = 'Для VK выбирайте только VK-бота. Это убирает путаницу между платформами и токенами.';
+    } else {
+        hintNode.textContent = 'Привязывайте канал только к боту той же платформы.';
+    }
+}
 
 function closeMobileMenu(){
     sidebar?.classList.remove('open');
@@ -864,10 +903,14 @@ if(ps){
         if(ps.value === 'telegram') channelIdInput.placeholder = '@username или -100...';
         else if(ps.value === 'max') channelIdInput.placeholder = 'ID канала';
         else if(ps.value === 'vk') channelIdInput.placeholder = 'ID группы (положительное число)';
+        filterBotOptions(addBotSelect, ps.value);
+        updateChannelAccessHint(ps.value, 'add');
     };
 }
 
 // YouTube модалка
+filterBotOptions(addBotSelect, ps?.value || 'telegram');
+updateChannelAccessHint(ps?.value || 'telegram', 'add');
 function openAddYoutubeModal() {
     document.getElementById('addYoutubeModal').classList.add('active');
 }
@@ -884,6 +927,8 @@ function openEditModal(id, platform) {
             document.getElementById('editPlatform').value = platform;
             document.getElementById('editChannelName').value = data.channel_name || '';
             document.getElementById('editChannelIdValue').value = data.channel_id || '';
+            filterBotOptions(editBotSelect, platform);
+            updateChannelAccessHint(platform, 'edit');
             document.getElementById('editBotSelect').value = data.bot_id || '';
             document.getElementById('editModal').classList.add('active');
         })

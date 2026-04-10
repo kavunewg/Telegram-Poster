@@ -28,10 +28,7 @@ async def send_to_telegram(channel_session: dict, session_id: str) -> dict:
     bot_token = channel_session.get("bot_token")
 
     if not bot_token and channel_session.get("user_id"):
-        for bot in bot_repo.get_user_bots(channel_session["user_id"]):
-            if bot.get("platform") == "telegram":
-                bot_token = bot.get("token")
-                break
+        bot_token = bot_repo.get_user_platform_token(channel_session["user_id"], "telegram")
 
     if not bot_token:
         return {"success": False, "error": "Bot token not found"}
@@ -166,10 +163,7 @@ async def send_to_max(channel_session: dict, session_id: str) -> dict:
     bot_token = channel_session.get("bot_token")
     
     if not bot_token and channel_session.get("user_id"):
-        user_bots = bot_repo.get_user_bots(channel_session["user_id"])
-        max_bot = next((bot for bot in user_bots if bot.get("platform") == "max"), None)
-        if max_bot:
-            bot_token = max_bot.get("token")
+        bot_token = bot_repo.get_user_platform_token(channel_session["user_id"], "max")
     
     if not bot_token:
         return {"success": False, "error": "Bot token not found"}

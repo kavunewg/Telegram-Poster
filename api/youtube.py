@@ -2,6 +2,7 @@
 Маршруты для YouTube мониторинга
 """
 import json
+from datetime import datetime
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -32,6 +33,19 @@ def get_current_user(request: Request):
     return user
 
 
+def resolve_youtube_api_key(user_id: int) -> str | None:
+    user_data = user_repo.get_by_id(user_id)
+    profile_key = (user_data or {}).get("youtube_api_key")
+    if profile_key and str(profile_key).strip():
+        return str(profile_key).strip()
+
+    bot_key = bot_repo.get_user_youtube_api_key(user_id)
+    if bot_key and str(bot_key).strip():
+        return str(bot_key).strip()
+
+    return None
+
+
 @router.post("/add_youtube_channel")
 async def add_youtube_channel_endpoint(
     request: Request,
@@ -50,7 +64,7 @@ async def add_youtube_channel_endpoint(
     if not user_data:
         return RedirectResponse(url="/login", status_code=303)
     
-    user_api_key = user_data.get("youtube_api_key")
+    user_api_key = resolve_youtube_api_key(user["id"])
     if not user_api_key:
         return RedirectResponse(
             url="/my_channels?error=Сначала добавьте YouTube API ключ в настройках профиля",
@@ -198,8 +212,89 @@ async def api_youtube_channel_info(request: Request, url: str):
     if not user:
         return JSONResponse({"error": "Unauthorized"}, status_code=401)
     
-    user_data = user_repo.get_by_id(user["id"])
-    user_api_key = user_data.get("youtube_api_key") if user_data else None
-    
+    user_api_key = resolve_youtube_api_key(user["id"])
+
     info = await get_youtube_channel_info(url, user_api_key)
     return JSONResponse(info)
+
+
+@router.get("/api/youtube/channel-analytics/{channel_id}")
+async def api_youtube_channel_analytics(request: Request, channel_id: int, days: int = 30):
+    user = get_current_user(request)
+    if not user:
+        return JSONResponse({"error": "Unauthorized"}, status_code=401)
+
+    channel = youtube_repo.get_channel_by_id(channel_id, user["id"])
+    if not channel:
+        return JSONResponse({"error": "Channel not found"}, status_code=404)
+
+    user_api_key = resolve_youtube_api_key(user["id"])
+    if not user_api_key:
+        return JSONResponse({"error": "YouTube API key is not configured"}, status_code=400)
+
+    current_info = await get_youtube_channel_info(channel["youtube_channel_id"], user_api_key)
+    if "error" in current_info:
+        return JSONResponse(current_info, status_code=400)
+
+    if not youtube_repo.has_recent_analytics_snapshot(channel_id, minutes=60):
+        youtube_repo.add_analytics_snapshot(
+            user_id=user["id"],
+            youtube_channel_db_id=channel_id,
+            youtube_channel_id=channel["youtube_channel_id"],
+            subscriber_count=int(current_info.get("subscriber_count", 0)),
+            view_count=int(current_info.get("view_count", 0)),
+            video_count=int(current_info.get("video_count", 0)),
+        )
+
+    history = youtube_repo.get_analytics_history(channel_id, user["id"], days=max(1, min(days, 365)))
+
+    labels = []
+    subscribers = []
+    views = []
+    videos = []
+
+    for point in history:
+        recorded_at = point.get("recorded_at")
+        try:
+            dt = datetime.fromisoformat(recorded_at)
+            labels.append(dt.strftime("%d.%m"))
+        except Exception:
+            labels.append(recorded_at or "")
+        subscribers.append(int(point.get("subscriber_count") or 0))
+        views.append(int(point.get("view_count") or 0))
+        videos.append(int(point.get("video_count") or 0))
+
+    first_point = history[0] if history else None
+    current_subscribers = int(current_info.get("subscriber_count", 0) or 0)
+    current_views = int(current_info.get("view_count", 0) or 0)
+    current_videos = int(current_info.get("video_count", 0) or 0)
+
+    delta = {
+        "subscribers": current_subscribers - int(first_point.get("subscriber_count", 0) or 0) if first_point else 0,
+        "views": current_views - int(first_point.get("view_count", 0) or 0) if first_point else 0,
+        "videos": current_videos - int(first_point.get("video_count", 0) or 0) if first_point else 0,
+    }
+
+    return JSONResponse(
+        {
+            "channel": {
+                "id": channel["id"],
+                "name": channel["youtube_channel_name"],
+                "youtube_channel_id": channel["youtube_channel_id"],
+                "url": channel.get("youtube_channel_url"),
+            },
+            "period_days": days,
+            "current": {
+                "subscribers": current_subscribers,
+                "views": current_views,
+                "videos": current_videos,
+            },
+            "delta": delta,
+            "series": {
+                "labels": labels,
+                "subscribers": subscribers,
+                "views": views,
+                "videos": videos,
+            },
+        }
+    )

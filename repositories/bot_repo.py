@@ -19,6 +19,46 @@ class BotRepository:
             )
             return [dict(row) for row in cursor.fetchall()]
 
+    def get_user_youtube_api_key(self, user_id: int) -> Optional[str]:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT youtube_api_key
+                FROM user_bots
+                WHERE user_id = ?
+                  AND LOWER(COALESCE(platform, '')) = 'youtube'
+                  AND youtube_api_key IS NOT NULL
+                  AND TRIM(youtube_api_key) <> ''
+                ORDER BY created_at DESC
+                LIMIT 1
+                """,
+                (user_id,),
+            )
+            row = cursor.fetchone()
+            return row["youtube_api_key"] if row else None
+
+    def get_user_bot_by_platform(self, user_id: int, platform: str) -> Optional[Dict]:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT id, user_id, name, token, platform, inn, youtube_api_key, check_interval, created_at
+                FROM user_bots
+                WHERE user_id = ? AND LOWER(COALESCE(platform, '')) = ?
+                ORDER BY created_at DESC
+                LIMIT 1
+                """,
+                (user_id, (platform or "").lower()),
+            )
+            row = cursor.fetchone()
+            return dict(row) if row else None
+
+    def get_user_platform_token(self, user_id: int, platform: str) -> Optional[str]:
+        bot = self.get_user_bot_by_platform(user_id, platform)
+        token = (bot or {}).get("token")
+        return token if token and str(token).strip() else None
+
     def update_bot(
         self,
         bot_id: int,

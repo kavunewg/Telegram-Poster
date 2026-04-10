@@ -121,6 +121,7 @@ async def user_dashboard(request: Request, user: dict):
             "max_channels": max_channels,
             "telegram_count": len(telegram_channels),
             "max_count": len(max_channels),
+            "youtube_channels": youtube_channels,
             "youtube_count": len(youtube_channels),
             "vk_count": len(vk_channels),
             "total_channels": total_channels,

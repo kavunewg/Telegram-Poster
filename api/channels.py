@@ -40,6 +40,22 @@ def get_current_user(request: Request):
     return user
 
 
+def _validate_platform_bot(user_id: int, bot_id: int | None, platform: str):
+    if not bot_id:
+        return None
+
+    bot = bot_repo.get_by_id(bot_id, user_id)
+    if not bot:
+        return "Бот не найден"
+
+    bot_platform = (bot.get("platform") or "").lower()
+    channel_platform = (platform or "telegram").lower()
+    if bot_platform != channel_platform:
+        return f"Нельзя привязать бота платформы {bot_platform} к каналу платформы {channel_platform}"
+
+    return None
+
+
 @router.get("/my_channels", response_class=HTMLResponse)
 async def my_channels_page(request: Request):
     user = get_current_user(request)
@@ -135,6 +151,10 @@ async def add_channel(
     user = get_current_user(request)
     if not user:
         return RedirectResponse(url="/login", status_code=303)
+
+    validation_error = _validate_platform_bot(user["id"], bot_id, platform)
+    if validation_error:
+        return RedirectResponse(url=f"/my_channels?error={validation_error}", status_code=303)
     
     new_channel_id = channel_repo.add_channel(
         user["id"], channel_name, channel_id, channel_url, platform, api_key
@@ -160,6 +180,10 @@ async def update_channel(
     user = get_current_user(request)
     if not user:
         return RedirectResponse(url="/login", status_code=303)
+
+    validation_error = _validate_platform_bot(user["id"], bot_id, platform)
+    if validation_error:
+        return RedirectResponse(url=f"/my_channels?error={validation_error}", status_code=303)
     
     success = channel_repo.update_channel(
         channel_id, user["id"], channel_name, channel_id_value, channel_url, platform, api_key

@@ -3,7 +3,7 @@ Repository for YouTube monitored channels.
 """
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
 from core.database import get_db_connection
@@ -119,7 +119,20 @@ class YouTubeRepository(BaseRepository):
                 SELECT yc.id, yc.user_id, yc.youtube_channel_id, yc.youtube_channel_name,
                        yc.youtube_channel_url, yc.target_channels, yc.post_template,
                        yc.include_description, yc.last_video_id, yc.last_checked,
-                       yc.button_url, yc.button_style, u.youtube_api_key
+                       yc.button_url, yc.button_style,
+                       COALESCE(
+                           NULLIF(TRIM(u.youtube_api_key), ''),
+                           (
+                               SELECT ub.youtube_api_key
+                               FROM user_bots ub
+                               WHERE ub.user_id = yc.user_id
+                                 AND LOWER(COALESCE(ub.platform, '')) = 'youtube'
+                                 AND ub.youtube_api_key IS NOT NULL
+                                 AND TRIM(ub.youtube_api_key) <> ''
+                               ORDER BY ub.created_at DESC
+                               LIMIT 1
+                           )
+                       ) AS youtube_api_key
                 FROM youtube_channels yc
                 JOIN users u ON yc.user_id = u.id
                 WHERE yc.is_active = 1
@@ -199,6 +212,77 @@ class YouTubeRepository(BaseRepository):
             )
             conn.commit()
             return cursor.rowcount > 0
+
+    def has_recent_analytics_snapshot(self, channel_id: int, minutes: int = 60) -> bool:
+        threshold = (datetime.now() - timedelta(minutes=minutes)).isoformat()
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT 1
+                FROM youtube_channel_analytics
+                WHERE youtube_channel_db_id = ? AND recorded_at >= ?
+                LIMIT 1
+                """,
+                (channel_id, threshold),
+            )
+            return cursor.fetchone() is not None
+
+    def add_analytics_snapshot(
+        self,
+        user_id: int,
+        youtube_channel_db_id: int,
+        youtube_channel_id: str,
+        subscriber_count: int,
+        view_count: int,
+        video_count: int,
+    ) -> Optional[int]:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO youtube_channel_analytics (
+                    user_id,
+                    youtube_channel_db_id,
+                    youtube_channel_id,
+                    subscriber_count,
+                    view_count,
+                    video_count,
+                    recorded_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    user_id,
+                    youtube_channel_db_id,
+                    youtube_channel_id,
+                    int(subscriber_count or 0),
+                    int(view_count or 0),
+                    int(video_count or 0),
+                    datetime.now().isoformat(),
+                ),
+            )
+            conn.commit()
+            return cursor.lastrowid
+
+    def get_analytics_history(self, channel_id: int, user_id: int, days: int = 30) -> List[Dict]:
+        threshold = (datetime.now() - timedelta(days=max(days, 1))).isoformat()
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT
+                    subscriber_count,
+                    view_count,
+                    video_count,
+                    recorded_at
+                FROM youtube_channel_analytics
+                WHERE youtube_channel_db_id = ? AND user_id = ? AND recorded_at >= ?
+                ORDER BY recorded_at ASC
+                """,
+                (channel_id, user_id, threshold),
+            )
+            return [dict(row) for row in cursor.fetchall()]
 
 
 youtube_repo = YouTubeRepository()
