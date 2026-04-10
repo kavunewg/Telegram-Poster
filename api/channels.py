@@ -3,6 +3,7 @@
 """
 import json
 import logging
+from urllib.parse import urlencode
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -11,6 +12,7 @@ from repositories.user_repo import user_repo
 from repositories.channel_repo import channel_repo
 from repositories.bot_repo import bot_repo
 from repositories.youtube_repo import youtube_repo
+from services.youtube_service import get_youtube_channel_info
 
 # Добавляем импорт vk_repo
 try:
@@ -54,6 +56,45 @@ def _validate_platform_bot(user_id: int, bot_id: int | None, platform: str):
         return f"Нельзя привязать бота платформы {bot_platform} к каналу платформы {channel_platform}"
 
     return None
+
+
+def _my_channels_redirect(*, success: str = None, error: str = None):
+    params = {}
+    if success:
+        params["success"] = success
+    if error:
+        params["error"] = error
+    suffix = f"?{urlencode(params)}" if params else ""
+    return RedirectResponse(url=f"/my_channels{suffix}", status_code=303)
+
+
+def _resolve_youtube_api_key(user_id: int):
+    user_data = user_repo.get_by_id(user_id)
+    profile_key = (user_data or {}).get("youtube_api_key")
+    if profile_key and str(profile_key).strip():
+        return str(profile_key).strip()
+
+    bot_key = bot_repo.get_user_youtube_api_key(user_id)
+    if bot_key and str(bot_key).strip():
+        return str(bot_key).strip()
+
+    return None
+
+
+def _default_youtube_targets(user_id: int):
+    user_channels = channel_repo.get_user_channels(user_id)
+    return [
+        {
+            "id": ch.get("id"),
+            "name": ch.get("channel_name"),
+            "channel_name": ch.get("channel_name"),
+            "channel_id": ch.get("channel_id"),
+            "platform": ch.get("platform", "telegram"),
+            "bot_token": ch.get("bot_token"),
+        }
+        for ch in user_channels
+        if ch.get("platform") == "telegram"
+    ]
 
 
 @router.get("/my_channels", response_class=HTMLResponse)
@@ -141,7 +182,7 @@ async def get_channel(request: Request, channel_id: int):
 @router.post("/add_channel")
 async def add_channel(
     request: Request,
-    channel_name: str = Form(...),
+    channel_name: str = Form(""),
     channel_id: str = Form(...),
     channel_url: str = Form(None),
     platform: str = Form('telegram'),
@@ -154,7 +195,29 @@ async def add_channel(
 
     validation_error = _validate_platform_bot(user["id"], bot_id, platform)
     if validation_error:
-        return RedirectResponse(url=f"/my_channels?error={validation_error}", status_code=303)
+        return _my_channels_redirect(error=validation_error)
+
+    if (platform or "").lower() == "youtube":
+        youtube_api_key = _resolve_youtube_api_key(user["id"])
+        if not youtube_api_key:
+            return _my_channels_redirect(error="Сначала добавьте YouTube API key в профиле или в YouTube-боте")
+
+        channel_info = await get_youtube_channel_info(channel_id, youtube_api_key)
+        if "error" in channel_info:
+            return _my_channels_redirect(error=channel_info["error"])
+
+        youtube_repo.add_channel(
+            user["id"],
+            channel_info["id"],
+            channel_info["name"],
+            channel_info["url"],
+            _default_youtube_targets(user["id"]),
+            None,
+            0,
+            None,
+            "success",
+        )
+        return _my_channels_redirect(success="YouTube канал добавлен")
     
     new_channel_id = channel_repo.add_channel(
         user["id"], channel_name, channel_id, channel_url, platform, api_key
@@ -163,7 +226,7 @@ async def add_channel(
     if bot_id and new_channel_id:
         bot_repo.add_bot_channel(bot_id, new_channel_id)
     
-    return RedirectResponse(url="/my_channels?success=Канал добавлен", status_code=303)
+    return _my_channels_redirect(success="Канал добавлен")
 
 
 @router.post("/update_channel")
@@ -183,14 +246,14 @@ async def update_channel(
 
     validation_error = _validate_platform_bot(user["id"], bot_id, platform)
     if validation_error:
-        return RedirectResponse(url=f"/my_channels?error={validation_error}", status_code=303)
+        return _my_channels_redirect(error=validation_error)
     
     success = channel_repo.update_channel(
         channel_id, user["id"], channel_name, channel_id_value, channel_url, platform, api_key
     )
     
     if not success:
-        return RedirectResponse(url="/my_channels?error=Канал не найден", status_code=303)
+        return _my_channels_redirect(error="Канал не найден")
     
     from core.database import get_db_connection
     with get_db_connection() as conn:
@@ -201,7 +264,7 @@ async def update_channel(
     if bot_id and bot_id > 0:
         bot_repo.add_bot_channel(bot_id, channel_id)
     
-    return RedirectResponse(url="/my_channels?success=Канал обновлен", status_code=303)
+    return _my_channels_redirect(success="Канал обновлен")
 
 
 @router.post("/delete_channel/{channel_id}")
@@ -220,10 +283,10 @@ async def delete_channel_by_id(request: Request, channel_id: int):
             channel_repo.delete_channel(channel_id, user["id"])
         except Exception as exc:
             logger.exception("Channel delete failed: user_id=%s channel_id=%s", user["id"], channel_id)
-            return RedirectResponse(url=f"/my_channels?error=Ошибка удаления канала: {exc}", status_code=303)
-        return RedirectResponse(url="/my_channels?success=Канал удален", status_code=303)
+            return _my_channels_redirect(error=f"Ошибка удаления канала: {exc}")
+        return _my_channels_redirect(success="Канал удален")
     
-    return RedirectResponse(url="/my_channels?error=Канал не найден", status_code=303)
+    return _my_channels_redirect(error="Канал не найден")
 
 
 @router.post("/delete_channel/")
@@ -237,12 +300,12 @@ async def delete_channel_post(request: Request):
     channel_id = form_data.get("channel_id")
     
     if not channel_id:
-        return RedirectResponse(url="/my_channels?error=Не указан ID канала", status_code=303)
+        return _my_channels_redirect(error="Не указан ID канала")
     
     try:
         channel_id = int(channel_id)
     except ValueError:
-        return RedirectResponse(url="/my_channels?error=Неверный ID канала", status_code=303)
+        return _my_channels_redirect(error="Неверный ID канала")
     
     channels = channel_repo.get_user_channels(user["id"])
     channel_ids = [ch.get("id") for ch in channels]
@@ -252,7 +315,7 @@ async def delete_channel_post(request: Request):
             channel_repo.delete_channel(channel_id, user["id"])
         except Exception as exc:
             logger.exception("Channel delete failed (form): user_id=%s channel_id=%s", user["id"], channel_id)
-            return RedirectResponse(url=f"/my_channels?error=Ошибка удаления канала: {exc}", status_code=303)
-        return RedirectResponse(url="/my_channels?success=Канал удален", status_code=303)
+            return _my_channels_redirect(error=f"Ошибка удаления канала: {exc}")
+        return _my_channels_redirect(success="Канал удален")
     
-    return RedirectResponse(url="/my_channels?error=Канал не найден", status_code=303)
+    return _my_channels_redirect(error="Канал не найден")

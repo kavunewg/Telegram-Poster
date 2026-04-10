@@ -709,13 +709,14 @@ textarea.input{
         <div class="add-title">➕ Добавить новый канал</div>
         <form action="/add_channel" method="post" class="form">
             <input type="hidden" name="platform" id="addPlatform" value="telegram">
-            <input type="text" name="channel_name" class="input" placeholder="Название канала" required>
+            <input type="text" name="channel_name" id="channelNameInput" class="input" placeholder="Название канала" required>
             <select name="platform_select" id="platformSelect" class="input">
                 <option value="telegram">🤖 Telegram</option>
                 <option value="max">🏢 MAX</option>
                 <option value="vk">📘 VK</option>
+                <option value="youtube">🎬 YouTube</option>
             </select>
-            <div id="channelAccessHint" style="font-size:12px; color:#9ca3af; margin-top:-4px;">Telegram и MAX используют бота той же платформы. YouTube добавляется отдельно кнопкой ниже.</div>
+            <div id="channelAccessHint" style="font-size:12px; color:#9ca3af; margin-top:-4px;">Выберите платформу, укажите ID/URL канала и подходящий доступ.</div>
             <input type="text" name="channel_id" id="channelIdInput" class="input" placeholder="@username или ID" required>
             <select name="bot_id" id="addBotSelect" class="input">
                 <option value="">— Без бота —</option>
@@ -725,7 +726,6 @@ textarea.input{
             </select>
             <button type="submit" class="btn">+ Добавить</button>
         </form>
-        <button class="btn btn-outline" style="margin-top:12px; width:100%;" onclick="openAddYoutubeModal()">🎬 + Добавить YouTube канал</button>
     </div>
 
 </div>
@@ -832,6 +832,7 @@ document.querySelectorAll('.platform-card').forEach(card => {
 // Платформа в форме
 const ps = document.getElementById('platformSelect');
 const addPlatform = document.getElementById('addPlatform');
+const channelNameInput = document.getElementById('channelNameInput');
 const channelIdInput = document.getElementById('channelIdInput');
 const addBotSelect = document.getElementById('addBotSelect');
 const editBotSelect = document.getElementById('editBotSelect');
@@ -867,6 +868,8 @@ function updateChannelAccessHint(platform, target){
         hintNode.textContent = 'Для MAX нужен MAX-бот. Не привязывайте к MAX каналу Telegram- или VK-ботов.';
     } else if(platform === 'vk'){
         hintNode.textContent = 'Для VK выбирайте только VK-бота. Это убирает путаницу между платформами и токенами.';
+    } else if(platform === 'youtube'){
+        hintNode.textContent = 'Для YouTube укажите ссылку или ID канала. API key берется из профиля или YouTube-бота.';
     } else {
         hintNode.textContent = 'Привязывайте канал только к боту той же платформы.';
     }
@@ -903,6 +906,13 @@ if(ps){
         if(ps.value === 'telegram') channelIdInput.placeholder = '@username или -100...';
         else if(ps.value === 'max') channelIdInput.placeholder = 'ID канала';
         else if(ps.value === 'vk') channelIdInput.placeholder = 'ID группы (положительное число)';
+        else if(ps.value === 'youtube') channelIdInput.placeholder = 'https://youtube.com/@channel или UC...';
+        if(channelNameInput){
+            channelNameInput.required = ps.value !== 'youtube';
+            channelNameInput.placeholder = ps.value === 'youtube'
+                ? 'Можно оставить пустым: название подтянется из YouTube'
+                : 'Название канала';
+        }
         filterBotOptions(addBotSelect, ps.value);
         updateChannelAccessHint(ps.value, 'add');
     };
@@ -985,10 +995,28 @@ document.addEventListener('keydown', (e) => {
 // Сообщения из URL
 const urlParams = new URLSearchParams(window.location.search);
 const container = document.getElementById('alertContainer');
+
+function normalizeUrlMessage(value){
+    if(!value) return '';
+    let message = value;
+    try {
+        message = decodeURIComponent(value);
+    } catch(e) {}
+
+    if(/[РС][\u0080-\u00BF]|[ÐÑ][\u0080-\u00BF]/.test(message)){
+        try {
+            const bytes = Array.from(message, ch => ch.charCodeAt(0) & 255);
+            message = new TextDecoder('utf-8').decode(new Uint8Array(bytes));
+        } catch(e) {}
+    }
+
+    return message;
+}
+
 if(urlParams.get('success') && container){
     const div = document.createElement('div');
     div.className = 'alert alert-success';
-    div.innerHTML = '✅ ' + decodeURIComponent(urlParams.get('success'));
+    div.textContent = '✅ ' + normalizeUrlMessage(urlParams.get('success'));
     container.appendChild(div);
     setTimeout(() => div.remove(), 4000);
     window.history.replaceState({}, document.title, window.location.pathname);
@@ -996,7 +1024,7 @@ if(urlParams.get('success') && container){
 if(urlParams.get('error') && container){
     const div = document.createElement('div');
     div.className = 'alert alert-error';
-    div.innerHTML = '❌ ' + decodeURIComponent(urlParams.get('error'));
+    div.textContent = '❌ ' + normalizeUrlMessage(urlParams.get('error'));
     container.appendChild(div);
     setTimeout(() => div.remove(), 4000);
     window.history.replaceState({}, document.title, window.location.pathname);

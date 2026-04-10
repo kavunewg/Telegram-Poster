@@ -3,6 +3,7 @@
 """
 import json
 from datetime import datetime
+from urllib.parse import urlencode
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -44,6 +45,16 @@ def resolve_youtube_api_key(user_id: int) -> str | None:
         return str(bot_key).strip()
 
     return None
+
+
+def _my_channels_redirect(*, success: str = None, error: str = None):
+    params = {}
+    if success:
+        params["success"] = success
+    if error:
+        params["error"] = error
+    suffix = f"?{urlencode(params)}" if params else ""
+    return RedirectResponse(url=f"/my_channels{suffix}", status_code=303)
 
 
 @router.post("/add_youtube_channel")
