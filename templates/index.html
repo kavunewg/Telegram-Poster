@@ -45,16 +45,58 @@
             font-family: "Inter", sans-serif;
             color: var(--text);
             background:
-                radial-gradient(circle at 10% 10%, rgba(244, 114, 182, 0.16), transparent 26%),
-                radial-gradient(circle at 85% 12%, rgba(139, 92, 246, 0.16), transparent 28%),
-                linear-gradient(180deg, #fffafe 0%, #fbf1fa 48%, #f7ecfb 100%);
+                radial-gradient(circle at 12% 12%, rgba(255,255,255,0.62), transparent 28%),
+                linear-gradient(168deg, #f8eefa 0%, #f0deef 48%, #e5cfe9 100%);
             min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .particles {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .dot {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,1), rgba(255,169,216,0.76), transparent 72%);
+            box-shadow: 0 0 24px rgba(255, 160, 210, 0.55), 0 0 42px rgba(255, 170, 214, 0.34);
+            animation: drift linear infinite, twinkle 3.2s ease-in-out infinite;
+            opacity: 0.92;
+        }
+
+        .d1 { width: 12px; height: 12px; left: 8%; top: 82%; animation-duration: 16s; }
+        .d2 { width: 15px; height: 15px; left: 20%; top: 78%; animation-duration: 22s; animation-delay: -5s; }
+        .d3 { width: 10px; height: 10px; left: 32%; top: 88%; animation-duration: 18s; animation-delay: -2s; }
+        .d4 { width: 17px; height: 17px; left: 44%; top: 80%; animation-duration: 24s; animation-delay: -8s; }
+        .d5 { width: 11px; height: 11px; left: 56%; top: 90%; animation-duration: 20s; animation-delay: -4s; }
+        .d6 { width: 14px; height: 14px; left: 68%; top: 84%; animation-duration: 19s; animation-delay: -6s; }
+        .d7 { width: 9px; height: 9px; left: 76%; top: 92%; animation-duration: 17s; animation-delay: -3s; }
+        .d8 { width: 16px; height: 16px; left: 88%; top: 86%; animation-duration: 23s; animation-delay: -9s; }
+        .d9 { width: 10px; height: 10px; left: 14%; top: 72%; animation-duration: 21s; animation-delay: -7s; }
+        .d10{ width: 12px; height: 12px; left: 62%; top: 74%; animation-duration: 15s; animation-delay: -1s; }
+
+        @keyframes drift {
+            0%   { transform: translate3d(0, 0, 0) scale(0.8); opacity: 0; }
+            12%  { opacity: 0.92; }
+            88%  { opacity: 0.92; }
+            100% { transform: translate3d(20px, -105vh, 0) scale(1.12); opacity: 0; }
+        }
+
+        @keyframes twinkle {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.35); }
         }
 
         .page {
             width: min(1180px, calc(100% - 32px));
             margin: 0 auto;
             padding: 18px 0 48px;
+            position: relative;
+            z-index: 1;
         }
 
         .topbar {
@@ -476,6 +518,10 @@
     </style>
 </head>
 <body>
+    <div class="particles">
+        <span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span><span class="dot d4"></span><span class="dot d5"></span>
+        <span class="dot d6"></span><span class="dot d7"></span><span class="dot d8"></span><span class="dot d9"></span><span class="dot d10"></span>
+    </div>
     <div class="page">
         <header class="topbar">
             <div class="brand">
