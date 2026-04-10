@@ -124,6 +124,32 @@
             letter-spacing: -0.02em;
         }
 
+        .quick-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .quick-nav a {
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+            padding: 8px 11px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            transition: all 0.18s ease;
+            white-space: nowrap;
+        }
+
+        .quick-nav a:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.74);
+            border-color: var(--border);
+        }
+
         .logo {
             width: 40px;
             height: 40px;
@@ -466,6 +492,10 @@
         }
 
         @media (max-width: 1020px) {
+            .quick-nav {
+                display: none;
+            }
+
             .grid-3,
             .grid-2 {
                 grid-template-columns: 1fr 1fr;
@@ -528,36 +558,40 @@
                 <span class="logo">🤖</span>
                 <span>Telegram Poster</span>
             </div>
+            <nav class="quick-nav">
+                <a href="#about">О нас</a>
+                <a href="#features">Возможности</a>
+                <a href="#benefits">Преимущества</a>
+                <a href="#price">Тарифы</a>
+                <a href="#faq">FAQ</a>
+            </nav>
             <nav class="nav">
                 <a class="btn btn-secondary" href="/login">Войти</a>
                 <a class="btn btn-primary" href="/register">Регистрация</a>
             </nav>
         </header>
 
-        <section class="hero">
+        <section class="hero" id="about">
             <span class="eyebrow">Автопостер Telegram / YouTube / Max / VK</span>
             <h1>Автопостинг без хаоса: один кабинет для публикаций, расписания и контроля отправки</h1>
             <p class="hero-text">
-                Telegram Poster — это простой и понятный автопостер для тех, кто хочет публиковать контент в несколько каналов и площадок
-                без ручной рутины. Вы создаёте пост один раз, добавляете медиа и кнопку, выбираете каналы, а сервис публикует всё сам:
-                сразу, по времени или регулярно по расписанию.
+                Один пост — сразу в несколько каналов и площадок. Без ручной рутины, с понятным интерфейсом,
+                медиа, кнопками, расписанием и контролем отправки в одном кабинете.
             </p>
             <div class="hero-actions">
                 <a class="btn btn-primary" href="/register">Попробовать</a>
                 <a class="btn btn-secondary" href="/login">У меня уже есть аккаунт</a>
             </div>
             <p class="hero-note">
-                Подходит для Telegram-каналов, уведомлений по YouTube, публикаций в Max и VK. Внутри есть очередь, повторные попытки,
-                статусы отправки и статистика по публикациям.
+                Подходит для Telegram, YouTube, Max и VK. Есть очередь, повторы при ошибках, статусы и статистика.
             </p>
         </section>
 
-        <section class="section">
+        <section class="section" id="features">
             <div class="section-header">
                 <h2 class="section-title">Что умеет сервис</h2>
                 <p class="section-text">
-                    Сначала коротко и по делу: это автопостер, который помогает не вручную переносить один и тот же контент по разным
-                    каналам, а управлять публикацией из одного кабинета.
+                    Ключевые функции, которые закрывают рутину публикаций и экономят время каждый день.
                 </p>
             </div>
             <div class="grid-3">
@@ -588,11 +622,11 @@
             </div>
         </section>
 
-        <section class="section">
+        <section class="section" id="scenarios">
             <div class="section-header">
                 <h2 class="section-title">Основные сценарии</h2>
                 <p class="section-text">
-                    Эти три вещи важны почти всем, поэтому они вынесены отдельно ниже, а не забивают первый экран.
+                    Самые частые задачи, ради которых обычно и подключают автопостер.
                 </p>
             </div>
             <div class="grid-3">
@@ -611,11 +645,11 @@
             </div>
         </section>
 
-        <section class="section">
+        <section class="section" id="audience">
             <div class="section-header">
                 <h2 class="section-title">Кому подходит Telegram Poster</h2>
                 <p class="section-text">
-                    Сервис нужен не только “большим SMM-командам”. Он полезен всем, кто регулярно публикует контент и устал делать одно и то же руками.
+                    Подходит и бизнесу, и авторам, и небольшим командам, которые хотят стабильный контент без ручной рутины.
                 </p>
             </div>
             <div class="grid-2">
@@ -638,11 +672,11 @@
             </div>
         </section>
 
-        <section class="section">
+        <section class="section" id="benefits">
             <div class="section-header">
                 <h2 class="section-title">Преимущества сервиса</h2>
                 <p class="section-text">
-                    Без перегруза и маркетинговой воды: только то, что реально важно в повседневной работе с постами.
+                    Коротко и по делу: что именно даёт сервис в ежедневной работе.
                 </p>
             </div>
             <div class="plain-list">
@@ -653,11 +687,11 @@
             </div>
         </section>
 
-        <section class="section">
+        <section class="section" id="price">
             <div class="section-header">
                 <h2 class="section-title">Как это работает</h2>
                 <p class="section-text">
-                    Всё максимально просто и разложено по шагам, чтобы было понятно с первого захода, даже если вы раньше не пользовались автопостерами.
+                    Четыре шага от регистрации до результата. Без сложного онбординга.
                 </p>
             </div>
             <div class="visual-steps">
@@ -684,11 +718,11 @@
             </div>
         </section>
 
-        <section class="section">
+        <section class="section" id="faq">
             <div class="section-header">
                 <h2 class="section-title">Тарифы</h2>
                 <p class="section-text">
-                    Сначала вы понимаете, как работает сервис и что он умеет, и только потом выбираете подходящий тариф.
+                    Два понятных тарифа: быстрый тест и полный доступ.
                 </p>
             </div>
             <div class="grid-2">
