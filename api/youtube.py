@@ -34,13 +34,8 @@ def get_current_user(request: Request):
     return user
 
 
-def resolve_youtube_api_key(user_id: int) -> str | None:
-    user_data = user_repo.get_by_id(user_id)
-    profile_key = (user_data or {}).get("youtube_api_key")
-    if profile_key and str(profile_key).strip():
-        return str(profile_key).strip()
-
-    bot_key = bot_repo.get_user_youtube_api_key(user_id)
+def resolve_youtube_api_key(user_id: int, bot_id: int = None) -> str | None:
+    bot_key = bot_repo.get_user_youtube_api_key(user_id, bot_id)
     if bot_key and str(bot_key).strip():
         return str(bot_key).strip()
 
@@ -65,7 +60,8 @@ async def add_youtube_channel_endpoint(
     post_template: str = Form(None),
     include_description: int = Form(0),
     button_url: str = Form(None),
-    button_style: str = Form('success')
+    button_style: str = Form('success'),
+    bot_id: int = Form(None)
 ):
     user = get_current_user(request)
     if not user:
@@ -75,12 +71,12 @@ async def add_youtube_channel_endpoint(
     if not user_data:
         return RedirectResponse(url="/login", status_code=303)
     
-    user_api_key = resolve_youtube_api_key(user["id"])
+    if not bot_id:
+        return _my_channels_redirect(error="Для YouTube выберите YouTube API key в поле бота")
+
+    user_api_key = resolve_youtube_api_key(user["id"], bot_id)
     if not user_api_key:
-        return RedirectResponse(
-            url="/my_channels?error=Сначала добавьте YouTube API ключ в настройках профиля",
-            status_code=303
-        )
+        return _my_channels_redirect(error="Сначала добавьте YouTube API key в разделе Мои боты")
     
     channel_info = await get_youtube_channel_info(youtube_url, user_api_key)
     if "error" in channel_info:
@@ -121,7 +117,8 @@ async def add_youtube_channel_endpoint(
         post_template,
         include_description,
         button_url,
-        button_style
+        button_style,
+        bot_id
     )
     
     return RedirectResponse(url="/my_channels?success=YouTube канал добавлен", status_code=303)
@@ -239,7 +236,7 @@ async def api_youtube_channel_analytics(request: Request, channel_id: int, days:
     if not channel:
         return JSONResponse({"error": "Channel not found"}, status_code=404)
 
-    user_api_key = resolve_youtube_api_key(user["id"])
+    user_api_key = resolve_youtube_api_key(user["id"], channel.get("bot_id"))
     if not user_api_key:
         return JSONResponse({"error": "YouTube API key is not configured"}, status_code=400)
 

@@ -423,7 +423,9 @@ def init_db():
                 created_at TEXT,
                 button_url TEXT,
                 button_style TEXT DEFAULT 'success',
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                bot_id INTEGER,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (bot_id) REFERENCES user_bots(id) ON DELETE SET NULL
             )
         """)
 
@@ -471,6 +473,7 @@ def init_db():
             "CREATE INDEX IF NOT EXISTS idx_scheduled_posts_user_id ON scheduled_posts(user_id)",
             "CREATE INDEX IF NOT EXISTS idx_scheduled_posts_scheduled_at ON scheduled_posts(scheduled_at)",
             "CREATE INDEX IF NOT EXISTS idx_youtube_channels_user_id ON youtube_channels(user_id)",
+            "CREATE INDEX IF NOT EXISTS idx_youtube_channels_bot_id ON youtube_channels(bot_id)",
             "CREATE INDEX IF NOT EXISTS idx_youtube_channels_last_checked ON youtube_channels(last_checked)",
             "CREATE INDEX IF NOT EXISTS idx_yt_analytics_user_id ON youtube_channel_analytics(user_id)",
             "CREATE INDEX IF NOT EXISTS idx_yt_analytics_channel_id ON youtube_channel_analytics(youtube_channel_db_id)",
@@ -541,6 +544,13 @@ def _run_migrations(conn: sqlite3.Connection):
             cursor.execute("ALTER TABLE scheduled_posts ADD COLUMN updated_at TEXT")
             cursor.execute("UPDATE scheduled_posts SET updated_at = created_at WHERE updated_at IS NULL")
             logger.info("  Added updated_at column to scheduled_posts")
+
+    if table_exists('youtube_channels'):
+        columns = get_table_columns('youtube_channels')
+
+        if 'bot_id' not in columns:
+            cursor.execute("ALTER TABLE youtube_channels ADD COLUMN bot_id INTEGER")
+            logger.info("  Added bot_id column to youtube_channels")
 
     conn.commit()
 

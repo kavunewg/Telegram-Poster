@@ -19,9 +19,26 @@ class BotRepository:
             )
             return [dict(row) for row in cursor.fetchall()]
 
-    def get_user_youtube_api_key(self, user_id: int) -> Optional[str]:
+    def get_user_youtube_api_key(self, user_id: int, bot_id: int = None) -> Optional[str]:
         with get_db_connection() as conn:
             cursor = conn.cursor()
+            if bot_id:
+                cursor.execute(
+                    """
+                    SELECT youtube_api_key
+                    FROM user_bots
+                    WHERE id = ?
+                      AND user_id = ?
+                      AND LOWER(COALESCE(platform, '')) = 'youtube'
+                      AND youtube_api_key IS NOT NULL
+                      AND TRIM(youtube_api_key) <> ''
+                    LIMIT 1
+                    """,
+                    (bot_id, user_id),
+                )
+                row = cursor.fetchone()
+                return row["youtube_api_key"] if row else None
+
             cursor.execute(
                 """
                 SELECT youtube_api_key

@@ -68,13 +68,8 @@ def _my_channels_redirect(*, success: str = None, error: str = None):
     return RedirectResponse(url=f"/my_channels{suffix}", status_code=303)
 
 
-def _resolve_youtube_api_key(user_id: int):
-    user_data = user_repo.get_by_id(user_id)
-    profile_key = (user_data or {}).get("youtube_api_key")
-    if profile_key and str(profile_key).strip():
-        return str(profile_key).strip()
-
-    bot_key = bot_repo.get_user_youtube_api_key(user_id)
+def _resolve_youtube_api_key(user_id: int, bot_id: int = None):
+    bot_key = bot_repo.get_user_youtube_api_key(user_id, bot_id)
     if bot_key and str(bot_key).strip():
         return str(bot_key).strip()
 
@@ -198,9 +193,12 @@ async def add_channel(
         return _my_channels_redirect(error=validation_error)
 
     if (platform or "").lower() == "youtube":
-        youtube_api_key = _resolve_youtube_api_key(user["id"])
+        if not bot_id:
+            return _my_channels_redirect(error="Для YouTube выберите YouTube API key в поле бота")
+
+        youtube_api_key = _resolve_youtube_api_key(user["id"], bot_id)
         if not youtube_api_key:
-            return _my_channels_redirect(error="Сначала добавьте YouTube API key в профиле или в YouTube-боте")
+            return _my_channels_redirect(error="Сначала добавьте YouTube API key в разделе Мои боты")
 
         channel_info = await get_youtube_channel_info(channel_id, youtube_api_key)
         if "error" in channel_info:
@@ -216,6 +214,7 @@ async def add_channel(
             0,
             None,
             "success",
+            bot_id,
         )
         return _my_channels_redirect(success="YouTube канал добавлен")
     

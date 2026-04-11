@@ -32,11 +32,6 @@ def get_current_user(request: Request):
 
 
 def resolve_youtube_api_key(user_id: int) -> str | None:
-    user_data = user_repo.get_by_id(user_id)
-    profile_key = (user_data or {}).get("youtube_api_key")
-    if profile_key and str(profile_key).strip():
-        return str(profile_key).strip()
-
     bot_key = bot_repo.get_user_youtube_api_key(user_id)
     if bot_key and str(bot_key).strip():
         return str(bot_key).strip()

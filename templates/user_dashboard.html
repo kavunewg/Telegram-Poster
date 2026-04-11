@@ -236,11 +236,13 @@ body::before{
 }
 
 .analytics-shell{
-    background:rgba(20,20,40,0.7);
+    background:rgba(255,255,255,0.78);
     backdrop-filter:blur(20px);
     border-radius:24px;
     padding:24px;
-    border:1px solid rgba(255,255,255,0.08);
+    border:1px solid rgba(226,181,235,0.75);
+    box-shadow:0 24px 70px rgba(155,70,180,0.14);
+    color:#2d2340;
 }
 
 .analytics-header{
@@ -260,7 +262,7 @@ body::before{
 
 .analytics-subtitle{
     font-size:13px;
-    color:#9ca3af;
+    color:#756682;
     max-width:680px;
 }
 
@@ -275,9 +277,9 @@ body::before{
     min-width:260px;
     padding:12px 14px;
     border-radius:14px;
-    border:1px solid rgba(255,255,255,0.12);
-    background:rgba(15,15,30,0.72);
-    color:#fff;
+    border:1px solid rgba(214,166,226,0.78);
+    background:rgba(255,255,255,0.92);
+    color:#2d2340;
     font-size:14px;
 }
 
@@ -288,19 +290,22 @@ body::before{
 }
 
 .period-btn{
-    border:none;
+    border:1px solid rgba(214,166,226,0.62);
     border-radius:999px;
     padding:10px 14px;
     font-size:12px;
     font-weight:700;
-    background:rgba(255,255,255,0.08);
-    color:#fff;
+    background:rgba(255,255,255,0.76);
+    color:#6f4f86;
     cursor:pointer;
     transition:0.2s;
 }
 
 .period-btn.active{
     background:linear-gradient(135deg,#6366f1,#ec4899);
+    border-color:transparent;
+    color:#fff;
+    box-shadow:0 12px 28px rgba(236,72,153,0.22);
 }
 
 .yt-stats-grid{
@@ -311,14 +316,15 @@ body::before{
 }
 
 .yt-stat-card{
-    background:rgba(15,15,30,0.52);
-    border:1px solid rgba(255,255,255,0.08);
+    background:rgba(255,255,255,0.74);
+    border:1px solid rgba(226,181,235,0.68);
     border-radius:20px;
     padding:18px;
+    box-shadow:0 14px 34px rgba(163,91,180,0.10);
 }
 
 .yt-stat-label{
-    color:#9ca3af;
+    color:#756682;
     font-size:12px;
     margin-bottom:8px;
 }
@@ -336,7 +342,7 @@ body::before{
 
 .yt-stat-delta.positive{color:#10b981;}
 .yt-stat-delta.negative{color:#ef4444;}
-.yt-stat-delta.neutral{color:#9ca3af;}
+.yt-stat-delta.neutral{color:#8b7b96;}
 
 .analytics-charts{
     display:grid;
@@ -345,10 +351,11 @@ body::before{
 }
 
 .chart-card{
-    background:rgba(15,15,30,0.52);
-    border:1px solid rgba(255,255,255,0.08);
+    background:rgba(255,255,255,0.74);
+    border:1px solid rgba(226,181,235,0.68);
     border-radius:22px;
     padding:18px;
+    box-shadow:0 14px 34px rgba(163,91,180,0.10);
 }
 
 .chart-card h3{
@@ -359,7 +366,7 @@ body::before{
 
 .chart-card p{
     font-size:12px;
-    color:#9ca3af;
+    color:#756682;
     margin-bottom:14px;
 }
 
@@ -375,7 +382,7 @@ body::before{
     align-items:center;
     justify-content:center;
     text-align:center;
-    color:#9ca3af;
+    color:#756682;
     font-size:13px;
 }
 
@@ -385,8 +392,8 @@ body::before{
 }
 
 .mini-metric{
-    background:rgba(255,255,255,0.04);
-    border:1px solid rgba(255,255,255,0.06);
+    background:rgba(255,255,255,0.72);
+    border:1px solid rgba(226,181,235,0.62);
     border-radius:18px;
     padding:14px;
 }
@@ -401,7 +408,7 @@ body::before{
 
 .mini-metric-title{
     font-size:13px;
-    color:#cbd5e1;
+    color:#756682;
     font-weight:600;
 }
 
@@ -413,7 +420,7 @@ body::before{
 .mini-bar{
     height:10px;
     border-radius:999px;
-    background:rgba(255,255,255,0.08);
+    background:rgba(214,166,226,0.26);
     overflow:hidden;
 }
 
@@ -751,11 +758,6 @@ body::before{
                 <input type="email" name="email" id="profileEmail" value="{{ user.email or '' }}" class="input" style="width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(15,15,30,0.7); color:#fff;">
             </div>
             <div style="margin-bottom:16px;">
-                <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">YouTube API Key</label>
-                <input type="text" name="youtube_api_key" id="profileYoutubeApiKey" value="{{ user.youtube_api_key or '' }}" class="input" style="width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(15,15,30,0.7); color:#fff;" placeholder="AIza...">
-                <div style="margin-top:6px; font-size:12px; color:#9ca3af;">Нужен только для YouTube: добавления канала, аналитики и автопроверки новых видео.</div>
-            </div>
-            <div style="margin-bottom:16px;">
                 <label style="display:block; margin-bottom:6px; font-size:13px; color:#9ca3af;">Новый пароль</label>
                 <input type="password" name="new_password" id="profileNewPassword" autocomplete="new-password" class="input" style="width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); background:rgba(15,15,30,0.7); color:#fff;" placeholder="Оставьте пустым, чтобы не менять">
             </div>
@@ -901,7 +903,7 @@ function buildLineChart(labels, values, color) {
     const polyline = points.map((p) => `${p.x},${p.y}`).join(' ');
     const grid = [0, 0.5, 1].map((ratio) => {
         const y = paddingTop + (height - paddingTop - paddingBottom) * ratio;
-        return `<line x1="${paddingX}" y1="${y}" x2="${width - paddingX}" y2="${y}" stroke="rgba(255,255,255,0.10)" stroke-dasharray="4 6" />`;
+        return `<line x1="${paddingX}" y1="${y}" x2="${width - paddingX}" y2="${y}" stroke="rgba(155,70,180,0.16)" stroke-dasharray="4 6" />`;
     }).join('');
 
     const dots = points.map((p) => `
@@ -914,7 +916,7 @@ function buildLineChart(labels, values, color) {
     const xLabels = points.map((p, index) => {
         const shouldShow = labels.length <= 7 || index === 0 || index === labels.length - 1 || index % Math.ceil(labels.length / 6) === 0;
         return shouldShow
-            ? `<text x="${p.x}" y="${height - 12}" text-anchor="middle" fill="rgba(203,213,225,0.88)" font-size="11">${p.label}</text>`
+            ? `<text x="${p.x}" y="${height - 12}" text-anchor="middle" fill="rgba(117,102,130,0.92)" font-size="11">${p.label}</text>`
             : '';
     }).join('');
 

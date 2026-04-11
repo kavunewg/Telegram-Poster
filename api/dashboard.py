@@ -139,7 +139,6 @@ async def update_profile(
     username: str = Form(...),
     full_name: str = Form(...),
     email: str = Form(""),
-    youtube_api_key: str = Form(None),
 ):
     user = get_current_user(request)
     if not user:
@@ -161,7 +160,6 @@ async def update_profile(
         username=username,
         full_name=full_name,
         email=email,
-        youtube_api_key=youtube_api_key,
     )
     if success:
         return RedirectResponse(url="/dashboard?success=РџСЂРѕС„РёР»СЊ РѕР±РЅРѕРІР»С‘РЅ", status_code=303)

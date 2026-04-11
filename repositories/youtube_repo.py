@@ -45,6 +45,7 @@ class YouTubeRepository(BaseRepository):
         include_description: int = 0,
         button_url: str = None,
         button_style: str = "success",
+        bot_id: int = None,
     ) -> Optional[int]:
         with get_db_connection() as conn:
             cursor = conn.cursor()
@@ -54,9 +55,9 @@ class YouTubeRepository(BaseRepository):
                     INSERT INTO youtube_channels (
                         user_id, youtube_channel_id, youtube_channel_name, youtube_channel_url,
                         target_channels, post_template, include_description, button_url, button_style,
-                        created_at, is_active
+                        created_at, is_active, bot_id
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         user_id,
@@ -70,6 +71,7 @@ class YouTubeRepository(BaseRepository):
                         button_style or "success",
                         datetime.now().isoformat(),
                         1,
+                        bot_id,
                     ),
                 )
                 conn.commit()
@@ -86,7 +88,7 @@ class YouTubeRepository(BaseRepository):
                 SELECT id, user_id, youtube_channel_id, youtube_channel_name,
                        youtube_channel_url, target_channels, post_template,
                        include_description, last_video_id, last_checked,
-                       is_active, created_at, button_url, button_style
+                       is_active, created_at, button_url, button_style, bot_id
                 FROM youtube_channels
                 WHERE user_id = ?
                 ORDER BY created_at DESC
@@ -103,7 +105,7 @@ class YouTubeRepository(BaseRepository):
                 SELECT id, user_id, youtube_channel_id, youtube_channel_name, youtube_channel_url,
                        target_channels, post_template, include_description,
                        last_video_id, last_checked, is_active, created_at,
-                       button_url, button_style
+                       button_url, button_style, bot_id
                 FROM youtube_channels
                 WHERE id = ? AND user_id = ?
                 """,
@@ -119,10 +121,10 @@ class YouTubeRepository(BaseRepository):
                 SELECT yc.id, yc.user_id, yc.youtube_channel_id, yc.youtube_channel_name,
                        yc.youtube_channel_url, yc.target_channels, yc.post_template,
                        yc.include_description, yc.last_video_id, yc.last_checked,
-                       yc.button_url, yc.button_style,
-                       COALESCE(
-                           NULLIF(TRIM(u.youtube_api_key), ''),
-                           (
+                       yc.button_url, yc.button_style, yc.bot_id,
+                       CASE
+                           WHEN yc.bot_id IS NOT NULL THEN NULLIF(TRIM(yb.youtube_api_key), '')
+                           ELSE (
                                SELECT ub.youtube_api_key
                                FROM user_bots ub
                                WHERE ub.user_id = yc.user_id
@@ -132,9 +134,12 @@ class YouTubeRepository(BaseRepository):
                                ORDER BY ub.created_at DESC
                                LIMIT 1
                            )
-                       ) AS youtube_api_key
+                       END AS youtube_api_key
                 FROM youtube_channels yc
-                JOIN users u ON yc.user_id = u.id
+                LEFT JOIN user_bots yb
+                  ON yb.id = yc.bot_id
+                 AND yb.user_id = yc.user_id
+                 AND LOWER(COALESCE(yb.platform, '')) = 'youtube'
                 WHERE yc.is_active = 1
                 """
             )

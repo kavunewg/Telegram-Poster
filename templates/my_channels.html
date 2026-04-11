@@ -869,7 +869,7 @@ function updateChannelAccessHint(platform, target){
     } else if(platform === 'vk'){
         hintNode.textContent = 'Для VK выбирайте только VK-бота. Это убирает путаницу между платформами и токенами.';
     } else if(platform === 'youtube'){
-        hintNode.textContent = 'Для YouTube укажите ссылку или ID канала. API key берется из профиля или YouTube-бота.';
+        hintNode.textContent = 'Для YouTube укажите ссылку или ID канала и выберите YouTube-бота. API key хранится в разделе "Мои боты", поэтому можно использовать несколько ключей.';
     } else {
         hintNode.textContent = 'Привязывайте канал только к боту той же платформы.';
     }
@@ -914,12 +914,18 @@ if(ps){
                 : 'Название канала';
         }
         filterBotOptions(addBotSelect, ps.value);
+        if(addBotSelect){
+            addBotSelect.required = ps.value === 'youtube';
+        }
         updateChannelAccessHint(ps.value, 'add');
     };
 }
 
 // YouTube модалка
 filterBotOptions(addBotSelect, ps?.value || 'telegram');
+if(addBotSelect){
+    addBotSelect.required = (ps?.value || 'telegram') === 'youtube';
+}
 updateChannelAccessHint(ps?.value || 'telegram', 'add');
 function openAddYoutubeModal() {
     document.getElementById('addYoutubeModal').classList.add('active');

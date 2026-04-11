@@ -16,8 +16,7 @@ async def update_profile(
     request: Request,
     username: str = Form(...),
     full_name: str = Form(...),
-    email: str = Form(""),
-    youtube_api_key: str = Form(None)
+    email: str = Form("")
 ):
     """Обновление профиля"""
     user = get_current_user(request)
@@ -42,7 +41,6 @@ async def update_profile(
         username=username,
         full_name=full_name,
         email=email,
-        youtube_api_key=youtube_api_key,
     )
     
     if success:
