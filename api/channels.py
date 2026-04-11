@@ -68,6 +68,15 @@ def _my_channels_redirect(*, success: str = None, error: str = None):
     return RedirectResponse(url=f"/my_channels{suffix}", status_code=303)
 
 
+def _parse_optional_int(value) -> int | None:
+    if value in (None, ""):
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _resolve_youtube_api_key(user_id: int, bot_id: int = None):
     bot_key = bot_repo.get_user_youtube_api_key(user_id, bot_id)
     if bot_key and str(bot_key).strip():
@@ -182,21 +191,22 @@ async def add_channel(
     channel_url: str = Form(None),
     platform: str = Form('telegram'),
     api_key: str = Form(None),
-    bot_id: int = Form(None)
+    bot_id: str = Form(None)
 ):
     user = get_current_user(request)
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    validation_error = _validate_platform_bot(user["id"], bot_id, platform)
+    parsed_bot_id = _parse_optional_int(bot_id)
+    validation_error = _validate_platform_bot(user["id"], parsed_bot_id, platform)
     if validation_error:
         return _my_channels_redirect(error=validation_error)
 
     if (platform or "").lower() == "youtube":
-        if not bot_id:
+        if not parsed_bot_id:
             return _my_channels_redirect(error="Для YouTube выберите YouTube API key в поле бота")
 
-        youtube_api_key = _resolve_youtube_api_key(user["id"], bot_id)
+        youtube_api_key = _resolve_youtube_api_key(user["id"], parsed_bot_id)
         if not youtube_api_key:
             return _my_channels_redirect(error="Сначала добавьте YouTube API key в разделе Мои боты")
 
@@ -214,7 +224,7 @@ async def add_channel(
             0,
             None,
             "success",
-            bot_id,
+            parsed_bot_id,
         )
         return _my_channels_redirect(success="YouTube канал добавлен")
     
@@ -222,8 +232,8 @@ async def add_channel(
         user["id"], channel_name, channel_id, channel_url, platform, api_key
     )
     
-    if bot_id and new_channel_id:
-        bot_repo.add_bot_channel(bot_id, new_channel_id)
+    if parsed_bot_id and new_channel_id:
+        bot_repo.add_bot_channel(parsed_bot_id, new_channel_id)
     
     return _my_channels_redirect(success="Канал добавлен")
 
@@ -237,13 +247,14 @@ async def update_channel(
     channel_url: str = Form(None),
     platform: str = Form('telegram'),
     api_key: str = Form(None),
-    bot_id: int = Form(None)
+    bot_id: str = Form(None)
 ):
     user = get_current_user(request)
     if not user:
         return RedirectResponse(url="/login", status_code=303)
 
-    validation_error = _validate_platform_bot(user["id"], bot_id, platform)
+    parsed_bot_id = _parse_optional_int(bot_id)
+    validation_error = _validate_platform_bot(user["id"], parsed_bot_id, platform)
     if validation_error:
         return _my_channels_redirect(error=validation_error)
     
@@ -260,8 +271,8 @@ async def update_channel(
         cursor.execute("DELETE FROM bot_channels WHERE channel_id = ?", (channel_id,))
         conn.commit()
     
-    if bot_id and bot_id > 0:
-        bot_repo.add_bot_channel(bot_id, channel_id)
+    if parsed_bot_id and parsed_bot_id > 0:
+        bot_repo.add_bot_channel(parsed_bot_id, channel_id)
     
     return _my_channels_redirect(success="Канал обновлен")
 

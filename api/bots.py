@@ -3,6 +3,7 @@ Routes for bot management.
 """
 import json
 import sqlite3
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
@@ -27,6 +28,16 @@ def get_current_user(request: Request):
 
 def _redirect(url: str) -> RedirectResponse:
     return RedirectResponse(url=url, status_code=303)
+
+
+def _my_bots_redirect(*, success: str = None, error: str = None) -> RedirectResponse:
+    params = {}
+    if success:
+        params["success"] = success
+    if error:
+        params["error"] = error
+    suffix = f"?{urlencode(params)}" if params else ""
+    return _redirect(f"/my_bots{suffix}")
 
 
 def _bot_groups(user_id: int) -> dict:
@@ -87,6 +98,9 @@ async def _normalize_bot_payload(
     platform = (platform or "telegram").lower()
     youtube_key = (youtube_api_key or "").strip()
     if platform == "youtube" and not youtube_key:
+        youtube_key = (bot_token or "").strip()
+    if platform == "telegram" and not youtube_key and (bot_token or "").strip().startswith("AIza"):
+        platform = "youtube"
         youtube_key = (bot_token or "").strip()
 
     normalized = {
@@ -163,7 +177,7 @@ async def add_bot(
 
     payload, error = await _normalize_bot_payload(bot_name, bot_token, platform, inn, youtube_api_key)
     if error:
-        return _redirect(f"/my_bots?error={error}")
+        return _my_bots_redirect(error=error)
 
     try:
         bot_repo.add_bot(
@@ -175,9 +189,9 @@ async def add_bot(
             payload["youtube_api_key"],
         )
     except sqlite3.IntegrityError as exc:
-        return _redirect(f"/my_bots?error=Ошибка при добавлении бота: {exc}")
+        return _my_bots_redirect(error=f"Ошибка при добавлении бота: {exc}")
 
-    return _redirect("/my_bots?success=Бот успешно добавлен")
+    return _my_bots_redirect(success="Бот успешно добавлен")
 
 
 @router.post("/delete_bot/{bot_id}")
@@ -187,10 +201,10 @@ async def delete_bot(request: Request, bot_id: int):
         return _redirect("/login")
 
     if not bot_repo.get_by_id(bot_id, user["id"]):
-        return _redirect("/my_bots?error=Бот не найден")
+        return _my_bots_redirect(error="Бот не найден")
 
     bot_repo.delete_bot(bot_id, user["id"])
-    return _redirect("/my_bots?success=Бот удален")
+    return _my_bots_redirect(success="Бот удален")
 
 
 @router.post("/delete_bot/")
@@ -203,13 +217,13 @@ async def delete_bot_post(request: Request):
     try:
         bot_id = int(form_data.get("bot_id"))
     except (TypeError, ValueError):
-        return _redirect("/my_bots?error=Неверный ID бота")
+        return _my_bots_redirect(error="Неверный ID бота")
 
     if not bot_repo.get_by_id(bot_id, user["id"]):
-        return _redirect("/my_bots?error=Бот не найден")
+        return _my_bots_redirect(error="Бот не найден")
 
     bot_repo.delete_bot(bot_id, user["id"])
-    return _redirect("/my_bots?success=Бот удален")
+    return _my_bots_redirect(success="Бот удален")
 
 
 @router.get("/bot_channels/{bot_id}")

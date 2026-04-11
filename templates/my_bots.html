@@ -574,7 +574,7 @@ select.input{
                             <div class="bot-meta">{{ bot.token[:20] }}... • {{ bot.channels_count }} каналов</div>
                         </div>
                         <div class="bot-actions">
-                            <button class="edit-btn" onclick="openEditBotModal({{ bot.id }}, 'telegram')">✏️</button>
+                            <button type="button" class="edit-btn" onclick="openEditBotModal({{ bot.id }}, 'telegram')">✏️</button>
                             <form action="/delete_bot/{{ bot.id }}" method="post" style="display:inline" onsubmit="return confirm('Удалить бота?')">
                                 <button class="delete-btn">🗑️</button>
                             </form>
@@ -610,7 +610,7 @@ select.input{
                             <div class="bot-meta">{{ bot.token[:20] }}... • {% if bot.inn %}ИНН: {{ bot.inn }}{% else %}без ИНН{% endif %}</div>
                         </div>
                         <div class="bot-actions">
-                            <button class="edit-btn" onclick="openEditBotModal({{ bot.id }}, 'max')">✏️</button>
+                            <button type="button" class="edit-btn" onclick="openEditBotModal({{ bot.id }}, 'max')">✏️</button>
                             <form action="/delete_bot/{{ bot.id }}" method="post" style="display:inline" onsubmit="return confirm('Удалить бота?')">
                                 <button class="delete-btn">🗑️</button>
                             </form>
@@ -646,7 +646,7 @@ select.input{
                             <div class="bot-meta">{{ bot.token[:20] }}... • VK API</div>
                         </div>
                         <div class="bot-actions">
-                            <button class="edit-btn" onclick="openEditBotModal({{ bot.id }}, 'vk')">✏️</button>
+                            <button type="button" class="edit-btn" onclick="openEditBotModal({{ bot.id }}, 'vk')">✏️</button>
                             <form action="/delete_bot/{{ bot.id }}" method="post" style="display:inline" onsubmit="return confirm('Удалить бота?')">
                                 <button class="delete-btn">🗑️</button>
                             </form>
@@ -682,7 +682,7 @@ select.input{
                             <div class="bot-meta">{{ bot.youtube_api_key[:20] }}... • API Key</div>
                         </div>
                         <div class="bot-actions">
-                            <button class="edit-btn" onclick="openEditBotModal({{ bot.id }}, 'youtube')">✏️</button>
+                            <button type="button" class="edit-btn" onclick="openEditBotModal({{ bot.id }}, 'youtube')">✏️</button>
                             <form action="/delete_bot/{{ bot.id }}" method="post" style="display:inline" onsubmit="return confirm('Удалить бота?')">
                                 <button class="delete-btn">🗑️</button>
                             </form>
@@ -809,6 +809,16 @@ function updateBotAccessHint(platform){
     }
 }
 
+function applyAddBotPlatform(platform){
+    if(!platformSelect || !platform || platform === 'all') return;
+    platformSelect.value = platform;
+    if(innInput){
+        innInput.style.display = platform === 'max' ? 'block' : 'none';
+        innInput.required = platform === 'max';
+    }
+    updateBotAccessHint(platform);
+}
+
 function closeMobileMenu(){
     sidebar?.classList.remove('open');
     menuBackdrop?.classList.remove('active');
@@ -855,6 +865,7 @@ document.querySelectorAll('.menu-item').forEach(item => {
         item.classList.add('active');
         
         const platform = item.dataset.platform;
+        applyAddBotPlatform(platform);
         
         document.querySelectorAll('.platform-wrapper').forEach(wrapper => {
             if(platform === 'all' || wrapper.dataset.platform === platform){
@@ -942,7 +953,7 @@ const container = document.getElementById('alertContainer');
 if(urlParams.get('success') && container){
     const div = document.createElement('div');
     div.className = 'alert alert-success';
-    div.innerHTML = '✅ ' + decodeURIComponent(urlParams.get('success'));
+    div.textContent = '✅ ' + urlParams.get('success');
     container.appendChild(div);
     setTimeout(() => div.remove(), 4000);
     window.history.replaceState({}, document.title, window.location.pathname);
@@ -950,7 +961,7 @@ if(urlParams.get('success') && container){
 if(urlParams.get('error') && container){
     const div = document.createElement('div');
     div.className = 'alert alert-error';
-    div.innerHTML = '❌ ' + decodeURIComponent(urlParams.get('error'));
+    div.textContent = '❌ ' + urlParams.get('error');
     container.appendChild(div);
     setTimeout(() => div.remove(), 4000);
     window.history.replaceState({}, document.title, window.location.pathname);

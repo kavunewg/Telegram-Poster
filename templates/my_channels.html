@@ -582,7 +582,7 @@ textarea.input{
                             <div class="channel-meta">{{ ch.channel_id }} • 🤖 {{ ch.bot_name or 'нет бота' }}</div>
                         </div>
                         <div class="channel-actions">
-                            <button class="edit-btn" onclick="openEditModal({{ ch.id }}, 'telegram')">✏️</button>
+                            <button type="button" class="edit-btn" onclick="openEditModal({{ ch.id }}, 'telegram')">✏️</button>
                             <form action="/delete_channel/{{ ch.id }}" method="post" style="display:inline" onsubmit="return confirm('Удалить канал?')">
                                 <button class="delete-btn">🗑️</button>
                             </form>
@@ -618,7 +618,7 @@ textarea.input{
                             <div class="channel-meta">{{ ch.channel_id }} • 🤖 {{ ch.bot_name or 'нет бота' }}</div>
                         </div>
                         <div class="channel-actions">
-                            <button class="edit-btn" onclick="openEditModal({{ ch.id }}, 'max')">✏️</button>
+                            <button type="button" class="edit-btn" onclick="openEditModal({{ ch.id }}, 'max')">✏️</button>
                             <form action="/delete_channel/{{ ch.id }}" method="post" style="display:inline" onsubmit="return confirm('Удалить канал?')">
                                 <button class="delete-btn">🗑️</button>
                             </form>
@@ -654,7 +654,7 @@ textarea.input{
                             <div class="channel-meta">ID: {{ ch.channel_id }} • 🤖 {{ ch.bot_name or 'нет бота' }}</div>
                         </div>
                         <div class="channel-actions">
-                            <button class="edit-btn" onclick="openEditModal({{ ch.id }}, 'vk')">✏️</button>
+                            <button type="button" class="edit-btn" onclick="openEditModal({{ ch.id }}, 'vk')">✏️</button>
                             <form action="/delete_channel/{{ ch.id }}" method="post" style="display:inline" onsubmit="return confirm('Удалить канал?')">
                                 <button class="delete-btn">🗑️</button>
                             </form>
@@ -690,7 +690,7 @@ textarea.input{
                             <div class="channel-meta">{{ ch.youtube_channel_id[:20] }}... • 🎬 мониторинг</div>
                         </div>
                         <div class="channel-actions">
-                            <button class="edit-btn" onclick="openEditYoutubeModal({{ ch.id }})">✏️</button>
+                            <button type="button" class="edit-btn" onclick="openEditYoutubeModal({{ ch.id }})">✏️</button>
                             <form action="/delete_youtube_channel/{{ ch.id }}" method="post" style="display:inline" onsubmit="return confirm('Удалить канал?')">
                                 <button class="delete-btn">🗑️</button>
                             </form>
