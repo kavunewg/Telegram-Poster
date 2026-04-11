@@ -85,12 +85,16 @@ async def _normalize_bot_payload(
     existing_bot_id: int = None,
 ) -> tuple[dict | None, str | None]:
     platform = (platform or "telegram").lower()
+    youtube_key = (youtube_api_key or "").strip()
+    if platform == "youtube" and not youtube_key:
+        youtube_key = (bot_token or "").strip()
+
     normalized = {
         "name": (bot_name or "").strip(),
         "token": (bot_token or "").strip(),
         "platform": platform,
         "inn": (inn or "").strip() or None,
-        "youtube_api_key": (youtube_api_key or "").strip() or None,
+        "youtube_api_key": youtube_key or None,
     }
 
     if platform == "youtube":
