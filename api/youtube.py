@@ -236,55 +236,39 @@ async def api_youtube_channel_analytics(request: Request, channel_id: int, days:
     if not channel:
         return JSONResponse({"error": "Channel not found"}, status_code=404)
 
-    user_api_key = resolve_youtube_api_key(user["id"], channel.get("bot_id"))
-    if not user_api_key:
-        return JSONResponse({"error": "YouTube API key is not configured"}, status_code=400)
+    requested_days = max(1, min(days, 365))
+    history = youtube_repo.get_analytics_history(channel_id, user["id"], days=requested_days)
 
-    current_info = await get_youtube_channel_info(channel["youtube_channel_id"], user_api_key)
-    if "error" in current_info:
-        return JSONResponse(current_info, status_code=400)
+    def build_response(current_info: dict, warning: str = None, api_required: bool = False):
+        labels = []
+        subscribers = []
+        views = []
+        videos = []
 
-    if not youtube_repo.has_recent_analytics_snapshot(channel_id, minutes=60):
-        youtube_repo.add_analytics_snapshot(
-            user_id=user["id"],
-            youtube_channel_db_id=channel_id,
-            youtube_channel_id=channel["youtube_channel_id"],
-            subscriber_count=int(current_info.get("subscriber_count", 0)),
-            view_count=int(current_info.get("view_count", 0)),
-            video_count=int(current_info.get("video_count", 0)),
-        )
+        for point in history:
+            recorded_at = point.get("recorded_at")
+            try:
+                dt = datetime.fromisoformat(recorded_at)
+                labels.append(dt.strftime("%d.%m"))
+            except Exception:
+                labels.append(recorded_at or "")
+            subscribers.append(int(point.get("subscriber_count") or 0))
+            views.append(int(point.get("view_count") or 0))
+            videos.append(int(point.get("video_count") or 0))
 
-    history = youtube_repo.get_analytics_history(channel_id, user["id"], days=max(1, min(days, 365)))
+        first_point = history[0] if history else None
+        last_point = history[-1] if history else None
+        current_subscribers = int(current_info.get("subscriber_count", 0) or (last_point or {}).get("subscriber_count", 0) or 0)
+        current_views = int(current_info.get("view_count", 0) or (last_point or {}).get("view_count", 0) or 0)
+        current_videos = int(current_info.get("video_count", 0) or (last_point or {}).get("video_count", 0) or 0)
 
-    labels = []
-    subscribers = []
-    views = []
-    videos = []
+        delta = {
+            "subscribers": current_subscribers - int(first_point.get("subscriber_count", 0) or 0) if first_point else 0,
+            "views": current_views - int(first_point.get("view_count", 0) or 0) if first_point else 0,
+            "videos": current_videos - int(first_point.get("video_count", 0) or 0) if first_point else 0,
+        }
 
-    for point in history:
-        recorded_at = point.get("recorded_at")
-        try:
-            dt = datetime.fromisoformat(recorded_at)
-            labels.append(dt.strftime("%d.%m"))
-        except Exception:
-            labels.append(recorded_at or "")
-        subscribers.append(int(point.get("subscriber_count") or 0))
-        views.append(int(point.get("view_count") or 0))
-        videos.append(int(point.get("video_count") or 0))
-
-    first_point = history[0] if history else None
-    current_subscribers = int(current_info.get("subscriber_count", 0) or 0)
-    current_views = int(current_info.get("view_count", 0) or 0)
-    current_videos = int(current_info.get("video_count", 0) or 0)
-
-    delta = {
-        "subscribers": current_subscribers - int(first_point.get("subscriber_count", 0) or 0) if first_point else 0,
-        "views": current_views - int(first_point.get("view_count", 0) or 0) if first_point else 0,
-        "videos": current_videos - int(first_point.get("video_count", 0) or 0) if first_point else 0,
-    }
-
-    return JSONResponse(
-        {
+        return {
             "channel": {
                 "id": channel["id"],
                 "name": channel["youtube_channel_name"],
@@ -304,5 +288,41 @@ async def api_youtube_channel_analytics(request: Request, channel_id: int, days:
                 "views": views,
                 "videos": videos,
             },
+            "warning": warning,
+            "api_required": api_required,
         }
-    )
+
+    user_api_key = resolve_youtube_api_key(user["id"], channel.get("bot_id"))
+    if not user_api_key:
+        return JSONResponse(
+            build_response(
+                {},
+                warning="Для live-данных YouTube подключите API key в разделе Мои боты. Без ключа показываем только сохраненную историю.",
+                api_required=True,
+            )
+        )
+
+    current_info = await get_youtube_channel_info(channel["youtube_channel_id"], user_api_key)
+    if "error" in current_info:
+        if history:
+            return JSONResponse(
+                build_response(
+                    {},
+                    warning=f"{current_info['error']}. Показываем последнюю сохраненную историю.",
+                    api_required=True,
+                )
+            )
+        return JSONResponse(current_info, status_code=400)
+
+    if not youtube_repo.has_recent_analytics_snapshot(channel_id, minutes=60):
+        youtube_repo.add_analytics_snapshot(
+            user_id=user["id"],
+            youtube_channel_db_id=channel_id,
+            youtube_channel_id=channel["youtube_channel_id"],
+            subscriber_count=int(current_info.get("subscriber_count", 0)),
+            view_count=int(current_info.get("view_count", 0)),
+            video_count=int(current_info.get("video_count", 0)),
+        )
+
+    history = youtube_repo.get_analytics_history(channel_id, user["id"], days=requested_days)
+    return JSONResponse(build_response(current_info))

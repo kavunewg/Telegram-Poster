@@ -1075,7 +1075,10 @@ async function loadYouTubeAnalytics() {
         setDelta(document.getElementById('ytVideosDelta'), data.delta.videos, 'за период');
 
         if (chartNode) {
-            chartNode.innerHTML = buildLineChart(data.series.labels, data.series.subscribers, '#8b5cf6');
+            const hasSeries = Boolean(data.series?.subscribers?.length);
+            chartNode.innerHTML = data.warning && !hasSeries
+                ? `<div class="chart-empty">${data.warning}</div>`
+                : buildLineChart(data.series.labels, data.series.subscribers, '#8b5cf6');
         }
         renderMiniMetrics(data.current, data.delta);
     } catch (error) {
